@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>INEB CENTRO CAJOLÁ - Aula Virtual de Asistencia</title>
+    <title>INEB CENTRO CAJOLÁ - Aula Virtual en la Nube</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -45,15 +45,21 @@
 </head>
 <body class="bg-slate-50 text-navy-900 min-h-screen flex flex-col">
 
+    <!-- ================= PANTALLA DE CARGA INICIAL ================= -->
+    <div id="loadingOverlay" class="fixed inset-0 z-50 bg-navy-950 flex flex-col items-center justify-center text-white gap-3">
+        <div class="w-12 h-12 border-4 border-crimson-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm font-bold tracking-wide">Conectando con la Nube INEB...</p>
+    </div>
+
     <!-- ================= PANTALLA 0: LOGIN Y REGISTRO DOCENTE ================= -->
-    <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800">
+    <div id="authScreen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-t-8 border-crimson-600 space-y-6">
             <div class="text-center space-y-2">
                 <div class="w-16 h-16 mx-auto rounded-2xl bg-navy-900 border-2 border-crimson-600 flex items-center justify-center shadow-md">
-                    <i data-lucide="graduation-cap" class="w-9 h-9 text-white"></i>
+                    <i data-lucide="cloud" class="w-9 h-9 text-white"></i>
                 </div>
                 <h1 class="font-extrabold text-navy-900 text-xl tracking-wide">INEB CENTRO CAJOLÁ</h1>
-                <p class="text-xs text-slate-500 font-medium">Aula Virtual • Control de Asistencia Facial</p>
+                <p class="text-xs text-slate-500 font-medium">Aula Virtual en la Nube • Asistencia Facial</p>
             </div>
 
             <!-- Pestañas Login / Registro -->
@@ -65,14 +71,14 @@
             <!-- Formulario Login -->
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-navy-900 mb-1">Correo Institucional / Personal</label>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Correo Electrónico</label>
                     <input type="email" id="loginEmail" required placeholder="docente@ineb.edu.gt" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-navy-900 mb-1">Contraseña</label>
                     <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
-                <button type="submit" class="w-full py-3 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white font-bold text-sm shadow-md transition-all">
+                <button type="submit" id="btnLoginSubmit" class="w-full py-3 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white font-bold text-sm shadow-md transition-all">
                     Ingresar a mis Aulas
                 </button>
             </form>
@@ -88,11 +94,11 @@
                     <input type="email" id="regTeacherEmail" required placeholder="docente@ineb.edu.gt" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-navy-900 mb-1">Crear Contraseña</label>
-                    <input type="password" id="regTeacherPassword" required minlength="4" placeholder="Mínimo 4 caracteres" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Crear Contraseña (Mín. 6 caracteres)</label>
+                    <input type="password" id="regTeacherPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
-                <button type="submit" class="w-full py-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-sm shadow-md transition-all">
-                    Registrar Docente y Entrar
+                <button type="submit" id="btnRegSubmit" class="w-full py-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-sm shadow-md transition-all">
+                    Crear Cuenta en la Nube
                 </button>
             </form>
         </div>
@@ -109,7 +115,10 @@
                     </div>
                     <div class="min-w-0">
                         <h1 class="font-extrabold text-white text-sm sm:text-lg tracking-wide truncate">INEB CENTRO CAJOLÁ</h1>
-                        <p class="text-[11px] text-slate-300 truncate">Docente: <span id="currentTeacherName" class="font-bold text-white"></span></p>
+                        <p class="text-[11px] text-slate-300 truncate flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span id="currentTeacherName" class="font-bold text-white"></span>
+                        </p>
                     </div>
                 </div>
 
@@ -164,7 +173,7 @@
             <div id="noClassesAlert" class="hidden bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-2xl text-navy-900 shadow-sm text-center space-y-3">
                 <i data-lucide="folder-plus" class="w-10 h-10 text-amber-600 mx-auto"></i>
                 <h2 class="font-bold text-base">Aún no has creado ningún Grado o Sección</h2>
-                <p class="text-xs text-slate-600 max-w-md mx-auto">Para comenzar a registrar alumnos y tomar asistencia, crea tu primera aula (Ejemplo: 3ro Básico - Sección A).</p>
+                <p class="text-xs text-slate-600 max-w-md mx-auto">Crea tu primera aula (Ejemplo: 3ro Básico - Sección A) para guardar los rostros y datos de tus estudiantes en la nube.</p>
                 <button onclick="openNewClassModal()" class="px-4 py-2.5 rounded-xl bg-navy-900 text-white text-xs font-bold hover:bg-navy-800">
                     + Crear Mi Primera Aula
                 </button>
@@ -193,7 +202,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <div>
                                 <h2 class="font-bold text-navy-900 text-base">Escáner Facial: <span id="scannerClassTitle" class="text-crimson-600"></span></h2>
-                                <p class="text-xs text-slate-500">Comparando rostros únicamente contra los alumnos de esta sección.</p>
+                                <p class="text-xs text-slate-500">Sincronizado con la nube en tiempo real.</p>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button id="btnToggleCamera" onclick="toggleAttendanceCamera()" disabled class="flex items-center gap-2 bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm">
@@ -220,7 +229,7 @@
                             <div id="lastDetectedBanner" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-navy-900/95 border-l-4 border-emerald-400 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
                                 <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0"></i>
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-[10px] uppercase text-emerald-300 font-bold">Asistencia Registrada</p>
+                                    <p class="text-[10px] uppercase text-emerald-300 font-bold">Asistencia Guardada en Nube</p>
                                     <p id="lastDetectedName" class="font-bold text-sm truncate"></p>
                                 </div>
                                 <span id="lastDetectedTime" class="text-xs font-mono bg-navy-800 px-2 py-1 rounded"></span>
@@ -233,7 +242,7 @@
                 <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
                     <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 h-fit">
                         <div class="border-b border-slate-100 pb-2">
-                            <h2 class="font-bold text-navy-900 text-base">Nuevo Alumno en Aula</h2>
+                            <h2 class="font-bold text-navy-900 text-base">Nuevo Alumno en Nube</h2>
                             <p class="text-xs text-slate-500">Se guardará en: <strong id="regClassLabel" class="text-navy-900"></strong></p>
                         </div>
 
@@ -272,14 +281,14 @@
                         <div id="regFaceFeedback" class="hidden text-xs px-3 py-2 rounded-xl font-semibold"></div>
 
                         <button type="button" id="btnSaveStudent" onclick="saveNewStudent()" disabled class="w-full py-2.5 rounded-xl bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold text-sm">
-                            Guardar Alumno en Aula
+                            Guardar Alumno en la Nube
                         </button>
                     </div>
 
                     <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                            <h2 class="font-bold text-navy-900 text-base">Alumnos Registrados</h2>
-                            <button onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline">Eliminar esta Aula</button>
+                            <h2 class="font-bold text-navy-900 text-base">Alumnos en esta Aula</h2>
+                            <button onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline">Eliminar Aula</button>
                         </div>
                         <div id="registeredStudentsList" class="mt-3 space-y-2 max-h-[450px] overflow-y-auto"></div>
                     </div>
@@ -333,21 +342,38 @@
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="closeNewClassModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
-                <button type="submit" class="px-4 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold">Guardar Aula</button>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold">Guardar en Nube</button>
             </div>
         </form>
     </div>
 
     <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <script>
-        const DB_KEY_USERS = 'ineb_virtual_users_v1';
-        const DB_KEY_DATA = 'ineb_virtual_data_v1';
-        const SESSION_KEY = 'ineb_active_session_v1';
+    <!-- FIREBASE SDK Y LÓGICA DEL SISTEMA -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+        // TUS CREDENCIALES REALES DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyArBHe7SW2j45TOF2D1716Nw1FW-PaX20g",
+            authDomain: "ineb-cajola-asistencia.firebaseapp.com",
+            projectId: "ineb-cajola-asistencia",
+            storageBucket: "ineb-cajola-asistencia.firebasestorage.app",
+            messagingSenderId: "325897112815",
+            appId: "1:325897112815:web:986e224de175b230b85f1a",
+            measurementId: "G-0PWY2RY9EP"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
         const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
 
-        let currentUser = null; // { email, name }
-        let userData = { classes: [] }; // { classes: [ { id, grade, section, students: [], attendance: {} } ] }
+        let currentUser = null;
+        let userData = { classes: [] };
         let activeClassId = null;
 
         let modelsLoaded = false;
@@ -362,19 +388,12 @@
         let currentRegDescriptor = null;
         let currentRegPhotoDataUrl = null;
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            lucide.createIcons();
-            checkActiveSession();
-            await loadFaceApiModels();
-        });
-
-        // ================= 1. GESTIÓN DE CUENTAS DOCENTES =================
-        function toggleAuthMode(mode) {
+        // ================= EXPONER FUNCIONES AL HTML =================
+        window.toggleAuthMode = (mode) => {
             const loginForm = document.getElementById('loginForm');
             const regForm = document.getElementById('registerForm');
             const btnLogin = document.getElementById('btnShowLogin');
             const btnReg = document.getElementById('btnShowRegister');
-
             if (mode === 'login') {
                 loginForm.classList.remove('hidden');
                 regForm.classList.add('hidden');
@@ -386,118 +405,135 @@
                 btnReg.className = 'py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all';
                 btnLogin.className = 'py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all';
             }
-        }
+        };
 
-        function handleRegisterTeacher(e) {
+        // ================= 1. AUTENTICACIÓN EN LA NUBE =================
+        window.handleRegisterTeacher = async (e) => {
             e.preventDefault();
             const name = document.getElementById('regTeacherName').value.trim();
-            const email = document.getElementById('regTeacherEmail').value.trim().toLowerCase();
+            const email = document.getElementById('regTeacherEmail').value.trim();
             const password = document.getElementById('regTeacherPassword').value;
+            const btn = document.getElementById('btnRegSubmit');
 
-            const users = JSON.parse(localStorage.getItem(DB_KEY_USERS) || '{}');
-            if (users[email]) {
-                showToast('Este correo ya está registrado. Inicia sesión.', 'error');
-                return;
+            btn.disabled = true;
+            btn.textContent = 'Creando cuenta en Firebase...';
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCredential.user, { displayName: name });
+
+                await setDoc(doc(db, "docentes", userCredential.user.uid), {
+                    name: name,
+                    email: email,
+                    classes: []
+                });
+
+                showToast('¡Cuenta creada en la nube con éxito!', 'success');
+            } catch (error) {
+                console.error(error);
+                showToast('Error al registrar: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Crear Cuenta en la Nube';
             }
+        };
 
-            users[email] = { name, email, password };
-            localStorage.setItem(DB_KEY_USERS, JSON.stringify(users));
-
-            // Inicializar base de datos vacía para el nuevo docente
-            const allData = JSON.parse(localStorage.getItem(DB_KEY_DATA) || '{}');
-            allData[email] = { classes: [] };
-            localStorage.setItem(DB_KEY_DATA, JSON.stringify(allData));
-
-            startSession({ name, email });
-            showToast(`¡Bienvenido, ${name}!`, 'success');
-        }
-
-        function handleLogin(e) {
+        window.handleLogin = async (e) => {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('btnLoginSubmit');
 
-            const users = JSON.parse(localStorage.getItem(DB_KEY_USERS) || '{}');
-            const user = users[email];
+            btn.disabled = true;
+            btn.textContent = 'Verificando credenciales...';
 
-            if (!user || user.password !== password) {
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showToast('Sesión iniciada correctamente.', 'success');
+            } catch (error) {
                 showToast('Correo o contraseña incorrectos.', 'error');
-                return;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Ingresar a mis Aulas';
             }
+        };
 
-            startSession({ name: user.name, email: user.email });
-            showToast(`Sesión iniciada como ${user.name}`, 'success');
-        }
-
-        function checkActiveSession() {
-            const session = localStorage.getItem(SESSION_KEY);
-            if (session) {
-                startSession(JSON.parse(session));
-            }
-        }
-
-        function startSession(user) {
-            currentUser = user;
-            localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-            document.getElementById('currentTeacherName').textContent = user.name;
-            document.getElementById('authScreen').classList.add('hidden');
-            document.getElementById('appContainer').classList.remove('hidden');
-
-            loadTeacherData();
-        }
-
-        function logoutTeacher() {
+        window.logoutTeacher = async () => {
             stopAttendanceCamera();
             stopRegCamera();
-            localStorage.removeItem(SESSION_KEY);
-            currentUser = null;
-            document.getElementById('appContainer').classList.add('hidden');
-            document.getElementById('authScreen').classList.remove('hidden');
+            await signOut(auth);
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            if (user) {
+                currentUser = user;
+                document.getElementById('currentTeacherName').textContent = user.displayName || user.email;
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                await loadTeacherDataFromCloud();
+            } else {
+                currentUser = null;
+                document.getElementById('appContainer').classList.add('hidden');
+                document.getElementById('authScreen').classList.remove('hidden');
+            }
+        });
+
+        // ================= 2. LECTURA Y ESCRITURA EN FIRESTORE =================
+        async function loadTeacherDataFromCloud() {
+            try {
+                const docRef = doc(db, "docentes", currentUser.uid);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    userData.classes = (data.classes || []).map(cls => ({
+                        ...cls,
+                        students: (cls.students || []).map(s => ({
+                            ...s,
+                            descriptor: new Float32Array(s.descriptor)
+                        }))
+                    }));
+                } else {
+                    userData = { classes: [] };
+                    await setDoc(docRef, { name: currentUser.displayName || '', email: currentUser.email, classes: [] });
+                }
+                renderClassSelector();
+            } catch (err) {
+                console.error(err);
+                showToast('Error al descargar tus datos de la nube.', 'error');
+            }
         }
 
-        // ================= 2. GESTIÓN DE AULAS (GRADOS Y SECCIONES) =================
-        function loadTeacherData() {
-            const allData = JSON.parse(localStorage.getItem(DB_KEY_DATA) || '{}');
-            userData = allData[currentUser.email] || { classes: [] };
-
-            // Restaurar Float32Array en cada alumno de cada aula
-            userData.classes.forEach(cls => {
-                cls.students = cls.students.map(s => ({
-                    ...s,
-                    descriptor: new Float32Array(s.descriptor)
-                }));
-            });
-
-            renderClassSelector();
-        }
-
-        function saveTeacherData() {
-            const allData = JSON.parse(localStorage.getItem(DB_KEY_DATA) || '{}');
-            // Convertir Float32Array a Array normal antes de serializar a JSON
-            const serializableData = {
-                classes: userData.classes.map(cls => ({
+        async function saveTeacherDataToCloud() {
+            if (!currentUser) return;
+            try {
+                const serializableClasses = userData.classes.map(cls => ({
                     ...cls,
                     students: cls.students.map(s => ({
                         ...s,
                         descriptor: Array.from(s.descriptor)
                     }))
-                }))
-            };
-            allData[currentUser.email] = serializableData;
-            localStorage.setItem(DB_KEY_DATA, JSON.stringify(allData));
+                }));
+
+                await updateDoc(doc(db, "docentes", currentUser.uid), {
+                    classes: serializableClasses
+                });
+            } catch (err) {
+                console.error(err);
+                showToast('Error al sincronizar con la nube.', 'error');
+            }
         }
 
-        function openNewClassModal() {
-            document.getElementById('newClassModal').classList.remove('hidden');
-        }
-
-        function closeNewClassModal() {
+        // ================= 3. GESTIÓN DE AULAS =================
+        window.openNewClassModal = () => document.getElementById('newClassModal').classList.remove('hidden');
+        window.closeNewClassModal = () => {
             document.getElementById('newClassModal').classList.add('hidden');
             document.getElementById('newClassGrade').value = '';
             document.getElementById('newClassSection').value = '';
-        }
+        };
 
-        function createNewClass(e) {
+        window.createNewClass = async (e) => {
             e.preventDefault();
             const grade = document.getElementById('newClassGrade').value.trim();
             const section = document.getElementById('newClassSection').value.trim();
@@ -512,11 +548,11 @@
 
             userData.classes.push(newClass);
             activeClassId = newClass.id;
-            saveTeacherData();
             closeNewClassModal();
             renderClassSelector();
-            showToast(`Aula "${grade} - ${section}" creada.`, 'success');
-        }
+            await saveTeacherDataToCloud();
+            showToast(`Aula "${grade} - ${section}" guardada en la nube.`, 'success');
+        };
 
         function renderClassSelector() {
             const selector = document.getElementById('activeClassSelector');
@@ -541,14 +577,14 @@
                 activeClassId = userData.classes[0].id;
             }
             selector.value = activeClassId;
-            handleClassChange();
+            window.handleClassChange();
         }
 
         function getActiveClass() {
             return userData.classes.find(c => c.id === activeClassId);
         }
 
-        function handleClassChange() {
+        window.handleClassChange = () => {
             stopAttendanceCamera();
             activeClassId = document.getElementById('activeClassSelector').value;
             const cls = getActiveClass();
@@ -562,21 +598,21 @@
 
             rebuildFaceMatcher();
             renderAllUI();
-        }
+        };
 
-        function deleteCurrentClass() {
+        window.deleteCurrentClass = async () => {
             const cls = getActiveClass();
             if (!cls) return;
-            if (!confirm(`¿Seguro que deseas eliminar el aula ${cls.grade} - ${cls.section} y todos sus alumnos?`)) return;
+            if (!confirm(`¿Seguro que deseas eliminar el aula ${cls.grade} - ${cls.section}?`)) return;
 
             userData.classes = userData.classes.filter(c => c.id !== activeClassId);
             activeClassId = null;
-            saveTeacherData();
             renderClassSelector();
-            showToast('Aula eliminada.', 'success');
-        }
+            await saveTeacherDataToCloud();
+            showToast('Aula eliminada de la nube.', 'success');
+        };
 
-        // ================= 3. IA Y REGISTRO DE FOTOS POR AULA =================
+        // ================= 4. IA Y COMPRESIÓN DE FOTOS =================
         async function loadFaceApiModels() {
             const dot = document.getElementById('aiStatusDot');
             const text = document.getElementById('aiStatusText');
@@ -608,25 +644,43 @@
             faceMatcher = new faceapi.FaceMatcher(labeled, 0.52);
         }
 
-        async function handlePhotoUpload(event) {
+        function compressImageToDataUrl(imgElement, maxSize = 220) {
+            const canvas = document.createElement('canvas');
+            let width = imgElement.width || imgElement.videoWidth;
+            let height = imgElement.height || imgElement.videoHeight;
+
+            if (width > height) {
+                if (width > maxSize) { height *= maxSize / width; width = maxSize; }
+            } else {
+                if (height > maxSize) { width *= maxSize / height; height = maxSize; }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(imgElement, 0, 0, width, height);
+            return canvas.toDataURL('image/jpeg', 0.7);
+        }
+
+        window.handlePhotoUpload = (event) => {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                currentRegPhotoDataUrl = e.target.result;
                 const img = document.getElementById('regPreviewImg');
-                img.src = currentRegPhotoDataUrl;
+                img.src = e.target.result;
                 img.classList.remove('hidden');
                 document.getElementById('regVideo').classList.add('hidden');
                 document.getElementById('regMediaContainer').classList.remove('hidden');
                 document.getElementById('regCameraControls').classList.add('hidden');
 
-                img.onload = async () => await processAndExtractFace(img);
+                img.onload = async () => {
+                    currentRegPhotoDataUrl = compressImageToDataUrl(img);
+                    await processAndExtractFace(img);
+                };
             };
             reader.readAsDataURL(file);
-        }
+        };
 
-        async function startRegCamera() {
+        window.startRegCamera = async () => {
             stopRegCamera();
             const container = document.getElementById('regMediaContainer');
             const video = document.getElementById('regVideo');
@@ -641,7 +695,7 @@
             } catch (err) {
                 showToast('No se pudo abrir la cámara.', 'error');
             }
-        }
+        };
 
         function stopRegCamera() {
             if (regStream) {
@@ -650,14 +704,10 @@
             }
         }
 
-        async function captureRegSnapshot() {
+        window.captureRegSnapshot = async () => {
             const video = document.getElementById('regVideo');
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            currentRegPhotoDataUrl = canvas.toDataURL('image/jpeg');
+            currentRegPhotoDataUrl = compressImageToDataUrl(video);
+            
             const img = document.getElementById('regPreviewImg');
             img.src = currentRegPhotoDataUrl;
             img.classList.remove('hidden');
@@ -665,8 +715,8 @@
             document.getElementById('regCameraControls').classList.add('hidden');
             stopRegCamera();
 
-            await processAndExtractFace(img);
-        }
+            img.onload = async () => await processAndExtractFace(img);
+        };
 
         async function processAndExtractFace(mediaElement) {
             const fb = document.getElementById('regFaceFeedback');
@@ -680,7 +730,7 @@
             if (detection) {
                 currentRegDescriptor = detection.descriptor;
                 fb.classList.add('bg-emerald-50', 'text-emerald-700');
-                fb.textContent = '¡Rostro detectado correctamente!';
+                fb.textContent = '¡Rostro detectado y listo para subir a la nube!';
                 document.getElementById('btnSaveStudent').disabled = false;
             } else {
                 currentRegDescriptor = null;
@@ -690,16 +740,20 @@
             }
         }
 
-        function saveNewStudent() {
+        window.saveNewStudent = async () => {
             const cls = getActiveClass();
             const id = document.getElementById('regStudentId').value.trim();
             const name = document.getElementById('regStudentName').value.trim();
+            const btn = document.getElementById('btnSaveStudent');
 
             if (!id || !name || !currentRegDescriptor) return;
             if (cls.students.some(s => s.id === id)) {
                 showToast('Ya existe un alumno con esa clave en esta aula.', 'error');
                 return;
             }
+
+            btn.disabled = true;
+            btn.textContent = 'Subiendo a la nube...';
 
             cls.students.push({
                 id,
@@ -708,31 +762,30 @@
                 descriptor: currentRegDescriptor
             });
 
-            saveTeacherData();
+            await saveTeacherDataToCloud();
             rebuildFaceMatcher();
             renderClassSelector();
 
-            // Limpiar formulario
             document.getElementById('regStudentId').value = '';
             document.getElementById('regStudentName').value = '';
             document.getElementById('regMediaContainer').classList.add('hidden');
             document.getElementById('regFaceFeedback').classList.add('hidden');
-            document.getElementById('btnSaveStudent').disabled = true;
+            btn.textContent = 'Guardar Alumno en la Nube';
             currentRegDescriptor = null;
 
-            showToast(`${name} agregado a ${cls.grade} - ${cls.section}`, 'success');
-        }
+            showToast(`${name} guardado en la nube correctamente.`, 'success');
+        };
 
-        // ================= 4. ESCÁNER DE ASISTENCIA POR SECCIÓN =================
+        // ================= 5. ESCÁNER DE ASISTENCIA =================
         function getTodayStr() {
             const now = new Date();
             return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         }
 
-        async function toggleAttendanceCamera() {
+        window.toggleAttendanceCamera = async () => {
             if (isScanning) stopAttendanceCamera();
             else await startAttendanceCamera();
-        }
+        };
 
         async function startAttendanceCamera() {
             const cls = getActiveClass();
@@ -761,11 +814,11 @@
             document.getElementById('btnToggleCameraText').textContent = 'Iniciar Cámara';
         }
 
-        function switchCameraFacing() {
+        window.switchCameraFacing = () => {
             attendanceFacingMode = attendanceFacingMode === 'environment' ? 'user' : 'environment';
             document.getElementById('facingLabel').textContent = attendanceFacingMode === 'environment' ? 'Trasera' : 'Frontal';
             if (isScanning) { stopAttendanceCamera(); startAttendanceCamera(); }
-        }
+        };
 
         async function runScannerLoop() {
             const video = document.getElementById('attendanceVideo');
@@ -805,7 +858,7 @@
             if (isScanning) scanAnimationFrame = requestAnimationFrame(runScannerLoop);
         }
 
-        function markPresent(studentId, studentName) {
+        async function markPresent(studentId, studentName) {
             const now = Date.now();
             if (lastDetectedCooldown[studentId] && now - lastDetectedCooldown[studentId] < 10000) return;
             lastDetectedCooldown[studentId] = now;
@@ -817,8 +870,8 @@
             const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
             cls.attendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
 
-            saveTeacherData();
             renderAllUI();
+            await saveTeacherDataToCloud();
 
             const banner = document.getElementById('lastDetectedBanner');
             document.getElementById('lastDetectedName').textContent = studentName;
@@ -827,8 +880,8 @@
             setTimeout(() => banner.classList.add('hidden'), 3500);
         }
 
-        // ================= 5. RENDERIZADO UI Y EXCEL =================
-        function switchTab(tabId) {
+        // ================= 6. RENDERIZADO UI Y EXCEL =================
+        window.switchTab = (tabId) => {
             ['scanner', 'register', 'report'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
                 document.getElementById(`tab-${t}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500';
@@ -836,7 +889,7 @@
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80';
             if (tabId !== 'scanner') stopAttendanceCamera();
-        }
+        };
 
         function renderAllUI() {
             const cls = getActiveClass();
@@ -847,14 +900,12 @@
 
             document.getElementById('badgeStudentCount').textContent = cls.students.length;
 
-            // Estadísticas
             let present = 0;
             cls.students.forEach(s => { if (todayRecords[s.id]?.status === 'ASISTENTE') present++; });
             document.getElementById('statTotal').textContent = cls.students.length;
             document.getElementById('statPresent').textContent = present;
             document.getElementById('statAbsent').textContent = cls.students.length - present;
 
-            // Lista de alumnos registrados
             const listEl = document.getElementById('registeredStudentsList');
             listEl.innerHTML = cls.students.length === 0
                 ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos en esta sección.</p>'
@@ -871,7 +922,6 @@
                     </div>
                 `).join('');
 
-            // Tabla de reporte
             const tbody = document.getElementById('attendanceTableBody');
             tbody.innerHTML = cls.students.map(s => {
                 const rec = todayRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
@@ -896,15 +946,15 @@
             lucide.createIcons();
         }
 
-        function deleteStudent(studentId) {
+        window.deleteStudent = async (studentId) => {
             const cls = getActiveClass();
             cls.students = cls.students.filter(s => s.id !== studentId);
-            saveTeacherData();
             rebuildFaceMatcher();
             renderClassSelector();
-        }
+            await saveTeacherDataToCloud();
+        };
 
-        function toggleManualStatus(studentId) {
+        window.toggleManualStatus = async (studentId) => {
             const cls = getActiveClass();
             const today = getTodayStr();
             if (!cls.attendance[today]) cls.attendance[today] = {};
@@ -915,19 +965,19 @@
                 const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
                 cls.attendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
             }
-            saveTeacherData();
             renderAllUI();
-        }
+            await saveTeacherDataToCloud();
+        };
 
-        function resetTodayAttendance() {
+        window.resetTodayAttendance = async () => {
             const cls = getActiveClass();
             cls.attendance[getTodayStr()] = {};
-            saveTeacherData();
             renderAllUI();
+            await saveTeacherDataToCloud();
             showToast('Asistencia del día reiniciada.', 'success');
-        }
+        };
 
-        function exportToExcel() {
+        window.exportToExcel = () => {
             const cls = getActiveClass();
             const today = getTodayStr();
             const todayRecords = cls.attendance[today] || {};
@@ -950,7 +1000,7 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
             XLSX.writeFile(wb, `Asistencia_${cls.grade}_${cls.section}_${today}.xlsx`);
-        }
+        };
 
         function showToast(msg, type = 'success') {
             const container = document.getElementById('toastContainer');
@@ -960,6 +1010,8 @@
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 3500);
         }
+
+        lucide.createIcons();
     </script>
 </body>
 </html>
