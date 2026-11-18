@@ -60,9 +60,6 @@
             height: 100%;
             pointer-events: none;
         }
-        .mirror-mode {
-            transform: scaleX(-1);
-        }
         @keyframes slideInUp {
             from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -95,9 +92,7 @@
                     </div>
                 </div>
                 <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                        <h1 class="font-extrabold text-white text-base sm:text-xl tracking-wide truncate">INEB CENTRO CAJOLÁ</h1>
-                    </div>
+                    <h1 class="font-extrabold text-white text-base sm:text-xl tracking-wide truncate">INEB CENTRO CAJOLÁ</h1>
                     <p class="text-[11px] sm:text-xs text-slate-200 font-medium truncate">Control de Asistencia por Reconocimiento Facial</p>
                 </div>
             </div>
@@ -134,7 +129,7 @@
                 <i data-lucide="alert-triangle" class="w-6 h-6 text-crimson-600 shrink-0 mt-0.5"></i>
                 <div class="text-sm">
                     <h3 class="font-bold text-crimson-700">No se pudo acceder a la cámara</h3>
-                    <p id="cameraErrorDetail" class="mt-1 text-slate-700">Verifica los permisos del navegador.</p>
+                    <p id="cameraErrorDetail" class="mt-1 text-slate-700">Verifica los permisos del navegador o asegúrate de usar HTTPS / Localhost.</p>
                 </div>
             </div>
         </div>
@@ -374,9 +369,9 @@
 
     <script>
         const INSTITUTION_NAME = 'INEB CENTRO CAJOLÁ';
-        const STORAGE_KEY_STUDENTS = 'ineb_cajola_students_v1';
-        const STORAGE_KEY_ATTENDANCE = 'ineb_cajola_records_v1';
-        const STORAGE_KEY_LOGO = 'ineb_cajola_logo_v1';
+        const STORAGE_KEY_STUDENTS = 'ineb_cajola_students_v3';
+        const STORAGE_KEY_ATTENDANCE = 'ineb_cajola_records_v3';
+        const STORAGE_KEY_LOGO = 'ineb_cajola_logo_v3';
         const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
 
         let modelsLoaded = false;
@@ -454,7 +449,14 @@
         function loadFromLocalStorage() {
             try {
                 const rawStudents = localStorage.getItem(STORAGE_KEY_STUDENTS);
-                if (rawStudents) students = JSON.parse(rawStudents);
+                if (rawStudents) {
+                    const parsed = JSON.parse(rawStudents);
+                    // Restaurar Float32Array en los descriptores guardados
+                    students = parsed.map(s => ({
+                        ...s,
+                        descriptor: new Float32Array(s.descriptor)
+                    }));
+                }
                 const rawAttendance = localStorage.getItem(STORAGE_KEY_ATTENDANCE);
                 if (rawAttendance) {
                     const parsed = JSON.parse(rawAttendance);
@@ -518,25 +520,24 @@
                     rebuildFaceMatcher();
                     dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
                     badge.className = 'shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-500/40';
-                    text.textContent = 'IA Lista';
+                    text.textContent = 'IA Lista (CPU)';
                     document.getElementById('btnToggleCamera').disabled = false;
-                } catch (e) {
-                    dot.className = 'w-2 h-2 rounded-full bg-red-400';
+                } catch (e2) {
+                    dot.className = 'w-2 h-2 rounded-full bg-red-500';
                     badge.className = 'shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-950 text-red-300 border border-red-500/40';
-                    text.textContent = 'Error IA';
+                    text.textContent = 'Error de IA';
                     showToast('No se pudieron cargar los modelos de reconocimiento facial.', 'error');
                 }
             }
         }
 
         function rebuildFaceMatcher() {
-            if (!modelsLoaded || students.length === 0) {
+            if (students.length === 0) {
                 faceMatcher = null;
                 return;
             }
             const labeledDescriptors = students.map(s => {
-                const floatArr = new Float32Array(s.descriptor);
-                return new faceapi.LabeledFaceDescriptors(s.id, [floatArr]);
+                return new faceapi.LabeledFaceDescriptors(s.id, [s.descriptor]);
             });
             faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, matchThreshold);
         }
@@ -545,7 +546,7 @@
             ['scanner', 'register', 'report'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
                 const btn = document.getElementById(`tab-${t}`);
-                btn.className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900 transition-all';
+                btn.className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900 transition-all bg-transparent';
             });
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`tab-${tabId}`);
@@ -557,112 +558,167 @@
             if (tabId !== 'register' && regStream) {
                 stopRegCamera();
             }
-            renderAllUI();
         }
 
-        // Manejo y subida de fotos corregido
+        // ================= GESTIÓN DE FOTOS Y REGISTRO =================
         async function handlePhotoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            if (!modelsLoaded) {
-                showToast('La IA aún se está cargando. Espera un momento.', 'error');
-                return;
-            }
-
             const reader = new FileReader();
             reader.onload = async function(e) {
-                const dataUrl = e.target.result;
+                currentRegPhotoDataUrl = e.target.result;
                 const img = document.getElementById('regPreviewImg');
-                img.src = dataUrl;
+                img.src = currentRegPhotoDataUrl;
                 img.classList.remove('hidden');
-                
+
                 const video = document.getElementById('regVideo');
                 video.classList.add('hidden');
                 document.getElementById('regMediaContainer').classList.remove('hidden');
                 document.getElementById('regCameraControls').classList.add('hidden');
 
-                showFeedback('Analizando rostro en la foto...', 'info');
+                showFeedback('Analizando fotografía subida...', 'info');
 
-                try {
-                    const tempImg = await faceapi.bufferToImage(file);
-                    const detection = await faceapi.detectSingleFace(tempImg, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks(true).withFaceDescriptor();
-
-                    if (!detection) {
-                        showFeedback('No se detectó ningún rostro claro. Intenta con otra foto.', 'error');
-                        currentRegDescriptor = null;
-                        currentRegPhotoDataUrl = null;
-                        checkRegFormValidity();
-                        return;
-                    }
-
-                    currentRegDescriptor = Array.from(detection.descriptor);
-                    currentRegPhotoDataUrl = dataUrl;
-                    showFeedback('¡Rostro detectado y procesado exitosamente!', 'success');
-                    checkRegFormValidity();
-                } catch (err) {
-                    showFeedback('Error al procesar la fotografía.', 'error');
-                }
+                img.onload = async () => {
+                    await processAndExtractFace(img);
+                };
             };
             reader.readAsDataURL(file);
         }
 
+        async function startRegCamera() {
+            stopRegCamera();
+            const container = document.getElementById('regMediaContainer');
+            const video = document.getElementById('regVideo');
+            const img = document.getElementById('regPreviewImg');
+            const controls = document.getElementById('regCameraControls');
+
+            container.classList.remove('hidden');
+            video.classList.remove('hidden');
+            img.classList.add('hidden');
+            controls.classList.remove('hidden');
+
+            try {
+                regStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: regFacingMode, width: { ideal: 640 }, height: { ideal: 480 } }
+                });
+                video.srcObject = regStream;
+            } catch (err) {
+                showToast('No se pudo acceder a la cámara frontal.', 'error');
+                container.classList.add('hidden');
+            }
+        }
+
+        function stopRegCamera() {
+            if (regStream) {
+                regStream.getTracks().forEach(track => track.stop());
+                regStream = null;
+            }
+        }
+
+        async function switchRegCameraFacing() {
+            regFacingMode = regFacingMode === 'user' ? 'environment' : 'user';
+            await startRegCamera();
+        }
+
+        async function captureRegSnapshot() {
+            const video = document.getElementById('regVideo');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            currentRegPhotoDataUrl = canvas.toDataURL('image/jpeg');
+            const img = document.getElementById('regPreviewImg');
+            img.src = currentRegPhotoDataUrl;
+            img.classList.remove('hidden');
+            video.classList.add('hidden');
+            document.getElementById('regCameraControls').classList.add('hidden');
+            stopRegCamera();
+
+            showFeedback('Procesando rostro capturado...', 'info');
+            await processAndExtractFace(img);
+        }
+
+        async function processAndExtractFace(mediaElement) {
+            if (!modelsLoaded) {
+                showFeedback('Los modelos de IA aún no han terminado de cargar.', 'error');
+                return;
+            }
+
+            try {
+                const detection = await faceapi.detectSingleFace(mediaElement, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks(true)
+                    .withFaceDescriptor();
+
+                if (detection) {
+                    currentRegDescriptor = detection.descriptor;
+                    showFeedback('¡Rostro detectado y procesado exitosamente!', 'success');
+                    document.getElementById('btnSaveStudent').disabled = false;
+                } else {
+                    currentRegDescriptor = null;
+                    showFeedback('No se detectó ningún rostro claro. Intenta con otra foto o ilumina mejor tu rostro.', 'error');
+                    document.getElementById('btnSaveStudent').disabled = true;
+                }
+            } catch (err) {
+                currentRegDescriptor = null;
+                showFeedback('Error al procesar la imagen con IA.', 'error');
+                document.getElementById('btnSaveStudent').disabled = true;
+            }
+        }
+
         function showFeedback(msg, type) {
             const fb = document.getElementById('regFaceFeedback');
-            fb.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'bg-red-50', 'text-red-700', 'bg-blue-50', 'text-blue-700');
+            fb.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'bg-red-50', 'text-crimson-700', 'bg-blue-50', 'text-navy-950');
             if (type === 'success') {
                 fb.classList.add('bg-emerald-50', 'text-emerald-700');
             } else if (type === 'error') {
-                fb.classList.add('bg-red-50', 'text-red-700');
+                fb.classList.add('bg-red-50', 'text-crimson-700');
             } else {
-                fb.classList.add('bg-blue-50', 'text-blue-700');
+                fb.classList.add('bg-blue-50', 'text-navy-950');
             }
             fb.textContent = msg;
         }
 
-        function checkRegFormValidity() {
-            const id = document.getElementById('regStudentId').value.trim();
-            const name = document.getElementById('regStudentName').value.trim();
-            const btn = document.getElementById('btnSaveStudent');
-            if (id && name && currentRegDescriptor) {
-                btn.disabled = false;
-            } else {
-                btn.disabled = true;
-            }
-        }
-
         function saveNewStudent() {
-            const id = document.getElementById('regStudentId').value.trim();
-            const name = document.getElementById('regStudentName').value.trim();
-            const grade = document.getElementById('regStudentGrade').value.trim() || 'General';
+            const idInput = document.getElementById('regStudentId').value.trim();
+            const nameInput = document.getElementById('regStudentName').value.trim();
+            const gradeInput = document.getElementById('regStudentGrade').value.trim();
 
-            if (!id || !name || !currentRegDescriptor) return;
-
-            if (students.some(s => s.id === id)) {
-                showToast('Ya existe un estudiante con este código.', 'error');
+            if (!idInput || !nameInput) {
+                showToast('Completa el Código y el Nombre del alumno.', 'error');
+                return;
+            }
+            if (!currentRegDescriptor) {
+                showToast('Falta procesar una fotografía válida con rostro.', 'error');
                 return;
             }
 
-            students.push({
-                id,
-                name,
-                grade,
-                photo: currentRegPhotoDataUrl,
-                descriptor: currentRegDescriptor
-            });
+            if (students.some(s => s.id === idInput)) {
+                showToast('Ya existe un alumno registrado con este código.', 'error');
+                return;
+            }
 
-            attendanceRecords[id] = {
-                status: 'INASISTENTE',
-                date: getTodayStr(),
-                time: '--:--',
-                method: '-'
+            const newStudent = {
+                id: idInput,
+                name: nameInput,
+                grade: gradeInput || 'General',
+                photo: currentRegPhotoDataUrl,
+                descriptor: Array.from(currentRegDescriptor) // Guardar como arreglo normal para JSON
             };
 
+            students.push(newStudent);
+            // Mantener como Float32Array en memoria activa
+            students[students.length - 1].descriptor = currentRegDescriptor;
+
             saveToLocalStorage();
+            syncAttendanceWithRoster();
             rebuildFaceMatcher();
-            resetRegForm();
             renderAllUI();
-            showToast('Estudiante registrado correctamente.', 'success');
+            resetRegForm();
+
+            showToast(`Estudiante ${nameInput} registrado con éxito.`, 'success');
         }
 
         function resetRegForm() {
@@ -670,78 +726,177 @@
             document.getElementById('regStudentName').value = '';
             document.getElementById('regStudentGrade').value = '';
             document.getElementById('regMediaContainer').classList.add('hidden');
+            document.getElementById('regPreviewImg').classList.add('hidden');
+            document.getElementById('regVideo').classList.add('hidden');
             document.getElementById('regFaceFeedback').classList.add('hidden');
+            document.getElementById('btnSaveStudent').disabled = true;
             currentRegDescriptor = null;
             currentRegPhotoDataUrl = null;
-            checkRegFormValidity();
             stopRegCamera();
         }
 
-        function startRegCamera() {
-            // Lógica para iniciar cámara de registro
-        }
-
-        function stopRegCamera() {
-            if (regStream) {
-                regStream.getTracks().forEach(t => t.stop());
-                regStream = null;
+        // ================= CÁMARA DE ASISTENCIA Y ESCÁNER =================
+        async function toggleAttendanceCamera() {
+            if (isScanning) {
+                stopAttendanceCamera();
+            } else {
+                await startAttendanceCamera();
             }
         }
 
-        function toggleAttendanceCamera() {
-            // Lógica de asistencia con cámara
+        async function startAttendanceCamera() {
+            if (students.length === 0) {
+                document.getElementById('noStudentsWarning').classList.remove('hidden');
+                showToast('Registra alumnos primero antes de iniciar el escáner.', 'error');
+                return;
+            }
+
+            const video = document.getElementById('attendanceVideo');
+            try {
+                attendanceStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: attendanceFacingMode, width: { ideal: 640 }, height: { ideal: 480 } }
+                });
+                video.srcObject = attendanceStream;
+                document.getElementById('videoPlaceholder').classList.add('hidden');
+                document.getElementById('btnToggleCameraText').textContent = 'Detener Cámara';
+                document.getElementById('btnToggleCamera').className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-800 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-sm transition-all';
+                isScanning = true;
+                runAttendanceScannerLoop();
+            } catch (err) {
+                document.getElementById('cameraErrorBanner').classList.remove('hidden');
+                document.getElementById('cameraErrorDetail').textContent = err.message;
+            }
         }
 
         function stopAttendanceCamera() {
+            if (scanAnimationFrame) cancelAnimationFrame(scanAnimationFrame);
             if (attendanceStream) {
                 attendanceStream.getTracks().forEach(t => t.stop());
                 attendanceStream = null;
             }
             isScanning = false;
+            const video = document.getElementById('attendanceVideo');
+            video.srcObject = null;
+            document.getElementById('videoPlaceholder').classList.remove('hidden');
+            document.getElementById('btnToggleCameraText').textContent = 'Iniciar Cámara';
+            document.getElementById('btnToggleCamera').className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-crimson-600 hover:bg-crimson-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-sm transition-all';
+            const canvas = document.getElementById('attendanceCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        function switchCameraFacing() {}
-        function switchRegCameraFacing() {}
-        function captureRegSnapshot() {}
-
-        function renderAllUI() {
-            document.getElementById('badgeStudentCount').textContent = students.length;
-            const hasStudents = students.length > 0;
-            document.getElementById('noStudentsWarning').classList.toggle('hidden', hasStudents);
-            renderStats();
-            renderStudentsList();
-            renderAttendanceTable();
+        async function switchCameraFacing() {
+            attendanceFacingMode = attendanceFacingMode === 'environment' ? 'user' : 'environment';
+            document.getElementById('facingLabel').textContent = attendanceFacingMode === 'environment' ? 'Trasera' : 'Frontal';
+            if (isScanning) {
+                stopAttendanceCamera();
+                await startAttendanceCamera();
+            }
         }
 
-        function renderStats() {
-            const total = students.length;
-            let present = 0;
-            Object.values(attendanceRecords).forEach(r => {
-                if (r.status === 'ASISTENTE') present++;
-            });
-            const absent = total - present;
+        async function runAttendanceScannerLoop() {
+            const video = document.getElementById('attendanceVideo');
+            const canvas = document.getElementById('attendanceCanvas');
+            if (!isScanning) return;
 
-            document.getElementById('statTotal').textContent = total;
-            document.getElementById('statPresent').textContent = present;
-            document.getElementById('statAbsent').textContent = absent;
-        }
-
-        function renderStudentsList() {
-            const container = document.getElementById('registeredStudentsList');
-            if (students.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">No hay estudiantes registrados todavía.</p>`;
+            if (video.paused || video.ended) {
+                scanAnimationFrame = requestAnimationFrame(runAttendanceScannerLoop);
                 return;
             }
+
+            try {
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks(true)
+                    .withFaceDescriptors();
+
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (detections.length > 0 && faceMatcher) {
+                    const resizedDetections = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
+                    
+                    resizedDetections.forEach(detection => {
+                        const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+                        const box = detection.detection.box;
+                        
+                        let labelColor = '#C8102E'; // Rojo si es desconocido
+                        let studentName = 'Desconocido';
+
+                        if (bestMatch.label !== 'unknown') {
+                            const student = students.find(s => s.id === bestMatch.label);
+                            if (student) {
+                                studentName = student.name;
+                                labelColor = '#10B981'; // Verde si está registrado
+                                markAttendanceAsPresent(student.id, studentName);
+                            }
+                        }
+
+                        const drawBox = new faceapi.draw.DrawBox(box, { label: `${studentName} (${Math.round((1 - bestMatch.distance) * 100)}%)`, boxColor: labelColor });
+                        drawBox.draw(canvas);
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+
+            if (isScanning) {
+                scanAnimationFrame = requestAnimationFrame(runAttendanceScannerLoop);
+            }
+        }
+
+        function markAttendanceAsPresent(studentId, studentName) {
+            const now = Date.now();
+            if (lastDetectedCooldown[studentId] && (now - lastDetectedCooldown[studentId] < 15000)) {
+                return; 
+            }
+            lastDetectedCooldown[studentId] = now;
+
+            const timeStr = getCurrentTimeStr();
+            attendanceRecords[studentId] = {
+                status: 'ASISTENTE',
+                date: getTodayStr(),
+                time: timeStr,
+                method: 'Facial'
+            };
+
+            saveToLocalStorage();
+            renderAllUI();
+
+            const banner = document.getElementById('lastDetectedBanner');
+            document.getElementById('lastDetectedName').textContent = studentName;
+            document.getElementById('lastDetectedTime').textContent = timeStr;
+            banner.classList.remove('hidden');
+            setTimeout(() => { banner.classList.add('hidden'); }, 4000);
+        }
+
+        // ================= GESTIÓN DE UI Y REPORTES =================
+        function renderAllUI() {
+            document.getElementById('badgeStudentCount').textContent = students.length;
+            renderRegisteredStudentsList();
+            renderAttendanceStats();
+            renderAttendanceTable();
+            renderRecentCheckins();
+        }
+
+        function renderRegisteredStudentsList() {
+            const container = document.getElementById('registeredStudentsList');
+            if (students.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">No hay alumnos registrados todavía.</p>`;
+                return;
+            }
+
             container.innerHTML = students.map(s => `
-                <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/50">
-                    <div class="flex items-center gap-3">
-                        <img src="${s.photo || ''}" class="w-10 h-10 rounded-lg object-cover bg-slate-200 border" alt="">
-                        <div>
-                            <p class="font-bold text-navy-900 text-xs sm:text-sm">${s.name}</p>
-                            <p class="text-[11px] text-slate-500">Código: ${s.id} • ${s.grade}</p>
+                <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <img src="${s.photo}" class="w-10 h-10 rounded-full object-cover border border-navy-900/20 shrink-0" alt="${s.name}">
+                        <div class="min-w-0">
+                            <p class="font-bold text-navy-900 text-sm truncate">${s.name}</p>
+                            <p class="text-[11px] text-slate-500 truncate">Código: <span class="font-semibold text-navy-800">${s.id}</span> • Grado: ${s.grade}</p>
                         </div>
                     </div>
-                    <button onclick="deleteStudent('${s.id}')" class="text-slate-400 hover:text-crimson-600 p-1.5">
+                    <button onclick="confirmDeleteStudent('${s.id}')" class="p-2 text-slate-400 hover:text-crimson-600 rounded-lg transition-colors" title="Eliminar alumno">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -749,48 +904,59 @@
             lucide.createIcons();
         }
 
-        function deleteStudent(id) {
-            students = students.filter(s => s.id !== id);
-            delete attendanceRecords[id];
-            saveToLocalStorage();
-            rebuildFaceMatcher();
-            renderAllUI();
-            showToast('Estudiante eliminado.', 'success');
+        function renderAttendanceStats() {
+            const total = students.length;
+            let present = 0;
+            let absent = 0;
+
+            students.forEach(s => {
+                const rec = attendanceRecords[s.id];
+                if (rec && rec.status === 'ASISTENTE') present++;
+                else absent++;
+            });
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statPresent').textContent = present;
+            document.getElementById('statAbsent').textContent = absent;
         }
 
         function renderAttendanceTable() {
             const tbody = document.getElementById('attendanceTableBody');
-            const query = (document.getElementById('searchAttendanceInput')?.value || '').toLowerCase();
+            const search = document.getElementById('searchAttendanceInput').value.toLowerCase();
 
             const filtered = students.filter(s => {
+                const matchesSearch = s.name.toLowerCase().includes(search) || s.id.toLowerCase().includes(search);
                 const rec = attendanceRecords[s.id] || { status: 'INASISTENTE' };
-                const matchesQuery = s.name.toLowerCase().includes(query) || s.id.toLowerCase().includes(query);
-                const matchesStatus = currentStatusFilter === 'ALL' || rec.status === currentStatusFilter;
-                return matchesQuery && matchesStatus;
+                const matchesFilter = currentStatusFilter === 'ALL' || rec.status === currentStatusFilter;
+                return matchesSearch && matchesFilter;
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 text-xs">No se encontraron registros.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 text-xs">No se encontraron registros de asistencia.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = filtered.map(s => {
-                const rec = attendanceRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
+                const rec = attendanceRecords[s.id] || { status: 'INASISTENTE', time: '--:--', method: '-' };
                 const isPresent = rec.status === 'ASISTENTE';
+
                 return `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="py-3 px-4 font-mono font-semibold text-navy-900">${s.id}</td>
-                        <td class="py-3 px-4 font-medium text-navy-900">${s.name}</td>
-                        <td class="py-3 px-4 text-slate-500 hidden md:table-cell">${s.grade}</td>
+                    <tr class="hover:bg-slate-50/80">
+                        <td class="py-3 px-4 font-mono font-bold text-navy-900">${s.id}</td>
+                        <td class="py-3 px-4 font-medium text-navy-900 flex items-center gap-2">
+                            <img src="${s.photo}" class="w-7 h-7 rounded-full object-cover shrink-0">
+                            <span class="truncate">${s.name}</span>
+                        </td>
+                        <td class="py-3 px-4 text-slate-600 hidden md:table-cell">${s.grade}</td>
                         <td class="py-3 px-4 font-mono text-slate-600">${rec.time}</td>
                         <td class="py-3 px-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">
                                 ${rec.status}
                             </span>
                         </td>
                         <td class="py-3 px-4 text-right">
                             <button onclick="toggleAttendanceStatus('${s.id}')" class="px-2.5 py-1 rounded-lg text-xs font-semibold border ${isPresent ? 'border-red-200 text-crimson-600 hover:bg-red-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'}">
-                                Cambiar
+                                ${isPresent ? 'Marcar Inasistente' : 'Marcar Asistente'}
                             </button>
                         </td>
                     </tr>
@@ -798,25 +964,39 @@
             }).join('');
         }
 
-        function toggleAttendanceStatus(id) {
-            const rec = attendanceRecords[id];
-            if (!rec) return;
-            if (rec.status === 'ASISTENTE') {
-                rec.status = 'INASISTENTE';
-                rec.time = '--:--';
-            } else {
-                rec.status = 'ASISTENTE';
-                rec.time = getCurrentTimeStr();
+        function renderRecentCheckins() {
+            const container = document.getElementById('recentCheckinsList');
+            const presentStudents = students.filter(s => attendanceRecords[s.id] && attendanceRecords[s.id].status === 'ASISTENTE');
+
+            if (presentStudents.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Ningún estudiante marcado todavía.</p>`;
+                return;
             }
-            saveToLocalStorage();
-            renderAllUI();
+
+            presentStudents.sort((a, b) => (attendanceRecords[b.id].time || '').localeCompare(attendanceRecords[a.id].time || ''));
+
+            container.innerHTML = presentStudents.slice(0, 5).map(s => {
+                const rec = attendanceRecords[s.id];
+                return `
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <img src="${s.photo}" class="w-7 h-7 rounded-full object-cover shrink-0">
+                            <span class="font-bold text-navy-900 truncate">${s.name}</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">${rec.time}</span>
+                            <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">${rec.method}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function setStatusFilter(status) {
-            currentStatusFilter = status;
-            ['ALL', 'ASISTENTE', 'INASISTENTE'].forEach(st => {
-                const btn = document.getElementById(`filter-${st}`);
-                if (st === status) {
+        function setStatusFilter(filter) {
+            currentStatusFilter = filter;
+            ['ALL', 'ASISTENTE', 'INASISTENTE'].forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (f === filter) {
                     btn.className = 'filter-chip px-3 py-1.5 rounded-lg font-bold bg-navy-900 text-white';
                 } else {
                     btn.className = 'filter-chip px-3 py-1.5 rounded-lg font-semibold bg-white border border-slate-300 text-navy-900';
@@ -825,45 +1005,105 @@
             renderAttendanceTable();
         }
 
+        function toggleAttendanceStatus(studentId) {
+            const rec = attendanceRecords[studentId];
+            if (rec && rec.status === 'ASISTENTE') {
+                attendanceRecords[studentId] = { status: 'INASISTENTE', date: getTodayStr(), time: '--:--', method: 'Manual' };
+            } else {
+                attendanceRecords[studentId] = { status: 'ASISTENTE', date: getTodayStr(), time: getCurrentTimeStr(), method: 'Manual' };
+            }
+            saveToLocalStorage();
+            renderAllUI();
+        }
+
+        function resetTodayAttendance() {
+            openModal(
+                'Reiniciar Asistencia',
+                '¿Deseas restablecer todos los registros de asistencia de hoy a Inasistentes?',
+                () => {
+                    attendanceRecords = {};
+                    syncAttendanceWithRoster();
+                    saveToLocalStorage();
+                    renderAllUI();
+                    closeModal();
+                    showToast('Asistencia reiniciada correctamente.', 'success');
+                }
+            );
+        }
+
+        function confirmDeleteStudent(studentId) {
+            openModal(
+                'Eliminar Estudiante',
+                '¿Estás seguro de eliminar este alumno de la nómina? Se borrará su rostro y sus datos.',
+                () => {
+                    students = students.filter(s => s.id !== studentId);
+                    delete attendanceRecords[studentId];
+                    saveToLocalStorage();
+                    rebuildFaceMatcher();
+                    renderAllUI();
+                    closeModal();
+                    showToast('Estudiante eliminado.', 'success');
+                }
+            );
+        }
+
+        function confirmClearAllStudents() {
+            openModal(
+                'Vaciar Nómina',
+                '¿Estás completamente seguro de eliminar a TODOS los alumnos registrados?',
+                () => {
+                    students = [];
+                    attendanceRecords = {};
+                    saveToLocalStorage();
+                    rebuildFaceMatcher();
+                    renderAllUI();
+                    closeModal();
+                    showToast('Nómina vaciada correctamente.', 'success');
+                }
+            );
+        }
+
+        // ================= EXPORTACIÓN EXCEL Y RESPALDO =================
         function exportToExcel() {
             if (students.length === 0) {
                 showToast('No hay datos para exportar.', 'error');
                 return;
             }
-            const data = students.map(s => {
-                const rec = attendanceRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
+
+            const data = students.map((s, index) => {
+                const rec = attendanceRecords[s.id] || { status: 'INASISTENTE', time: '--', method: '--' };
                 return {
+                    'No.': index + 1,
                     'Código': s.id,
                     'Estudiante': s.name,
                     'Grado / Sección': s.grade,
+                    'Fecha': getTodayStr(),
+                    'Hora de Registro': rec.time,
                     'Estado': rec.status,
-                    'Hora de Registro': rec.time
+                    'Método': rec.method
                 };
             });
+
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia");
-            XLSX.writeFile(workbook, `Asistencia_${getTodayStr()}.xlsx`);
-            showToast('Archivo Excel descargado con éxito.', 'success');
-        }
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistencia');
 
-        function resetTodayAttendance() {
-            Object.keys(attendanceRecords).forEach(id => {
-                attendanceRecords[id] = { status: 'INASISTENTE', date: getTodayStr(), time: '--:--', method: '-' };
-            });
-            saveToLocalStorage();
-            renderAllUI();
-            showToast('Asistencia del día reiniciada.', 'success');
+            const maxWidth = data.reduce((w, r) => Math.max(w, r['Estudiante'].length), 10);
+            worksheet['!cols'] = [{wch: 5}, {wch: 10}, {wch: maxWidth + 5}, {wch: 18}, {wch: 12}, {wch: 16}, {wch: 14}, {wch: 12}];
+
+            XLSX.writeFile(workbook, `Asistencia_${INSTITUTION_NAME.replace(/\s+/g, '_')}_${getTodayStr()}.xlsx`);
+            showToast('Archivo Excel descargado con éxito.', 'success');
         }
 
         function exportRosterBackup() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `Nomina_Alumnos_${getTodayStr()}.json`);
-            document.body.appendChild(dlAnchor);
-            dlAnchor.click();
-            dlAnchor.remove();
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Nomina_Alumnos_${getTodayStr()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('Respaldo de alumnos descargado.', 'success');
         }
 
         function importRosterBackup(event) {
@@ -874,14 +1114,17 @@
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (Array.isArray(imported)) {
-                        students = imported;
+                        students = imported.map(s => ({
+                            ...s,
+                            descriptor: new Float32Array(s.descriptor)
+                        }));
                         saveToLocalStorage();
                         syncAttendanceWithRoster();
                         rebuildFaceMatcher();
                         renderAllUI();
                         showToast('Nómina restaurada con éxito.', 'success');
                     } else {
-                        showToast('Formato de archivo inválido.', 'error');
+                        showToast('Archivo de respaldo inválido.', 'error');
                     }
                 } catch (err) {
                     showToast('Error al leer el archivo JSON.', 'error');
@@ -890,32 +1133,38 @@
             reader.readAsText(file);
         }
 
-        function confirmClearAllStudents() {
-            if (confirm('¿Estás seguro de eliminar todos los alumnos registrados?')) {
-                students = [];
-                attendanceRecords = {};
-                saveToLocalStorage();
-                rebuildFaceMatcher();
-                renderAllUI();
-                showToast('Nómina vaciada.', 'success');
-            }
+        // ================= MODAL & TOASTS =================
+        let modalCallback = null;
+        function openModal(title, message, onConfirm) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            modalCallback = onConfirm;
+            document.getElementById('customModal').classList.remove('hidden');
+            document.getElementById('modalConfirmBtn').onclick = () => {
+                if (modalCallback) modalCallback();
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').classList.add('hidden');
+            modalCallback = null;
         }
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            toast.className = `toast-enter p-3 rounded-xl shadow-lg text-white text-xs font-bold flex items-center gap-2 ${type === 'success' ? 'bg-emerald-600' : 'bg-crimson-600'}`;
-            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-4 h-4 shrink-0"></i><span>${message}</span>`;
+            toast.className = `toast-enter flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-white font-medium text-xs sm:text-sm ${type === 'success' ? 'bg-navy-900 border-l-4 border-emerald-400' : 'bg-red-900 border-l-4 border-crimson-600'}`;
+            toast.innerHTML = `
+                <i data-lucide="${type === 'success' ? 'check-circle-2' : 'alert-circle'}" class="w-5 h-5 shrink-0 ${type === 'success' ? 'text-emerald-400' : 'text-crimson-600'}"></i>
+                <span class="flex-1">${message}</span>
+            `;
             container.appendChild(toast);
             lucide.createIcons();
             setTimeout(() => {
                 toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 250);
-            }, 3000);
-        }
-
-        function closeModal() {
-            document.getElementById('customModal').classList.add('hidden');
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
     </script>
 </body>
