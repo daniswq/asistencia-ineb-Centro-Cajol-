@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>INEB CENTRO CAJOLÁ - Sistema de Asistencia Facial</title>
+    <title>INEB CENTRO CAJOLÁ - Aula Virtual de Asistencia</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -31,468 +31,555 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- face-api.js -->
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
-    <!-- SheetJS (xlsx) para exportación real a Excel -->
+    <!-- SheetJS (xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-            border-radius: 1rem;
-            background-color: #061329;
-        }
-        .video-wrapper video {
-            width: 100%;
-            height: auto;
-            display: block;
-            object-fit: cover;
-        }
-        .video-wrapper canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-        @keyframes slideInUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .toast-enter {
-            animation: slideInUp 0.25s ease-out forwards;
-        }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .video-wrapper { position: relative; width: 100%; overflow: hidden; border-radius: 1rem; background-color: #061329; }
+        .video-wrapper video { width: 100%; height: auto; display: block; object-fit: cover; }
+        .video-wrapper canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .toast-enter { animation: slideInUp 0.25s ease-out forwards; }
     </style>
 </head>
 <body class="bg-slate-50 text-navy-900 min-h-screen flex flex-col">
 
-    <!-- Barra Superior Institucional -->
-    <header class="bg-navy-900 text-white sticky top-0 z-30 shadow-md border-b-4 border-crimson-600">
-        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-                <div class="relative group shrink-0">
-                    <div id="institutionLogoContainer" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white p-1 shadow-sm border-2 border-crimson-600 flex items-center justify-center overflow-hidden cursor-pointer" title="Haz clic para subir tu logo institucional">
-                        <img id="institutionLogoImg" src="" alt="Logo INEB" class="hidden w-full h-full object-contain">
-                        <svg id="defaultLogoSvg" class="w-7 h-7 sm:w-8 sm:h-8" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Escudo INEB Centro Cajolá">
-                            <path d="M32 4L10 12V30C10 45.2 19.4 58.6 32 62C44.6 58.6 54 45.2 54 30V12L32 4Z" fill="#0A1E40" stroke="#C8102E" stroke-width="3.5"/>
-                            <path d="M13 24L51 38V30L13 16V24Z" fill="#C8102E"/>
-                            <path d="M21 26C24.5 24.5 28.5 25.2 32 27.5C35.5 25.2 39.5 24.5 43 26V40C39.5 38.5 35.5 39.2 32 41.5C28.5 39.2 24.5 38.5 21 40V26Z" fill="#FFFFFF"/>
-                            <path d="M32 27.5V41.5" stroke="#0A1E40" stroke-width="2" stroke-linecap="round"/>
-                            <circle cx="32" cy="17" r="3.5" fill="#FFFFFF"/>
-                        </svg>
-                    </div>
-                    <input type="file" id="logoUploadInput" accept="image/*" onchange="handleLogoUpload(event)" class="hidden">
-                    <div onclick="document.getElementById('logoUploadInput').click()" class="absolute -bottom-1 -right-1 bg-crimson-600 text-white p-0.5 rounded-full text-[9px] shadow cursor-pointer hover:bg-crimson-700" title="Cambiar logo">
-                        <i data-lucide="camera" class="w-3 h-3"></i>
-                    </div>
+    <!-- ================= PANTALLA 0: LOGIN Y REGISTRO DOCENTE ================= -->
+    <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-t-8 border-crimson-600 space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-navy-900 border-2 border-crimson-600 flex items-center justify-center shadow-md">
+                    <i data-lucide="graduation-cap" class="w-9 h-9 text-white"></i>
                 </div>
-                <div class="min-w-0">
-                    <h1 class="font-extrabold text-white text-base sm:text-xl tracking-wide truncate">INEB CENTRO CAJOLÁ</h1>
-                    <p class="text-[11px] sm:text-xs text-slate-200 font-medium truncate">Control de Asistencia por Reconocimiento Facial</p>
-                </div>
+                <h1 class="font-extrabold text-navy-900 text-xl tracking-wide">INEB CENTRO CAJOLÁ</h1>
+                <p class="text-xs text-slate-500 font-medium">Aula Virtual • Control de Asistencia Facial</p>
             </div>
 
-            <div id="aiStatusBadge" class="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-navy-800 text-amber-300 border border-amber-400/40 transition-colors">
-                <span id="aiStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                <span id="aiStatusText">Cargando IA...</span>
-            </div>
-        </div>
-
-        <nav class="bg-white border-b border-slate-200">
-            <div class="max-w-5xl mx-auto px-2 sm:px-4 grid grid-cols-3 gap-1">
-                <button onclick="switchTab('scanner')" id="tab-scanner" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80 transition-all">
-                    <i data-lucide="camera" class="w-4 h-4 text-crimson-600"></i>
-                    <span>1. Tomar Asistencia</span>
-                </button>
-                <button onclick="switchTab('register')" id="tab-register" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900 transition-all">
-                    <i data-lucide="user-plus" class="w-4 h-4"></i>
-                    <span>2. Alumnos (<span id="badgeStudentCount">0</span>)</span>
-                </button>
-                <button onclick="switchTab('report')" id="tab-report" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900 transition-all">
-                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                    <span>3. Lista y Excel</span>
-                </button>
-            </div>
-        </nav>
-    </header>
-
-    <!-- Contenedor Principal -->
-    <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-5 pb-20">
-
-        <div id="cameraErrorBanner" class="hidden mb-4 bg-red-50 border-l-4 border-crimson-600 rounded-r-2xl p-4 text-navy-900 shadow-sm">
-            <div class="flex items-start gap-3">
-                <i data-lucide="alert-triangle" class="w-6 h-6 text-crimson-600 shrink-0 mt-0.5"></i>
-                <div class="text-sm">
-                    <h3 class="font-bold text-crimson-700">No se pudo acceder a la cámara</h3>
-                    <p id="cameraErrorDetail" class="mt-1 text-slate-700">Verifica los permisos del navegador o asegúrate de usar HTTPS / Localhost.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= PESTAÑA 1: ESCÁNER ================= -->
-        <section id="view-scanner" class="space-y-4">
-            <div class="grid grid-cols-3 gap-2 sm:gap-4">
-                <div class="bg-navy-900 text-white p-3 sm:p-4 rounded-2xl border border-navy-800 shadow-sm text-center">
-                    <p class="text-[11px] sm:text-xs text-slate-300 font-semibold uppercase tracking-wider">Total Clase</p>
-                    <p id="statTotal" class="text-xl sm:text-2xl font-extrabold text-white mt-0.5">0</p>
-                </div>
-                <div class="bg-white p-3 sm:p-4 rounded-2xl border-2 border-navy-800/20 shadow-sm text-center">
-                    <p class="text-[11px] sm:text-xs text-navy-800 font-bold uppercase tracking-wider">Asistentes</p>
-                    <p id="statPresent" class="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-0.5">0</p>
-                </div>
-                <div class="bg-white p-3 sm:p-4 rounded-2xl border-2 border-crimson-600/25 shadow-sm text-center">
-                    <p class="text-[11px] sm:text-xs text-crimson-600 font-bold uppercase tracking-wider">Inasistentes</p>
-                    <p id="statAbsent" class="text-xl sm:text-2xl font-extrabold text-crimson-600 mt-0.5">0</p>
-                </div>
+            <!-- Pestañas Login / Registro -->
+            <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                <button type="button" id="btnShowLogin" onclick="toggleAuthMode('login')" class="py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all">Iniciar Sesión</button>
+                <button type="button" id="btnShowRegister" onclick="toggleAuthMode('register')" class="py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all">Crear Cuenta</button>
             </div>
 
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sm:p-5 space-y-4">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <h2 class="font-bold text-navy-900 text-base sm:text-lg">Escáner Facial en Aula</h2>
-                        <p class="text-xs text-slate-500">Enfoca el salón; se marcarán automáticamente como <strong>ASISTENTE</strong>.</p>
-                    </div>
-                    <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <button id="btnToggleCamera" onclick="toggleAttendanceCamera()" disabled class="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-sm transition-all">
-                            <i data-lucide="video" class="w-4 h-4"></i>
-                            <span id="btnToggleCameraText">Iniciar Cámara</span>
-                        </button>
-                        <button id="btnSwitchFacing" onclick="switchCameraFacing()" class="flex items-center justify-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white font-semibold px-3.5 py-2.5 rounded-xl text-sm shadow-sm transition-all">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                            <span id="facingLabel" class="text-xs font-semibold">Trasera</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="video-wrapper aspect-[4/3] sm:aspect-video max-h-[62vh] flex items-center justify-center border-2 border-navy-900 shadow-inner">
-                    <video id="attendanceVideo" autoplay muted playsinline></video>
-                    <canvas id="attendanceCanvas"></canvas>
-
-                    <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-navy-950/95 text-slate-200">
-                        <div class="w-16 h-16 rounded-2xl bg-navy-800 border-2 border-crimson-600 flex items-center justify-center mb-3 text-white shadow-md">
-                            <i data-lucide="scan-face" class="w-9 h-9"></i>
-                        </div>
-                        <p class="font-bold text-white text-base">Cámara de Asistencia Lista</p>
-                        <p class="text-xs text-slate-300 max-w-xs mt-1">Presiona "Iniciar Cámara" al ingresar al salón.</p>
-                        <div id="noStudentsWarning" class="hidden mt-4 bg-crimson-600/25 border border-crimson-500 text-white px-3.5 py-2 rounded-xl text-xs max-w-sm">
-                            Aún no hay alumnos. Ve a <strong>"2. Alumnos"</strong> para registrar rostros.
-                        </div>
-                    </div>
-
-                    <div id="lastDetectedBanner" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-navy-900/95 border-l-4 border-emerald-400 backdrop-blur-md text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 transition-all">
-                        <div class="bg-emerald-500/20 text-emerald-300 p-2 rounded-lg">
-                            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-[11px] uppercase tracking-wider text-emerald-300 font-bold">Asistente Confirmado</p>
-                            <p id="lastDetectedName" class="font-bold text-sm truncate">Nombre</p>
-                        </div>
-                        <span id="lastDetectedTime" class="text-xs font-mono bg-navy-800 px-2 py-1 rounded-md border border-slate-700">00:00</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-                <h3 class="font-bold text-navy-900 text-sm flex items-center gap-2 mb-3">
-                    <i data-lucide="clock" class="w-4 h-4 text-crimson-600"></i>
-                    Últimos Asistentes Identificados Hoy
-                </h3>
-                <div id="recentCheckinsList" class="space-y-2 max-h-48 overflow-y-auto">
-                    <p class="text-xs text-slate-400 text-center py-4">Ningún estudiante marcado todavía.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- ================= PESTAÑA 2: REGISTRO ================= -->
-        <section id="view-register" class="hidden space-y-5">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4 h-fit">
-                    <div class="border-b border-slate-100 pb-3">
-                        <h2 class="font-bold text-navy-900 text-base sm:text-lg">Registrar Estudiante</h2>
-                        <p class="text-xs text-slate-500">INEB CENTRO CAJOLÁ • Captura rostro o sube foto.</p>
-                    </div>
-
-                    <div class="space-y-3">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold text-navy-900 mb-1">Código / Clave *</label>
-                                <input type="text" id="regStudentId" placeholder="Ej. 01" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-navy-900 mb-1">Grado / Sección</label>
-                                <input type="text" id="regStudentGrade" placeholder="Ej. 3ro Básico A" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Completo *</label>
-                            <input type="text" id="regStudentName" placeholder="Ej. Juan Carlos Pérez" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-xs font-bold text-navy-900">Fotografía Facial *</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button type="button" onclick="startRegCamera()" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-navy-900 text-white hover:bg-navy-800 text-xs font-bold transition-all shadow-xs">
-                                <i data-lucide="camera" class="w-4 h-4"></i>
-                                Usar Cámara
-                            </button>
-                            <button type="button" onclick="document.getElementById('regPhotoInput').click()" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border-2 border-navy-900/20 bg-white text-navy-900 hover:bg-slate-50 text-xs font-bold cursor-pointer transition-all">
-                                <i data-lucide="upload" class="w-4 h-4 text-crimson-600"></i>
-                                Subir Foto
-                            </button>
-                            <input type="file" id="regPhotoInput" accept="image/*" onchange="handlePhotoUpload(event)" class="hidden">
-                        </div>
-                    </div>
-
-                    <div id="regMediaContainer" class="hidden relative rounded-xl overflow-hidden bg-navy-950 border-2 border-navy-900 aspect-[4/3] flex items-center justify-center">
-                        <video id="regVideo" autoplay muted playsinline class="hidden w-full h-full object-cover"></video>
-                        <img id="regPreviewImg" alt="Vista previa" class="hidden w-full h-full object-cover">
-                        <div id="regCameraControls" class="hidden absolute bottom-2 left-2 right-2 flex items-center justify-center gap-2">
-                            <button type="button" onclick="switchRegCameraFacing()" class="bg-navy-900/90 text-white p-2.5 rounded-xl hover:bg-navy-800 border border-white/20">
-                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                            </button>
-                            <button type="button" onclick="captureRegSnapshot()" class="bg-crimson-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-crimson-700 flex items-center gap-1.5">
-                                <i data-lucide="aperture" class="w-4 h-4"></i>
-                                Capturar Rostro
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="regFaceFeedback" class="hidden text-xs px-3 py-2 rounded-xl font-semibold"></div>
-
-                    <button type="button" id="btnSaveStudent" onclick="saveNewStudent()" disabled class="w-full py-3 px-4 rounded-xl bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-all">
-                        <i data-lucide="user-check" class="w-4 h-4"></i>
-                        Guardar Estudiante
-                    </button>
-                </div>
-
-                <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col">
-                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                        <div>
-                            <h2 class="font-bold text-navy-900 text-base sm:text-lg">Nómina de Alumnos</h2>
-                            <p class="text-xs text-slate-500">Almacenados localmente en este dispositivo.</p>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-1.5">
-                            <button onclick="exportRosterBackup()" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-white flex items-center gap-1">
-                                <i data-lucide="download" class="w-3.5 h-3.5"></i> Respaldo
-                            </button>
-                            <label class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-navy-900/20 bg-slate-50 hover:bg-slate-100 text-navy-900 flex items-center gap-1 cursor-pointer">
-                                <i data-lucide="upload" class="w-3.5 h-3.5"></i> Restaurar
-                                <input type="file" accept=".json" onchange="importRosterBackup(event)" class="hidden">
-                            </label>
-                            <button onclick="confirmClearAllStudents()" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-crimson-600">Vaciar</button>
-                        </div>
-                    </div>
-
-                    <div id="registeredStudentsList" class="mt-3 space-y-2.5 flex-1 max-h-[520px] overflow-y-auto pr-1"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ================= PESTAÑA 3: REPORTE & EXCEL ================= -->
-        <section id="view-report" class="hidden space-y-4">
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t-4 border-t-navy-900">
+            <!-- Formulario Login -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs font-extrabold uppercase tracking-wider text-crimson-600">INEB CENTRO CAJOLÁ</span>
-                        <span class="text-slate-300">•</span>
-                        <span id="reportDateBadge" class="text-xs font-bold bg-navy-900 text-white px-2.5 py-0.5 rounded-full"></span>
-                    </div>
-                    <h2 class="font-extrabold text-navy-900 text-base sm:text-lg mt-1">Registro Oficial de Asistencia</h2>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Correo Institucional / Personal</label>
+                    <input type="email" id="loginEmail" required placeholder="docente@ineb.edu.gt" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Contraseña</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
+                </div>
+                <button type="submit" class="w-full py-3 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white font-bold text-sm shadow-md transition-all">
+                    Ingresar a mis Aulas
+                </button>
+            </form>
 
-                <div class="flex flex-wrap items-center gap-2 shrink-0">
-                    <button onclick="resetTodayAttendance()" class="px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-navy-900 text-xs font-bold flex items-center gap-1.5">
-                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reiniciar
-                    </button>
-                    <button onclick="exportToExcel()" class="px-4 py-2.5 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white text-xs sm:text-sm font-bold shadow-sm flex items-center gap-2">
-                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Descargar Excel (.xlsx)
-                    </button>
+            <!-- Formulario Registro Docente -->
+            <form id="registerForm" onsubmit="handleRegisterTeacher(event)" class="hidden space-y-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Docente</label>
+                    <input type="text" id="regTeacherName" required placeholder="Ej. Prof. Carlos López" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
-            </div>
-
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-3 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center bg-slate-50">
-                    <div class="relative flex-1 max-w-md">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-                        <input type="text" id="searchAttendanceInput" oninput="renderAttendanceTable()" placeholder="Buscar alumno..." class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
-                    </div>
-                    <div class="flex items-center gap-1.5 text-xs">
-                        <button onclick="setStatusFilter('ALL')" id="filter-ALL" class="filter-chip px-3 py-1.5 rounded-lg font-bold bg-navy-900 text-white">Todos</button>
-                        <button onclick="setStatusFilter('ASISTENTE')" id="filter-ASISTENTE" class="filter-chip px-3 py-1.5 rounded-lg font-semibold bg-white border border-slate-300 text-navy-900">Asistentes</button>
-                        <button onclick="setStatusFilter('INASISTENTE')" id="filter-INASISTENTE" class="filter-chip px-3 py-1.5 rounded-lg font-semibold bg-white border border-slate-300 text-navy-900">Inasistentes</button>
-                    </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Correo Electrónico</label>
+                    <input type="email" id="regTeacherEmail" required placeholder="docente@ineb.edu.gt" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-200 bg-navy-900 text-[11px] uppercase tracking-wider text-white font-bold">
-                                <th class="py-3 px-4">Código</th>
-                                <th class="py-3 px-4">Estudiante</th>
-                                <th class="py-3 px-4 hidden md:table-cell">Grado / Sec.</th>
-                                <th class="py-3 px-4">Hora</th>
-                                <th class="py-3 px-4">Estado</th>
-                                <th class="py-3 px-4 text-right">Ajuste Manual</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendanceTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm"></tbody>
-                    </table>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Crear Contraseña</label>
+                    <input type="password" id="regTeacherPassword" required minlength="4" placeholder="Mínimo 4 caracteres" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Modal -->
-    <div id="customModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border-t-4 border-crimson-600 space-y-4">
-            <div class="flex items-center gap-3">
-                <div class="p-2.5 rounded-xl bg-red-50 text-crimson-600">
-                    <i data-lucide="help-circle" class="w-6 h-6"></i>
-                </div>
-                <h3 id="modalTitle" class="font-bold text-navy-900 text-base">Confirmación</h3>
-            </div>
-            <p id="modalMessage" class="text-xs sm:text-sm text-slate-600 leading-relaxed"></p>
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-navy-900 text-xs font-bold hover:bg-slate-50">Cancelar</button>
-                <button id="modalConfirmBtn" class="px-4 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold hover:bg-crimson-700">Confirmar</button>
-            </div>
+                <button type="submit" class="w-full py-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-sm shadow-md transition-all">
+                    Registrar Docente y Entrar
+                </button>
+            </form>
         </div>
     </div>
 
-    <div id="toastContainer" class="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-80 z-50 flex flex-col gap-2 pointer-events-none"></div>
+    <!-- ================= APLICACIÓN PRINCIPAL (AULA VIRTUAL) ================= -->
+    <div id="appContainer" class="hidden flex-1 flex flex-col">
+        <!-- Barra Superior Institucional -->
+        <header class="bg-navy-900 text-white sticky top-0 z-30 shadow-md border-b-4 border-crimson-600">
+            <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-white p-1.5 border-2 border-crimson-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="school" class="w-6 h-6 text-navy-900"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="font-extrabold text-white text-sm sm:text-lg tracking-wide truncate">INEB CENTRO CAJOLÁ</h1>
+                        <p class="text-[11px] text-slate-300 truncate">Docente: <span id="currentTeacherName" class="font-bold text-white"></span></p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div id="aiStatusBadge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-navy-800 text-amber-300 border border-amber-400/40">
+                        <span id="aiStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                        <span id="aiStatusText">Cargando IA...</span>
+                    </div>
+                    <button onclick="logoutTeacher()" class="p-2 rounded-xl bg-navy-800 hover:bg-crimson-600 text-slate-200 hover:text-white transition-colors" title="Cerrar Sesión">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selector de Aula / Grado y Sección -->
+            <div class="bg-navy-950 border-t border-navy-800 px-4 py-2.5">
+                <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+                        <i data-lucide="layers" class="w-4 h-4 text-crimson-600 shrink-0"></i>
+                        <span class="text-xs font-semibold text-slate-300">Aula Activa:</span>
+                        <select id="activeClassSelector" onchange="handleClassChange()" class="bg-navy-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-crimson-600 flex-1 max-w-xs">
+                        </select>
+                    </div>
+                    <button onclick="openNewClassModal()" class="text-xs font-bold bg-crimson-600 hover:bg-crimson-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Nuevo Grado / Sección
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pestañas de Navegación -->
+            <nav class="bg-white border-b border-slate-200">
+                <div class="max-w-5xl mx-auto px-2 sm:px-4 grid grid-cols-3 gap-1">
+                    <button onclick="switchTab('scanner')" id="tab-scanner" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80">
+                        <i data-lucide="camera" class="w-4 h-4 text-crimson-600"></i>
+                        <span>1. Escáner Aula</span>
+                    </button>
+                    <button onclick="switchTab('register')" id="tab-register" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        <span>2. Alumnos (<span id="badgeStudentCount">0</span>)</span>
+                    </button>
+                    <button onclick="switchTab('report')" id="tab-report" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        <span>3. Lista y Excel</span>
+                    </button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Contenedor Principal -->
+        <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-5 pb-20">
+            <!-- Aviso si no hay aulas creadas -->
+            <div id="noClassesAlert" class="hidden bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-2xl text-navy-900 shadow-sm text-center space-y-3">
+                <i data-lucide="folder-plus" class="w-10 h-10 text-amber-600 mx-auto"></i>
+                <h2 class="font-bold text-base">Aún no has creado ningún Grado o Sección</h2>
+                <p class="text-xs text-slate-600 max-w-md mx-auto">Para comenzar a registrar alumnos y tomar asistencia, crea tu primera aula (Ejemplo: 3ro Básico - Sección A).</p>
+                <button onclick="openNewClassModal()" class="px-4 py-2.5 rounded-xl bg-navy-900 text-white text-xs font-bold hover:bg-navy-800">
+                    + Crear Mi Primera Aula
+                </button>
+            </div>
+
+            <!-- Contenido de las pestañas -->
+            <div id="workspaceViews" class="space-y-4">
+                <!-- PESTAÑA 1: ESCÁNER -->
+                <section id="view-scanner" class="space-y-4">
+                    <div class="grid grid-cols-3 gap-2 sm:gap-4">
+                        <div class="bg-navy-900 text-white p-3 rounded-2xl text-center">
+                            <p class="text-[11px] text-slate-300 font-semibold uppercase">Alumnos Aula</p>
+                            <p id="statTotal" class="text-xl font-extrabold mt-0.5">0</p>
+                        </div>
+                        <div class="bg-white p-3 rounded-2xl border-2 border-navy-800/20 text-center">
+                            <p class="text-[11px] text-navy-800 font-bold uppercase">Asistentes</p>
+                            <p id="statPresent" class="text-xl font-extrabold text-emerald-600 mt-0.5">0</p>
+                        </div>
+                        <div class="bg-white p-3 rounded-2xl border-2 border-crimson-600/25 text-center">
+                            <p class="text-[11px] text-crimson-600 font-bold uppercase">Inasistentes</p>
+                            <p id="statAbsent" class="text-xl font-extrabold text-crimson-600 mt-0.5">0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h2 class="font-bold text-navy-900 text-base">Escáner Facial: <span id="scannerClassTitle" class="text-crimson-600"></span></h2>
+                                <p class="text-xs text-slate-500">Comparando rostros únicamente contra los alumnos de esta sección.</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="btnToggleCamera" onclick="toggleAttendanceCamera()" disabled class="flex items-center gap-2 bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm">
+                                    <i data-lucide="video" class="w-4 h-4"></i>
+                                    <span id="btnToggleCameraText">Iniciar Cámara</span>
+                                </button>
+                                <button onclick="switchCameraFacing()" class="flex items-center gap-1 bg-navy-900 hover:bg-navy-800 text-white font-semibold px-3 py-2 rounded-xl text-xs">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                    <span id="facingLabel">Trasera</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="video-wrapper aspect-[4/3] sm:aspect-video max-h-[58vh] flex items-center justify-center border-2 border-navy-900">
+                            <video id="attendanceVideo" autoplay muted playsinline></video>
+                            <canvas id="attendanceCanvas"></canvas>
+
+                            <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-navy-950/95 text-slate-200">
+                                <i data-lucide="scan-face" class="w-12 h-12 text-crimson-600 mb-2"></i>
+                                <p class="font-bold text-white text-sm">Cámara Lista para Escanear</p>
+                                <p class="text-xs text-slate-400 mt-1">Presiona "Iniciar Cámara" para pasar lista en esta aula.</p>
+                            </div>
+
+                            <div id="lastDetectedBanner" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-navy-900/95 border-l-4 border-emerald-400 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0"></i>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[10px] uppercase text-emerald-300 font-bold">Asistencia Registrada</p>
+                                    <p id="lastDetectedName" class="font-bold text-sm truncate"></p>
+                                </div>
+                                <span id="lastDetectedTime" class="text-xs font-mono bg-navy-800 px-2 py-1 rounded"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PESTAÑA 2: REGISTRO DE ALUMNOS EN LA SECCIÓN -->
+                <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
+                    <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 h-fit">
+                        <div class="border-b border-slate-100 pb-2">
+                            <h2 class="font-bold text-navy-900 text-base">Nuevo Alumno en Aula</h2>
+                            <p class="text-xs text-slate-500">Se guardará en: <strong id="regClassLabel" class="text-navy-900"></strong></p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold text-navy-900 mb-1">Código / Clave *</label>
+                                <input type="text" id="regStudentId" placeholder="Ej. 01" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Completo *</label>
+                                <input type="text" id="regStudentName" placeholder="Ej. María Fernanda Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-navy-900">Fotografía Facial *</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="startRegCamera()" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-navy-900 text-white text-xs font-bold">
+                                    <i data-lucide="camera" class="w-4 h-4"></i> Cámara
+                                </button>
+                                <button type="button" onclick="document.getElementById('regPhotoInput').click()" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-300 text-navy-900 text-xs font-bold">
+                                    <i data-lucide="upload" class="w-4 h-4 text-crimson-600"></i> Subir Foto
+                                </button>
+                                <input type="file" id="regPhotoInput" accept="image/*" onchange="handlePhotoUpload(event)" class="hidden">
+                            </div>
+                        </div>
+
+                        <div id="regMediaContainer" class="hidden relative rounded-xl overflow-hidden bg-navy-950 aspect-[4/3] flex items-center justify-center">
+                            <video id="regVideo" autoplay muted playsinline class="hidden w-full h-full object-cover"></video>
+                            <img id="regPreviewImg" alt="Vista previa" class="hidden w-full h-full object-cover">
+                            <div id="regCameraControls" class="hidden absolute bottom-2 flex gap-2">
+                                <button type="button" onclick="captureRegSnapshot()" class="bg-crimson-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow">Capturar Rostro</button>
+                            </div>
+                        </div>
+
+                        <div id="regFaceFeedback" class="hidden text-xs px-3 py-2 rounded-xl font-semibold"></div>
+
+                        <button type="button" id="btnSaveStudent" onclick="saveNewStudent()" disabled class="w-full py-2.5 rounded-xl bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold text-sm">
+                            Guardar Alumno en Aula
+                        </button>
+                    </div>
+
+                    <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <h2 class="font-bold text-navy-900 text-base">Alumnos Registrados</h2>
+                            <button onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline">Eliminar esta Aula</button>
+                        </div>
+                        <div id="registeredStudentsList" class="mt-3 space-y-2 max-h-[450px] overflow-y-auto"></div>
+                    </div>
+                </section>
+
+                <!-- PESTAÑA 3: REPORTE Y EXCEL -->
+                <section id="view-report" class="hidden space-y-4">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h2 class="font-bold text-navy-900 text-base">Reporte de Asistencia • <span id="reportClassTitle" class="text-crimson-600"></span></h2>
+                            <p id="reportDateBadge" class="text-xs text-slate-500"></p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="resetTodayAttendance()" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold">Reiniciar Día</button>
+                            <button onclick="exportToExcel()" class="px-4 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold flex items-center gap-1.5">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead class="bg-navy-900 text-white text-[11px] uppercase">
+                                <tr>
+                                    <th class="py-3 px-4">Clave</th>
+                                    <th class="py-3 px-4">Estudiante</th>
+                                    <th class="py-3 px-4">Hora</th>
+                                    <th class="py-3 px-4">Estado</th>
+                                    <th class="py-3 px-4 text-right">Manual</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Crear Nueva Aula (Grado y Sección) -->
+    <div id="newClassModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4">
+        <form onsubmit="createNewClass(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border-t-4 border-crimson-600 space-y-4">
+            <h3 class="font-bold text-navy-900 text-base">Crear Nueva Aula</h3>
+            <div>
+                <label class="block text-xs font-bold text-navy-900 mb-1">Grado *</label>
+                <input type="text" id="newClassGrade" required placeholder="Ej. 3ro Básico" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-navy-900 mb-1">Sección *</label>
+                <input type="text" id="newClassSection" required placeholder="Ej. Sección A" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeNewClassModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold">Guardar Aula</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <script>
-        const INSTITUTION_NAME = 'INEB CENTRO CAJOLÁ';
-        const STORAGE_KEY_STUDENTS = 'ineb_cajola_students_v3';
-        const STORAGE_KEY_ATTENDANCE = 'ineb_cajola_records_v3';
-        const STORAGE_KEY_LOGO = 'ineb_cajola_logo_v3';
+        const DB_KEY_USERS = 'ineb_virtual_users_v1';
+        const DB_KEY_DATA = 'ineb_virtual_data_v1';
+        const SESSION_KEY = 'ineb_active_session_v1';
         const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
 
-        let modelsLoaded = false;
-        let students = [];
-        let attendanceRecords = {};
-        let faceMatcher = null;
-        let matchThreshold = 0.52;
+        let currentUser = null; // { email, name }
+        let userData = { classes: [] }; // { classes: [ { id, grade, section, students: [], attendance: {} } ] }
+        let activeClassId = null;
 
-        let attendanceStream = null;
+        let modelsLoaded = false;
+        let faceMatcher = null;
         let isScanning = false;
+        let attendanceStream = null;
         let scanAnimationFrame = null;
         let attendanceFacingMode = 'environment';
         let lastDetectedCooldown = {};
 
         let regStream = null;
-        let regFacingMode = 'user';
         let currentRegDescriptor = null;
         let currentRegPhotoDataUrl = null;
-        let currentStatusFilter = 'ALL';
 
         window.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            updateDateDisplay();
-            loadFromLocalStorage();
-            loadSavedLogo();
-            syncAttendanceWithRoster();
-            renderAllUI();
+            checkActiveSession();
             await loadFaceApiModels();
         });
 
-        function getTodayStr() {
-            const now = new Date();
-            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        }
+        // ================= 1. GESTIÓN DE CUENTAS DOCENTES =================
+        function toggleAuthMode(mode) {
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('registerForm');
+            const btnLogin = document.getElementById('btnShowLogin');
+            const btnReg = document.getElementById('btnShowRegister');
 
-        function getCurrentTimeStr() {
-            return new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        }
-
-        function updateDateDisplay() {
-            document.getElementById('reportDateBadge').textContent = new Date().toLocaleDateString('es-GT', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-        }
-
-        function handleLogoUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    localStorage.setItem(STORAGE_KEY_LOGO, e.target.result);
-                    applyLogo(e.target.result);
-                    showToast('Logo institucional actualizado.', 'success');
-                } catch (err) {
-                    showToast('Imagen demasiado grande.', 'error');
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function loadSavedLogo() {
-            try {
-                const savedLogo = localStorage.getItem(STORAGE_KEY_LOGO);
-                if (savedLogo) applyLogo(savedLogo);
-            } catch (e) {}
-        }
-
-        function applyLogo(dataUrl) {
-            const img = document.getElementById('institutionLogoImg');
-            const svg = document.getElementById('defaultLogoSvg');
-            img.src = dataUrl;
-            img.classList.remove('hidden');
-            svg.classList.add('hidden');
-        }
-
-        function loadFromLocalStorage() {
-            try {
-                const rawStudents = localStorage.getItem(STORAGE_KEY_STUDENTS);
-                if (rawStudents) {
-                    const parsed = JSON.parse(rawStudents);
-                    // Restaurar Float32Array en los descriptores guardados
-                    students = parsed.map(s => ({
-                        ...s,
-                        descriptor: new Float32Array(s.descriptor)
-                    }));
-                }
-                const rawAttendance = localStorage.getItem(STORAGE_KEY_ATTENDANCE);
-                if (rawAttendance) {
-                    const parsed = JSON.parse(rawAttendance);
-                    if (parsed.date === getTodayStr() && parsed.records) {
-                        attendanceRecords = parsed.records;
-                    } else {
-                        attendanceRecords = {};
-                    }
-                }
-            } catch (e) {
-                students = [];
-                attendanceRecords = {};
+            if (mode === 'login') {
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+                btnLogin.className = 'py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all';
+                btnReg.className = 'py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all';
+            } else {
+                loginForm.classList.add('hidden');
+                regForm.classList.remove('hidden');
+                btnReg.className = 'py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all';
+                btnLogin.className = 'py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all';
             }
         }
 
-        function saveToLocalStorage() {
-            try {
-                localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(students));
-                localStorage.setItem(STORAGE_KEY_ATTENDANCE, JSON.stringify({ date: getTodayStr(), records: attendanceRecords }));
-            } catch (e) {}
+        function handleRegisterTeacher(e) {
+            e.preventDefault();
+            const name = document.getElementById('regTeacherName').value.trim();
+            const email = document.getElementById('regTeacherEmail').value.trim().toLowerCase();
+            const password = document.getElementById('regTeacherPassword').value;
+
+            const users = JSON.parse(localStorage.getItem(DB_KEY_USERS) || '{}');
+            if (users[email]) {
+                showToast('Este correo ya está registrado. Inicia sesión.', 'error');
+                return;
+            }
+
+            users[email] = { name, email, password };
+            localStorage.setItem(DB_KEY_USERS, JSON.stringify(users));
+
+            // Inicializar base de datos vacía para el nuevo docente
+            const allData = JSON.parse(localStorage.getItem(DB_KEY_DATA) || '{}');
+            allData[email] = { classes: [] };
+            localStorage.setItem(DB_KEY_DATA, JSON.stringify(allData));
+
+            startSession({ name, email });
+            showToast(`¡Bienvenido, ${name}!`, 'success');
         }
 
-        function syncAttendanceWithRoster() {
-            const today = getTodayStr();
-            students.forEach(s => {
-                if (!attendanceRecords[s.id]) {
-                    attendanceRecords[s.id] = { status: 'INASISTENTE', date: today, time: '--:--', method: '-' };
-                }
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const password = document.getElementById('loginPassword').value;
+
+            const users = JSON.parse(localStorage.getItem(DB_KEY_USERS) || '{}');
+            const user = users[email];
+
+            if (!user || user.password !== password) {
+                showToast('Correo o contraseña incorrectos.', 'error');
+                return;
+            }
+
+            startSession({ name: user.name, email: user.email });
+            showToast(`Sesión iniciada como ${user.name}`, 'success');
+        }
+
+        function checkActiveSession() {
+            const session = localStorage.getItem(SESSION_KEY);
+            if (session) {
+                startSession(JSON.parse(session));
+            }
+        }
+
+        function startSession(user) {
+            currentUser = user;
+            localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+            document.getElementById('currentTeacherName').textContent = user.name;
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+
+            loadTeacherData();
+        }
+
+        function logoutTeacher() {
+            stopAttendanceCamera();
+            stopRegCamera();
+            localStorage.removeItem(SESSION_KEY);
+            currentUser = null;
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('authScreen').classList.remove('hidden');
+        }
+
+        // ================= 2. GESTIÓN DE AULAS (GRADOS Y SECCIONES) =================
+        function loadTeacherData() {
+            const allData = JSON.parse(localStorage.getItem(DB_KEY_DATA) || '{}');
+            userData = allData[currentUser.email] || { classes: [] };
+
+            // Restaurar Float32Array en cada alumno de cada aula
+            userData.classes.forEach(cls => {
+                cls.students = cls.students.map(s => ({
+                    ...s,
+                    descriptor: new Float32Array(s.descriptor)
+                }));
             });
+
+            renderClassSelector();
         }
 
+        function saveTeacherData() {
+            const allData = JSON.parse(localStorage.getItem(DB_KEY_DATA) || '{}');
+            // Convertir Float32Array a Array normal antes de serializar a JSON
+            const serializableData = {
+                classes: userData.classes.map(cls => ({
+                    ...cls,
+                    students: cls.students.map(s => ({
+                        ...s,
+                        descriptor: Array.from(s.descriptor)
+                    }))
+                }))
+            };
+            allData[currentUser.email] = serializableData;
+            localStorage.setItem(DB_KEY_DATA, JSON.stringify(allData));
+        }
+
+        function openNewClassModal() {
+            document.getElementById('newClassModal').classList.remove('hidden');
+        }
+
+        function closeNewClassModal() {
+            document.getElementById('newClassModal').classList.add('hidden');
+            document.getElementById('newClassGrade').value = '';
+            document.getElementById('newClassSection').value = '';
+        }
+
+        function createNewClass(e) {
+            e.preventDefault();
+            const grade = document.getElementById('newClassGrade').value.trim();
+            const section = document.getElementById('newClassSection').value.trim();
+
+            const newClass = {
+                id: 'class_' + Date.now(),
+                grade,
+                section,
+                students: [],
+                attendance: {}
+            };
+
+            userData.classes.push(newClass);
+            activeClassId = newClass.id;
+            saveTeacherData();
+            closeNewClassModal();
+            renderClassSelector();
+            showToast(`Aula "${grade} - ${section}" creada.`, 'success');
+        }
+
+        function renderClassSelector() {
+            const selector = document.getElementById('activeClassSelector');
+            const noClassesAlert = document.getElementById('noClassesAlert');
+            const workspace = document.getElementById('workspaceViews');
+
+            if (userData.classes.length === 0) {
+                selector.innerHTML = '<option value="">Sin aulas creadas</option>';
+                noClassesAlert.classList.remove('hidden');
+                workspace.classList.add('hidden');
+                return;
+            }
+
+            noClassesAlert.classList.add('hidden');
+            workspace.classList.remove('hidden');
+
+            selector.innerHTML = userData.classes.map(c =>
+                `<option value="${c.id}">${c.grade} - ${c.section} (${c.students.length} alumnos)</option>`
+            ).join('');
+
+            if (!activeClassId || !userData.classes.some(c => c.id === activeClassId)) {
+                activeClassId = userData.classes[0].id;
+            }
+            selector.value = activeClassId;
+            handleClassChange();
+        }
+
+        function getActiveClass() {
+            return userData.classes.find(c => c.id === activeClassId);
+        }
+
+        function handleClassChange() {
+            stopAttendanceCamera();
+            activeClassId = document.getElementById('activeClassSelector').value;
+            const cls = getActiveClass();
+            if (!cls) return;
+
+            const title = `${cls.grade} (${cls.section})`;
+            document.getElementById('scannerClassTitle').textContent = title;
+            document.getElementById('regClassLabel').textContent = title;
+            document.getElementById('reportClassTitle').textContent = title;
+            document.getElementById('reportDateBadge').textContent = `Fecha: ${getTodayStr()}`;
+
+            rebuildFaceMatcher();
+            renderAllUI();
+        }
+
+        function deleteCurrentClass() {
+            const cls = getActiveClass();
+            if (!cls) return;
+            if (!confirm(`¿Seguro que deseas eliminar el aula ${cls.grade} - ${cls.section} y todos sus alumnos?`)) return;
+
+            userData.classes = userData.classes.filter(c => c.id !== activeClassId);
+            activeClassId = null;
+            saveTeacherData();
+            renderClassSelector();
+            showToast('Aula eliminada.', 'success');
+        }
+
+        // ================= 3. IA Y REGISTRO DE FOTOS POR AULA =================
         async function loadFaceApiModels() {
-            const badge = document.getElementById('aiStatusBadge');
             const dot = document.getElementById('aiStatusDot');
             const text = document.getElementById('aiStatusText');
-
             try {
                 await faceapi.tf.setBackend('webgl');
                 await faceapi.tf.ready();
@@ -504,84 +591,37 @@
                 modelsLoaded = true;
                 rebuildFaceMatcher();
                 dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-                badge.className = 'shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-500/40';
                 text.textContent = 'IA Lista';
                 document.getElementById('btnToggleCamera').disabled = false;
             } catch (err) {
-                try {
-                    await faceapi.tf.setBackend('cpu');
-                    await faceapi.tf.ready();
-                    await Promise.all([
-                        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                        faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
-                        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-                    ]);
-                    modelsLoaded = true;
-                    rebuildFaceMatcher();
-                    dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-                    badge.className = 'shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-500/40';
-                    text.textContent = 'IA Lista (CPU)';
-                    document.getElementById('btnToggleCamera').disabled = false;
-                } catch (e2) {
-                    dot.className = 'w-2 h-2 rounded-full bg-red-500';
-                    badge.className = 'shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-950 text-red-300 border border-red-500/40';
-                    text.textContent = 'Error de IA';
-                    showToast('No se pudieron cargar los modelos de reconocimiento facial.', 'error');
-                }
+                text.textContent = 'Error IA';
             }
         }
 
         function rebuildFaceMatcher() {
-            if (students.length === 0) {
+            const cls = getActiveClass();
+            if (!cls || cls.students.length === 0 || !modelsLoaded) {
                 faceMatcher = null;
                 return;
             }
-            const labeledDescriptors = students.map(s => {
-                return new faceapi.LabeledFaceDescriptors(s.id, [s.descriptor]);
-            });
-            faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, matchThreshold);
+            const labeled = cls.students.map(s => new faceapi.LabeledFaceDescriptors(s.id, [s.descriptor]));
+            faceMatcher = new faceapi.FaceMatcher(labeled, 0.52);
         }
 
-        function switchTab(tabId) {
-            ['scanner', 'register', 'report'].forEach(t => {
-                document.getElementById(`view-${t}`).classList.add('hidden');
-                const btn = document.getElementById(`tab-${t}`);
-                btn.className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900 transition-all bg-transparent';
-            });
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`tab-${tabId}`);
-            activeBtn.className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80 transition-all';
-
-            if (tabId !== 'scanner' && isScanning) {
-                stopAttendanceCamera();
-            }
-            if (tabId !== 'register' && regStream) {
-                stopRegCamera();
-            }
-        }
-
-        // ================= GESTIÓN DE FOTOS Y REGISTRO =================
         async function handlePhotoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
-            reader.onload = async function(e) {
+            reader.onload = function(e) {
                 currentRegPhotoDataUrl = e.target.result;
                 const img = document.getElementById('regPreviewImg');
                 img.src = currentRegPhotoDataUrl;
                 img.classList.remove('hidden');
-
-                const video = document.getElementById('regVideo');
-                video.classList.add('hidden');
+                document.getElementById('regVideo').classList.add('hidden');
                 document.getElementById('regMediaContainer').classList.remove('hidden');
                 document.getElementById('regCameraControls').classList.add('hidden');
 
-                showFeedback('Analizando fotografía subida...', 'info');
-
-                img.onload = async () => {
-                    await processAndExtractFace(img);
-                };
+                img.onload = async () => await processAndExtractFace(img);
             };
             reader.readAsDataURL(file);
         }
@@ -590,35 +630,24 @@
             stopRegCamera();
             const container = document.getElementById('regMediaContainer');
             const video = document.getElementById('regVideo');
-            const img = document.getElementById('regPreviewImg');
-            const controls = document.getElementById('regCameraControls');
-
             container.classList.remove('hidden');
             video.classList.remove('hidden');
-            img.classList.add('hidden');
-            controls.classList.remove('hidden');
+            document.getElementById('regPreviewImg').classList.add('hidden');
+            document.getElementById('regCameraControls').classList.remove('hidden');
 
             try {
-                regStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: regFacingMode, width: { ideal: 640 }, height: { ideal: 480 } }
-                });
+                regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
                 video.srcObject = regStream;
             } catch (err) {
-                showToast('No se pudo acceder a la cámara frontal.', 'error');
-                container.classList.add('hidden');
+                showToast('No se pudo abrir la cámara.', 'error');
             }
         }
 
         function stopRegCamera() {
             if (regStream) {
-                regStream.getTracks().forEach(track => track.stop());
+                regStream.getTracks().forEach(t => t.stop());
                 regStream = null;
             }
-        }
-
-        async function switchRegCameraFacing() {
-            regFacingMode = regFacingMode === 'user' ? 'environment' : 'user';
-            await startRegCamera();
         }
 
         async function captureRegSnapshot() {
@@ -626,8 +655,7 @@
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth || 640;
             canvas.height = video.videoHeight || 480;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 
             currentRegPhotoDataUrl = canvas.toDataURL('image/jpeg');
             const img = document.getElementById('regPreviewImg');
@@ -637,174 +665,115 @@
             document.getElementById('regCameraControls').classList.add('hidden');
             stopRegCamera();
 
-            showFeedback('Procesando rostro capturado...', 'info');
             await processAndExtractFace(img);
         }
 
         async function processAndExtractFace(mediaElement) {
-            if (!modelsLoaded) {
-                showFeedback('Los modelos de IA aún no han terminado de cargar.', 'error');
-                return;
-            }
+            const fb = document.getElementById('regFaceFeedback');
+            fb.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'bg-red-50', 'text-crimson-700');
+            fb.textContent = 'Analizando rostro con IA...';
 
-            try {
-                const detection = await faceapi.detectSingleFace(mediaElement, new faceapi.TinyFaceDetectorOptions())
-                    .withFaceLandmarks(true)
-                    .withFaceDescriptor();
+            const detection = await faceapi.detectSingleFace(mediaElement, new faceapi.TinyFaceDetectorOptions())
+                .withFaceLandmarks(true)
+                .withFaceDescriptor();
 
-                if (detection) {
-                    currentRegDescriptor = detection.descriptor;
-                    showFeedback('¡Rostro detectado y procesado exitosamente!', 'success');
-                    document.getElementById('btnSaveStudent').disabled = false;
-                } else {
-                    currentRegDescriptor = null;
-                    showFeedback('No se detectó ningún rostro claro. Intenta con otra foto o ilumina mejor tu rostro.', 'error');
-                    document.getElementById('btnSaveStudent').disabled = true;
-                }
-            } catch (err) {
+            if (detection) {
+                currentRegDescriptor = detection.descriptor;
+                fb.classList.add('bg-emerald-50', 'text-emerald-700');
+                fb.textContent = '¡Rostro detectado correctamente!';
+                document.getElementById('btnSaveStudent').disabled = false;
+            } else {
                 currentRegDescriptor = null;
-                showFeedback('Error al procesar la imagen con IA.', 'error');
+                fb.classList.add('bg-red-50', 'text-crimson-700');
+                fb.textContent = 'No se detectó un rostro claro. Intenta otra foto.';
                 document.getElementById('btnSaveStudent').disabled = true;
             }
         }
 
-        function showFeedback(msg, type) {
-            const fb = document.getElementById('regFaceFeedback');
-            fb.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'bg-red-50', 'text-crimson-700', 'bg-blue-50', 'text-navy-950');
-            if (type === 'success') {
-                fb.classList.add('bg-emerald-50', 'text-emerald-700');
-            } else if (type === 'error') {
-                fb.classList.add('bg-red-50', 'text-crimson-700');
-            } else {
-                fb.classList.add('bg-blue-50', 'text-navy-950');
-            }
-            fb.textContent = msg;
-        }
-
         function saveNewStudent() {
-            const idInput = document.getElementById('regStudentId').value.trim();
-            const nameInput = document.getElementById('regStudentName').value.trim();
-            const gradeInput = document.getElementById('regStudentGrade').value.trim();
+            const cls = getActiveClass();
+            const id = document.getElementById('regStudentId').value.trim();
+            const name = document.getElementById('regStudentName').value.trim();
 
-            if (!idInput || !nameInput) {
-                showToast('Completa el Código y el Nombre del alumno.', 'error');
-                return;
-            }
-            if (!currentRegDescriptor) {
-                showToast('Falta procesar una fotografía válida con rostro.', 'error');
+            if (!id || !name || !currentRegDescriptor) return;
+            if (cls.students.some(s => s.id === id)) {
+                showToast('Ya existe un alumno con esa clave en esta aula.', 'error');
                 return;
             }
 
-            if (students.some(s => s.id === idInput)) {
-                showToast('Ya existe un alumno registrado con este código.', 'error');
-                return;
-            }
-
-            const newStudent = {
-                id: idInput,
-                name: nameInput,
-                grade: gradeInput || 'General',
+            cls.students.push({
+                id,
+                name,
                 photo: currentRegPhotoDataUrl,
-                descriptor: Array.from(currentRegDescriptor) // Guardar como arreglo normal para JSON
-            };
+                descriptor: currentRegDescriptor
+            });
 
-            students.push(newStudent);
-            // Mantener como Float32Array en memoria activa
-            students[students.length - 1].descriptor = currentRegDescriptor;
-
-            saveToLocalStorage();
-            syncAttendanceWithRoster();
+            saveTeacherData();
             rebuildFaceMatcher();
-            renderAllUI();
-            resetRegForm();
+            renderClassSelector();
 
-            showToast(`Estudiante ${nameInput} registrado con éxito.`, 'success');
-        }
-
-        function resetRegForm() {
+            // Limpiar formulario
             document.getElementById('regStudentId').value = '';
             document.getElementById('regStudentName').value = '';
-            document.getElementById('regStudentGrade').value = '';
             document.getElementById('regMediaContainer').classList.add('hidden');
-            document.getElementById('regPreviewImg').classList.add('hidden');
-            document.getElementById('regVideo').classList.add('hidden');
             document.getElementById('regFaceFeedback').classList.add('hidden');
             document.getElementById('btnSaveStudent').disabled = true;
             currentRegDescriptor = null;
-            currentRegPhotoDataUrl = null;
-            stopRegCamera();
+
+            showToast(`${name} agregado a ${cls.grade} - ${cls.section}`, 'success');
         }
 
-        // ================= CÁMARA DE ASISTENCIA Y ESCÁNER =================
+        // ================= 4. ESCÁNER DE ASISTENCIA POR SECCIÓN =================
+        function getTodayStr() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        }
+
         async function toggleAttendanceCamera() {
-            if (isScanning) {
-                stopAttendanceCamera();
-            } else {
-                await startAttendanceCamera();
-            }
+            if (isScanning) stopAttendanceCamera();
+            else await startAttendanceCamera();
         }
 
         async function startAttendanceCamera() {
-            if (students.length === 0) {
-                document.getElementById('noStudentsWarning').classList.remove('hidden');
-                showToast('Registra alumnos primero antes de iniciar el escáner.', 'error');
+            const cls = getActiveClass();
+            if (!cls || cls.students.length === 0) {
+                showToast('Registra alumnos en esta aula antes de escanear.', 'error');
                 return;
             }
-
             const video = document.getElementById('attendanceVideo');
             try {
-                attendanceStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: attendanceFacingMode, width: { ideal: 640 }, height: { ideal: 480 } }
-                });
+                attendanceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: attendanceFacingMode } });
                 video.srcObject = attendanceStream;
                 document.getElementById('videoPlaceholder').classList.add('hidden');
                 document.getElementById('btnToggleCameraText').textContent = 'Detener Cámara';
-                document.getElementById('btnToggleCamera').className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-800 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-sm transition-all';
                 isScanning = true;
-                runAttendanceScannerLoop();
+                runScannerLoop();
             } catch (err) {
-                document.getElementById('cameraErrorBanner').classList.remove('hidden');
-                document.getElementById('cameraErrorDetail').textContent = err.message;
+                showToast('Error al acceder a la cámara.', 'error');
             }
         }
 
         function stopAttendanceCamera() {
             if (scanAnimationFrame) cancelAnimationFrame(scanAnimationFrame);
-            if (attendanceStream) {
-                attendanceStream.getTracks().forEach(t => t.stop());
-                attendanceStream = null;
-            }
+            if (attendanceStream) attendanceStream.getTracks().forEach(t => t.stop());
             isScanning = false;
-            const video = document.getElementById('attendanceVideo');
-            video.srcObject = null;
             document.getElementById('videoPlaceholder').classList.remove('hidden');
             document.getElementById('btnToggleCameraText').textContent = 'Iniciar Cámara';
-            document.getElementById('btnToggleCamera').className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-crimson-600 hover:bg-crimson-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-sm transition-all';
-            const canvas = document.getElementById('attendanceCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        async function switchCameraFacing() {
+        function switchCameraFacing() {
             attendanceFacingMode = attendanceFacingMode === 'environment' ? 'user' : 'environment';
             document.getElementById('facingLabel').textContent = attendanceFacingMode === 'environment' ? 'Trasera' : 'Frontal';
-            if (isScanning) {
-                stopAttendanceCamera();
-                await startAttendanceCamera();
-            }
+            if (isScanning) { stopAttendanceCamera(); startAttendanceCamera(); }
         }
 
-        async function runAttendanceScannerLoop() {
+        async function runScannerLoop() {
             const video = document.getElementById('attendanceVideo');
             const canvas = document.getElementById('attendanceCanvas');
-            if (!isScanning) return;
+            const cls = getActiveClass();
+            if (!isScanning || !cls) return;
 
-            if (video.paused || video.ended) {
-                scanAnimationFrame = requestAnimationFrame(runAttendanceScannerLoop);
-                return;
-            }
-
-            try {
+            if (!video.paused && !video.ended) {
                 const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
                     .withFaceLandmarks(true)
                     .withFaceDescriptors();
@@ -815,356 +784,181 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 if (detections.length > 0 && faceMatcher) {
-                    const resizedDetections = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
-                    
-                    resizedDetections.forEach(detection => {
-                        const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
-                        const box = detection.detection.box;
-                        
-                        let labelColor = '#C8102E'; // Rojo si es desconocido
-                        let studentName = 'Desconocido';
+                    const resized = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
+                    resized.forEach(det => {
+                        const match = faceMatcher.findBestMatch(det.descriptor);
+                        let color = '#C8102E';
+                        let label = 'Desconocido';
 
-                        if (bestMatch.label !== 'unknown') {
-                            const student = students.find(s => s.id === bestMatch.label);
+                        if (match.label !== 'unknown') {
+                            const student = cls.students.find(s => s.id === match.label);
                             if (student) {
-                                studentName = student.name;
-                                labelColor = '#10B981'; // Verde si está registrado
-                                markAttendanceAsPresent(student.id, studentName);
+                                label = student.name;
+                                color = '#10B981';
+                                markPresent(student.id, student.name);
                             }
                         }
-
-                        const drawBox = new faceapi.draw.DrawBox(box, { label: `${studentName} (${Math.round((1 - bestMatch.distance) * 100)}%)`, boxColor: labelColor });
-                        drawBox.draw(canvas);
+                        new faceapi.draw.DrawBox(det.detection.box, { label, boxColor: color }).draw(canvas);
                     });
                 }
-            } catch (e) {
-                console.error(e);
             }
-
-            if (isScanning) {
-                scanAnimationFrame = requestAnimationFrame(runAttendanceScannerLoop);
-            }
+            if (isScanning) scanAnimationFrame = requestAnimationFrame(runScannerLoop);
         }
 
-        function markAttendanceAsPresent(studentId, studentName) {
+        function markPresent(studentId, studentName) {
             const now = Date.now();
-            if (lastDetectedCooldown[studentId] && (now - lastDetectedCooldown[studentId] < 15000)) {
-                return; 
-            }
+            if (lastDetectedCooldown[studentId] && now - lastDetectedCooldown[studentId] < 10000) return;
             lastDetectedCooldown[studentId] = now;
 
-            const timeStr = getCurrentTimeStr();
-            attendanceRecords[studentId] = {
-                status: 'ASISTENTE',
-                date: getTodayStr(),
-                time: timeStr,
-                method: 'Facial'
-            };
+            const cls = getActiveClass();
+            const today = getTodayStr();
+            if (!cls.attendance[today]) cls.attendance[today] = {};
 
-            saveToLocalStorage();
+            const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+            cls.attendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
+
+            saveTeacherData();
             renderAllUI();
 
             const banner = document.getElementById('lastDetectedBanner');
             document.getElementById('lastDetectedName').textContent = studentName;
             document.getElementById('lastDetectedTime').textContent = timeStr;
             banner.classList.remove('hidden');
-            setTimeout(() => { banner.classList.add('hidden'); }, 4000);
+            setTimeout(() => banner.classList.add('hidden'), 3500);
         }
 
-        // ================= GESTIÓN DE UI Y REPORTES =================
+        // ================= 5. RENDERIZADO UI Y EXCEL =================
+        function switchTab(tabId) {
+            ['scanner', 'register', 'report'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500';
+            });
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80';
+            if (tabId !== 'scanner') stopAttendanceCamera();
+        }
+
         function renderAllUI() {
-            document.getElementById('badgeStudentCount').textContent = students.length;
-            renderRegisteredStudentsList();
-            renderAttendanceStats();
-            renderAttendanceTable();
-            renderRecentCheckins();
-        }
+            const cls = getActiveClass();
+            if (!cls) return;
 
-        function renderRegisteredStudentsList() {
-            const container = document.getElementById('registeredStudentsList');
-            if (students.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">No hay alumnos registrados todavía.</p>`;
-                return;
-            }
+            const today = getTodayStr();
+            const todayRecords = cls.attendance[today] || {};
 
-            container.innerHTML = students.map(s => `
-                <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 gap-3">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <img src="${s.photo}" class="w-10 h-10 rounded-full object-cover border border-navy-900/20 shrink-0" alt="${s.name}">
-                        <div class="min-w-0">
-                            <p class="font-bold text-navy-900 text-sm truncate">${s.name}</p>
-                            <p class="text-[11px] text-slate-500 truncate">Código: <span class="font-semibold text-navy-800">${s.id}</span> • Grado: ${s.grade}</p>
-                        </div>
-                    </div>
-                    <button onclick="confirmDeleteStudent('${s.id}')" class="p-2 text-slate-400 hover:text-crimson-600 rounded-lg transition-colors" title="Eliminar alumno">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
+            document.getElementById('badgeStudentCount').textContent = cls.students.length;
 
-        function renderAttendanceStats() {
-            const total = students.length;
+            // Estadísticas
             let present = 0;
-            let absent = 0;
-
-            students.forEach(s => {
-                const rec = attendanceRecords[s.id];
-                if (rec && rec.status === 'ASISTENTE') present++;
-                else absent++;
-            });
-
-            document.getElementById('statTotal').textContent = total;
+            cls.students.forEach(s => { if (todayRecords[s.id]?.status === 'ASISTENTE') present++; });
+            document.getElementById('statTotal').textContent = cls.students.length;
             document.getElementById('statPresent').textContent = present;
-            document.getElementById('statAbsent').textContent = absent;
-        }
+            document.getElementById('statAbsent').textContent = cls.students.length - present;
 
-        function renderAttendanceTable() {
+            // Lista de alumnos registrados
+            const listEl = document.getElementById('registeredStudentsList');
+            listEl.innerHTML = cls.students.length === 0
+                ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos en esta sección.</p>'
+                : cls.students.map(s => `
+                    <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50">
+                        <div class="flex items-center gap-3">
+                            <img src="${s.photo}" class="w-10 h-10 rounded-full object-cover border">
+                            <div>
+                                <p class="font-bold text-navy-900 text-sm">${s.name}</p>
+                                <p class="text-[11px] text-slate-500">Clave: ${s.id}</p>
+                            </div>
+                        </div>
+                        <button onclick="deleteStudent('${s.id}')" class="text-slate-400 hover:text-crimson-600 p-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `).join('');
+
+            // Tabla de reporte
             const tbody = document.getElementById('attendanceTableBody');
-            const search = document.getElementById('searchAttendanceInput').value.toLowerCase();
-
-            const filtered = students.filter(s => {
-                const matchesSearch = s.name.toLowerCase().includes(search) || s.id.toLowerCase().includes(search);
-                const rec = attendanceRecords[s.id] || { status: 'INASISTENTE' };
-                const matchesFilter = currentStatusFilter === 'ALL' || rec.status === currentStatusFilter;
-                return matchesSearch && matchesFilter;
-            });
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 text-xs">No se encontraron registros de asistencia.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(s => {
-                const rec = attendanceRecords[s.id] || { status: 'INASISTENTE', time: '--:--', method: '-' };
+            tbody.innerHTML = cls.students.map(s => {
+                const rec = todayRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
                 const isPresent = rec.status === 'ASISTENTE';
-
                 return `
-                    <tr class="hover:bg-slate-50/80">
-                        <td class="py-3 px-4 font-mono font-bold text-navy-900">${s.id}</td>
-                        <td class="py-3 px-4 font-medium text-navy-900 flex items-center gap-2">
-                            <img src="${s.photo}" class="w-7 h-7 rounded-full object-cover shrink-0">
-                            <span class="truncate">${s.name}</span>
+                    <tr>
+                        <td class="py-3 px-4 font-bold">${s.id}</td>
+                        <td class="py-3 px-4 flex items-center gap-2">
+                            <img src="${s.photo}" class="w-7 h-7 rounded-full object-cover">
+                            <span>${s.name}</span>
                         </td>
-                        <td class="py-3 px-4 text-slate-600 hidden md:table-cell">${s.grade}</td>
-                        <td class="py-3 px-4 font-mono text-slate-600">${rec.time}</td>
+                        <td class="py-3 px-4 font-mono">${rec.time}</td>
                         <td class="py-3 px-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">
-                                ${rec.status}
-                            </span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">${rec.status}</span>
                         </td>
                         <td class="py-3 px-4 text-right">
-                            <button onclick="toggleAttendanceStatus('${s.id}')" class="px-2.5 py-1 rounded-lg text-xs font-semibold border ${isPresent ? 'border-red-200 text-crimson-600 hover:bg-red-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'}">
-                                ${isPresent ? 'Marcar Inasistente' : 'Marcar Asistente'}
-                            </button>
+                            <button onclick="toggleManualStatus('${s.id}')" class="text-xs underline font-semibold text-navy-900">Cambiar</button>
                         </td>
                     </tr>
                 `;
             }).join('');
+            lucide.createIcons();
         }
 
-        function renderRecentCheckins() {
-            const container = document.getElementById('recentCheckinsList');
-            const presentStudents = students.filter(s => attendanceRecords[s.id] && attendanceRecords[s.id].status === 'ASISTENTE');
-
-            if (presentStudents.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Ningún estudiante marcado todavía.</p>`;
-                return;
-            }
-
-            presentStudents.sort((a, b) => (attendanceRecords[b.id].time || '').localeCompare(attendanceRecords[a.id].time || ''));
-
-            container.innerHTML = presentStudents.slice(0, 5).map(s => {
-                const rec = attendanceRecords[s.id];
-                return `
-                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                            <img src="${s.photo}" class="w-7 h-7 rounded-full object-cover shrink-0">
-                            <span class="font-bold text-navy-900 truncate">${s.name}</span>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span class="font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">${rec.time}</span>
-                            <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">${rec.method}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+        function deleteStudent(studentId) {
+            const cls = getActiveClass();
+            cls.students = cls.students.filter(s => s.id !== studentId);
+            saveTeacherData();
+            rebuildFaceMatcher();
+            renderClassSelector();
         }
 
-        function setStatusFilter(filter) {
-            currentStatusFilter = filter;
-            ['ALL', 'ASISTENTE', 'INASISTENTE'].forEach(f => {
-                const btn = document.getElementById(`filter-${f}`);
-                if (f === filter) {
-                    btn.className = 'filter-chip px-3 py-1.5 rounded-lg font-bold bg-navy-900 text-white';
-                } else {
-                    btn.className = 'filter-chip px-3 py-1.5 rounded-lg font-semibold bg-white border border-slate-300 text-navy-900';
-                }
-            });
-            renderAttendanceTable();
-        }
+        function toggleManualStatus(studentId) {
+            const cls = getActiveClass();
+            const today = getTodayStr();
+            if (!cls.attendance[today]) cls.attendance[today] = {};
 
-        function toggleAttendanceStatus(studentId) {
-            const rec = attendanceRecords[studentId];
-            if (rec && rec.status === 'ASISTENTE') {
-                attendanceRecords[studentId] = { status: 'INASISTENTE', date: getTodayStr(), time: '--:--', method: 'Manual' };
+            if (cls.attendance[today][studentId]?.status === 'ASISTENTE') {
+                cls.attendance[today][studentId] = { status: 'INASISTENTE', time: '--:--' };
             } else {
-                attendanceRecords[studentId] = { status: 'ASISTENTE', date: getTodayStr(), time: getCurrentTimeStr(), method: 'Manual' };
+                const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+                cls.attendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
             }
-            saveToLocalStorage();
+            saveTeacherData();
             renderAllUI();
         }
 
         function resetTodayAttendance() {
-            openModal(
-                'Reiniciar Asistencia',
-                '¿Deseas restablecer todos los registros de asistencia de hoy a Inasistentes?',
-                () => {
-                    attendanceRecords = {};
-                    syncAttendanceWithRoster();
-                    saveToLocalStorage();
-                    renderAllUI();
-                    closeModal();
-                    showToast('Asistencia reiniciada correctamente.', 'success');
-                }
-            );
+            const cls = getActiveClass();
+            cls.attendance[getTodayStr()] = {};
+            saveTeacherData();
+            renderAllUI();
+            showToast('Asistencia del día reiniciada.', 'success');
         }
 
-        function confirmDeleteStudent(studentId) {
-            openModal(
-                'Eliminar Estudiante',
-                '¿Estás seguro de eliminar este alumno de la nómina? Se borrará su rostro y sus datos.',
-                () => {
-                    students = students.filter(s => s.id !== studentId);
-                    delete attendanceRecords[studentId];
-                    saveToLocalStorage();
-                    rebuildFaceMatcher();
-                    renderAllUI();
-                    closeModal();
-                    showToast('Estudiante eliminado.', 'success');
-                }
-            );
-        }
-
-        function confirmClearAllStudents() {
-            openModal(
-                'Vaciar Nómina',
-                '¿Estás completamente seguro de eliminar a TODOS los alumnos registrados?',
-                () => {
-                    students = [];
-                    attendanceRecords = {};
-                    saveToLocalStorage();
-                    rebuildFaceMatcher();
-                    renderAllUI();
-                    closeModal();
-                    showToast('Nómina vaciada correctamente.', 'success');
-                }
-            );
-        }
-
-        // ================= EXPORTACIÓN EXCEL Y RESPALDO =================
         function exportToExcel() {
-            if (students.length === 0) {
-                showToast('No hay datos para exportar.', 'error');
-                return;
-            }
+            const cls = getActiveClass();
+            const today = getTodayStr();
+            const todayRecords = cls.attendance[today] || {};
 
-            const data = students.map((s, index) => {
-                const rec = attendanceRecords[s.id] || { status: 'INASISTENTE', time: '--', method: '--' };
+            const rows = cls.students.map((s, idx) => {
+                const rec = todayRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
                 return {
-                    'No.': index + 1,
-                    'Código': s.id,
+                    'No.': idx + 1,
+                    'Clave': s.id,
                     'Estudiante': s.name,
-                    'Grado / Sección': s.grade,
-                    'Fecha': getTodayStr(),
-                    'Hora de Registro': rec.time,
-                    'Estado': rec.status,
-                    'Método': rec.method
+                    'Grado': cls.grade,
+                    'Sección': cls.section,
+                    'Fecha': today,
+                    'Hora': rec.time,
+                    'Estado': rec.status
                 };
             });
 
-            const worksheet = XLSX.utils.json_to_sheet(data);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistencia');
-
-            const maxWidth = data.reduce((w, r) => Math.max(w, r['Estudiante'].length), 10);
-            worksheet['!cols'] = [{wch: 5}, {wch: 10}, {wch: maxWidth + 5}, {wch: 18}, {wch: 12}, {wch: 16}, {wch: 14}, {wch: 12}];
-
-            XLSX.writeFile(workbook, `Asistencia_${INSTITUTION_NAME.replace(/\s+/g, '_')}_${getTodayStr()}.xlsx`);
-            showToast('Archivo Excel descargado con éxito.', 'success');
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
+            XLSX.writeFile(wb, `Asistencia_${cls.grade}_${cls.section}_${today}.xlsx`);
         }
 
-        function exportRosterBackup() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `Nomina_Alumnos_${getTodayStr()}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            showToast('Respaldo de alumnos descargado.', 'success');
-        }
-
-        function importRosterBackup(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (Array.isArray(imported)) {
-                        students = imported.map(s => ({
-                            ...s,
-                            descriptor: new Float32Array(s.descriptor)
-                        }));
-                        saveToLocalStorage();
-                        syncAttendanceWithRoster();
-                        rebuildFaceMatcher();
-                        renderAllUI();
-                        showToast('Nómina restaurada con éxito.', 'success');
-                    } else {
-                        showToast('Archivo de respaldo inválido.', 'error');
-                    }
-                } catch (err) {
-                    showToast('Error al leer el archivo JSON.', 'error');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // ================= MODAL & TOASTS =================
-        let modalCallback = null;
-        function openModal(title, message, onConfirm) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').textContent = message;
-            modalCallback = onConfirm;
-            document.getElementById('customModal').classList.remove('hidden');
-            document.getElementById('modalConfirmBtn').onclick = () => {
-                if (modalCallback) modalCallback();
-            };
-        }
-
-        function closeModal() {
-            document.getElementById('customModal').classList.add('hidden');
-            modalCallback = null;
-        }
-
-        function showToast(message, type = 'success') {
+        function showToast(msg, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            toast.className = `toast-enter flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-white font-medium text-xs sm:text-sm ${type === 'success' ? 'bg-navy-900 border-l-4 border-emerald-400' : 'bg-red-900 border-l-4 border-crimson-600'}`;
-            toast.innerHTML = `
-                <i data-lucide="${type === 'success' ? 'check-circle-2' : 'alert-circle'}" class="w-5 h-5 shrink-0 ${type === 'success' ? 'text-emerald-400' : 'text-crimson-600'}"></i>
-                <span class="flex-1">${message}</span>
-            `;
+            toast.className = `toast-enter px-4 py-3 rounded-xl shadow-lg text-white text-xs font-bold ${type === 'success' ? 'bg-navy-900 border-l-4 border-emerald-400' : 'bg-red-900 border-l-4 border-crimson-600'}`;
+            toast.textContent = msg;
             container.appendChild(toast);
-            lucide.createIcons();
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
+            setTimeout(() => toast.remove(), 3500);
         }
     </script>
 </body>
