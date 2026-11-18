@@ -3,115 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Asistencia por Cámara</title>
-    <!-- Tailwind CSS para diseño moderno -->
+    <title>Asistencia Automática con IA</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Librería SheetJS para exportar a Excel -->
+    <!-- Librería de Reconocimiento Facial (face-api.js) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <!-- Librería para exportar a Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
-<body class="bg-slate-100 min-y-screen p-4">
+<body class="bg-slate-100 min-h-screen p-4">
 
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl p-6">
-        <h1 class="text-2xl font-bold text-slate-800 mb-4 text-center">Control de Asistencia</h1>
+    <div class="max-w-lg mx-auto bg-white rounded-xl shadow-md p-5">
+        <h1 class="text-xl font-bold text-slate-800 text-center mb-2">Asistencia Facial Automática</h1>
+        <p id="estadoIA" class="text-center text-sm font-medium text-amber-600 mb-4">⏳ Cargando modelos de Inteligencia Artificial...</p>
 
-        <!-- Contenedor de la Cámara -->
-        <div class="mb-4 relative bg-black rounded-lg overflow-hidden aspect-video flex items-center justify-center">
-            <video id="video" autoplay playsinline class="w-full h-full object-cover"></video>
-            <div class="absolute bottom-2 bg-black/50 text-white text-xs px-2 py-1 rounded">Cámara activa</div>
-        </div>
-
-        <!-- Controles -->
-        <div class="flex gap-2 mb-6">
-            <select id="alumnoSelect" class="flex-1 border border-slate-300 rounded-lg p-2 text-slate-700">
-                <option value="Juan Pérez">Juan Pérez</option>
-                <option value="María Gómez">María Gómez</option>
-                <option value="Carlos López">Carlos López</option>
-                <option value="Ana Torres">Ana Torres</option>
-            </select>
-            <button onclick="marcarAsistencia('Presente')" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg transition">Presente</button>
-            <button onclick="marcarAsistencia('Ausente')" class="bg-red-500 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition">Ausente</button>
+        <!-- Contenedor de Video y Canvas (donde se dibujan los recuadros) -->
+        <div class="relative bg-black rounded-lg overflow-hidden aspect-video mb-4 flex items-center justify-center">
+            <video id="video" autoplay muted playsinline class="w-full h-full object-cover"></video>
+            <canvas id="overlay" class="absolute top-0 left-0 w-full h-full"></canvas>
         </div>
 
         <!-- Tabla de Asistencia -->
-        <h2 class="text-lg font-semibold text-slate-700 mb-2">Registro Actual</h2>
-        <div class="overflow-x-auto border border-slate-200 rounded-lg mb-4">
-            <table id="tablaAsistencia" class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-sm">
+        <div class="flex justify-between items-center mb-2">
+            <h2 class="text-md font-semibold text-slate-700">Lista de Clase</h2>
+            <span id="contador" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">0 Presentes</span>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 rounded-lg mb-4 max-h-60">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-50 sticky top-0">
+                    <tr class="border-b border-slate-200 text-slate-600 text-xs uppercase">
                         <th class="p-3">Alumno</th>
                         <th class="p-3">Estado</th>
                         <th class="p-3">Hora</th>
                     </tr>
                 </thead>
-                <tbody id="cuerpoTabla" class="text-slate-700 text-sm">
-                    <!-- Los registros se llenan aquí -->
-                </tbody>
+                <tbody id="cuerpoTabla" class="text-slate-700 text-sm"></tbody>
             </table>
         </div>
 
-        <!-- Botón para descargar Excel -->
-        <button onclick="exportarExcel()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg shadow transition flex items-center justify-center gap-2">
-            📥 Descargar Hoja de Excel (.xlsx)
+        <!-- Botón de Exportación -->
+        <button onclick="exportarExcel()" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg shadow transition flex items-center justify-center gap-2">
+            📥 Descargar Reporte Excel (.xlsx)
         </button>
     </div>
 
     <script>
-        // Inicializar la cámara del teléfono
         const video = document.getElementById('video');
+        const estadoIA = document.getElementById('estadoIA');
+        
+        // LISTA DE TUS ALUMNOS (Debe coincidir exacto con el nombre de los archivos en la carpeta /fotos)
+        const listaAlumnos = ['Juan_Perez', 'Maria_Gomez', 'Carlos_Lopez'];
+        
+        // Objeto para llevar el control de asistencia (todos inician como Ausente)
+        let registroAsistencia = {};
+        listaAlumnos.forEach(nombre => {
+            registroAsistencia[nombre] = {
+                Alumno: nombre.replace('_', ' '),
+                Estado: 'Ausente',
+                Hora: '-'
+            };
+        });
 
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-            .then(stream => {
-                video.srcObject = stream;
-            })
-            .catch(err => {
-                console.error("Error al acceder a la cámara: ", err);
-                alert("No se pudo acceder a la cámara. Asegúrate de dar permisos.");
-            });
-
-        let registros = [];
-
-        function marcarAsistencia(estado) {
-            const select = document.getElementById('alumnoSelect');
-            const alumno = select.value;
-            const hora = new Date().toLocaleTimeString();
-
-            // Evitar duplicados exactos rápidos si se desea, o actualizar
-            registros.push({ Alumno: alumno, Estado: estado, Hora: hora });
+        // 1. Cargar los modelos de IA al iniciar la página
+        window.addEventListener('DOMContentLoaded', async () => {
             actualizarTabla();
+            try {
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri('./models'),
+                    faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
+                    faceapi.nets.faceRecognitionNet.loadFromUri('./models')
+                ]);
+                estadoIA.innerText = "⏳ Analizando fotos de referencia...";
+                iniciarSistema();
+            } catch (error) {
+                estadoIA.innerText = "❌ Error cargando modelos. Revisa la carpeta /models.";
+                console.error(error);
+            }
+        });
+
+        // 2. Procesar las fotos de referencia de los alumnos
+        async function cargarRostrosReferencia() {
+            return Promise.all(
+                listaAlumnos.map(async label => {
+                    const imgUrl = `./fotos/${label}.jpg`;
+                    const img = await faceapi.fetchImage(imgUrl);
+                    const deteccion = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+                    
+                    if (!deteccion) {
+                        console.warn(`No se detectó rostro claro en la foto de: ${label}`);
+                        return null;
+                    }
+                    return new faceapi.LabeledFaceDescriptors(label, [deteccion.descriptor]);
+                })
+            );
         }
 
+        // 3. Encender cámara y comenzar detección en tiempo real
+        async function iniciarSistema() {
+            const descriptoresValidos = (await cargarRostrosReferencia()).filter(d => d !== null);
+            const faceMatcher = new faceapi.FaceMatcher(descriptoresValidos, 0.55); // 0.55 es el nivel de tolerancia/precisión
+
+            // Usar cámara trasera ('environment') para apuntar a los alumnos, o 'user' para selfie
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => {
+                    video.srcObject = stream;
+                    estadoIA.innerText = "✅ Sistema listo. Apunta la cámara a los alumnos.";
+                    estadoIA.className = "text-center text-sm font-medium text-green-600 mb-4";
+                })
+                .catch(err => {
+                    estadoIA.innerText = "❌ Permiso de cámara denegado.";
+                    console.error(err);
+                });
+
+            video.addEventListener('play', () => {
+                const canvas = document.getElementById('overlay');
+                const displaySize = { width: video.clientWidth, height: video.clientHeight };
+                faceapi.matchDimensions(canvas, displaySize);
+
+                // Escanear el video cada 500 milisegundos (medio segundo)
+                setInterval(async () => {
+                    const detecciones = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
+                    const deteccionesRedimensionadas = faceapi.resizeResults(detecciones, displaySize);
+                    
+                    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+
+                    const resultados = deteccionesRedimensionadas.map(d => faceMatcher.findBestMatch(d.descriptor));
+
+                    resultados.forEach((resultado, i) => {
+                        const box = deteccionesRedimensionadas[i].detection.box;
+                        const nombreDetectado = resultado.label;
+
+                        // Dibujar recuadro en pantalla
+                        const drawBox = new faceapi.draw.DrawBox(box, { 
+                            label: nombreDetectado === 'unknown' ? 'Desconocido' : nombreDetectado.replace('_', ' ') 
+                        });
+                        drawBox.draw(canvas);
+
+                        // Si reconoce al alumno y aún estaba Ausente, marcarlo Presente
+                        if (nombreDetectado !== 'unknown' && registroAsistencia[nombreDetectado].Estado === 'Ausente') {
+                            registroAsistencia[nombreDetectado].Estado = 'Presente';
+                            registroAsistencia[nombreDetectado].Hora = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            actualizarTabla();
+                        }
+                    });
+                }, 500);
+            });
+        }
+
+        // 4. Actualizar la interfaz visual
         function actualizarTabla() {
             const cuerpo = document.getElementById('cuerpoTabla');
             cuerpo.innerHTML = '';
+            let presentesCount = 0;
 
-            registros.forEach(reg => {
+            Object.values(registroAsistencia).forEach(reg => {
+                if (reg.Estado === 'Presente') presentesCount++;
+                
                 const fila = document.createElement('tr');
                 fila.className = "border-b border-slate-100";
-                
-                const colorEstado = reg.Estado === 'Presente' ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold';
+                const badgeColor = reg.Estado === 'Presente' 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-red-100 text-red-600';
 
                 fila.innerHTML = `
-                    <td class="p-3">${reg.Alumno}</td>
-                    <td class="p-3 ${colorEstado}">${reg.Estado}</td>
-                    <td class="p-3 text-slate-500">${reg.Hora}</td>
+                    <td class="p-3 font-medium">${reg.Alumno}</td>
+                    <td class="p-3"><span class="px-2 py-1 rounded text-xs font-semibold ${badgeColor}">${reg.Estado}</span></td>
+                    <td class="p-3 text-slate-500 text-xs">${reg.Hora}</td>
                 `;
                 cuerpo.appendChild(fila);
             });
+
+            document.getElementById('contador').innerText = `${presentesCount} / ${listaAlumnos.length} Presentes`;
         }
 
+        // 5. Generar y descargar archivo Excel
         function exportarExcel() {
-            if (registros.length === 0) {
-                alert("No hay registros de asistencia para exportar.");
-                return;
-            }
-
-            // Crear hoja de trabajo con SheetJS
-            const worksheet = XLSX.utils.json_to_sheet(registros);
+            const datosParaExcel = Object.values(registroAsistencia);
+            const worksheet = XLSX.utils.json_to_sheet(datosParaExcel);
             const workbook = XLSX.utils.book_new();
+            
+            const fechaHoy = new Date().toISOString().slice(0, 10);
             XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia");
-
-            // Descargar archivo Excel
-            XLSX.writeFile(workbook, "Control_Asistencia.xlsx");
+            XLSX.writeFile(workbook, `Asistencia_${fechaHoy}.xlsx`);
         }
     </script>
 </body>
