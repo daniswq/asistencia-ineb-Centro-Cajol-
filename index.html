@@ -11,15 +11,8 @@
             theme: {
                 extend: {
                     colors: {
-                        navy: {
-                            800: '#112A56',
-                            900: '#0A1E40',
-                            950: '#061329',
-                        },
-                        crimson: {
-                            600: '#C8102E',
-                            700: '#A50D26',
-                        }
+                        navy: { 800: '#112A56', 900: '#0A1E40', 950: '#061329' },
+                        crimson: { 600: '#C8102E', 700: '#A50D26' }
                     }
                 }
             }
@@ -29,7 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- face-api.js -->
+    <!-- face-api.js optimizado -->
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     <!-- SheetJS (xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -45,13 +38,13 @@
 </head>
 <body class="bg-slate-50 text-navy-900 min-h-screen flex flex-col">
 
-    <!-- ================= PANTALLA DE CARGA INICIAL ================= -->
+    <!-- PANTALLA DE CARGA INICIAL -->
     <div id="loadingOverlay" class="fixed inset-0 z-50 bg-navy-950 flex flex-col items-center justify-center text-white gap-3">
         <div class="w-12 h-12 border-4 border-crimson-600 border-t-transparent rounded-full animate-spin"></div>
         <p class="text-sm font-bold tracking-wide">Conectando con la Nube INEB...</p>
     </div>
 
-    <!-- ================= PANTALLA 0: LOGIN Y REGISTRO DOCENTE ================= -->
+    <!-- PANTALLA 0: LOGIN Y REGISTRO DOCENTE -->
     <div id="authScreen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-t-8 border-crimson-600 space-y-6">
             <div class="text-center space-y-2">
@@ -62,13 +55,11 @@
                 <p class="text-xs text-slate-500 font-medium">Aula Virtual en la Nube • Asistencia Facial</p>
             </div>
 
-            <!-- Pestañas Login / Registro -->
             <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-bold">
                 <button type="button" id="btnShowLogin" onclick="toggleAuthMode('login')" class="py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all">Iniciar Sesión</button>
                 <button type="button" id="btnShowRegister" onclick="toggleAuthMode('register')" class="py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all">Crear Cuenta</button>
             </div>
 
-            <!-- Formulario Login -->
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-navy-900 mb-1">Correo Electrónico</label>
@@ -83,7 +74,6 @@
                 </button>
             </form>
 
-            <!-- Formulario Registro Docente -->
             <form id="registerForm" onsubmit="handleRegisterTeacher(event)" class="hidden space-y-3.5">
                 <div>
                     <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Docente</label>
@@ -104,9 +94,8 @@
         </div>
     </div>
 
-    <!-- ================= APLICACIÓN PRINCIPAL (AULA VIRTUAL) ================= -->
+    <!-- APLICACIÓN PRINCIPAL -->
     <div id="appContainer" class="hidden flex-1 flex flex-col">
-        <!-- Barra Superior Institucional -->
         <header class="bg-navy-900 text-white sticky top-0 z-30 shadow-md border-b-4 border-crimson-600">
             <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-3 min-w-0">
@@ -133,7 +122,6 @@
                 </div>
             </div>
 
-            <!-- Selector de Aula / Grado y Sección -->
             <div class="bg-navy-950 border-t border-navy-800 px-4 py-2.5">
                 <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
                     <div class="flex items-center gap-2 flex-1 min-w-[200px]">
@@ -148,7 +136,6 @@
                 </div>
             </div>
 
-            <!-- Pestañas de Navegación -->
             <nav class="bg-white border-b border-slate-200">
                 <div class="max-w-5xl mx-auto px-2 sm:px-4 grid grid-cols-3 gap-1">
                     <button onclick="switchTab('scanner')" id="tab-scanner" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80">
@@ -167,21 +154,18 @@
             </nav>
         </header>
 
-        <!-- Contenedor Principal -->
         <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-5 pb-20">
-            <!-- Aviso si no hay aulas creadas -->
             <div id="noClassesAlert" class="hidden bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-2xl text-navy-900 shadow-sm text-center space-y-3">
                 <i data-lucide="folder-plus" class="w-10 h-10 text-amber-600 mx-auto"></i>
                 <h2 class="font-bold text-base">Aún no has creado ningún Grado o Sección</h2>
-                <p class="text-xs text-slate-600 max-w-md mx-auto">Crea tu primera aula (Ejemplo: 3ro Básico - Sección A) para guardar los rostros y datos de tus estudiantes en la nube.</p>
+                <p class="text-xs text-slate-600 max-w-md mx-auto">Crea tu primera aula para guardar los rostros y datos de tus estudiantes en la nube.</p>
                 <button onclick="openNewClassModal()" class="px-4 py-2.5 rounded-xl bg-navy-900 text-white text-xs font-bold hover:bg-navy-800">
                     + Crear Mi Primera Aula
                 </button>
             </div>
 
-            <!-- Contenido de las pestañas -->
             <div id="workspaceViews" class="space-y-4">
-                <!-- PESTAÑA 1: ESCÁNER -->
+                <!-- PESTAÑA 1 -->
                 <section id="view-scanner" class="space-y-4">
                     <div class="grid grid-cols-3 gap-2 sm:gap-4">
                         <div class="bg-navy-900 text-white p-3 rounded-2xl text-center">
@@ -229,7 +213,7 @@
                             <div id="lastDetectedBanner" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-navy-900/95 border-l-4 border-emerald-400 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
                                 <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0"></i>
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-[10px] uppercase text-emerald-300 font-bold">Asistencia Guardada en Nube</p>
+                                    <p class="text-[10px] uppercase text-emerald-300 font-bold">Asistencia Guardada</p>
                                     <p id="lastDetectedName" class="font-bold text-sm truncate"></p>
                                 </div>
                                 <span id="lastDetectedTime" class="text-xs font-mono bg-navy-800 px-2 py-1 rounded"></span>
@@ -238,7 +222,7 @@
                     </div>
                 </section>
 
-                <!-- PESTAÑA 2: REGISTRO DE ALUMNOS EN LA SECCIÓN -->
+                <!-- PESTAÑA 2 -->
                 <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
                     <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 h-fit">
                         <div class="border-b border-slate-100 pb-2">
@@ -294,7 +278,7 @@
                     </div>
                 </section>
 
-                <!-- PESTAÑA 3: REPORTE Y EXCEL -->
+                <!-- PESTAÑA 3 -->
                 <section id="view-report" class="hidden space-y-4">
                     <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
                         <div>
@@ -328,7 +312,7 @@
         </main>
     </div>
 
-    <!-- Modal Crear Nueva Aula (Grado y Sección) -->
+    <!-- Modal Crear Nueva Aula -->
     <div id="newClassModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4">
         <form onsubmit="createNewClass(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border-t-4 border-crimson-600 space-y-4">
             <h3 class="font-bold text-navy-900 text-base">Crear Nueva Aula</h3>
@@ -355,7 +339,6 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
-        // TUS CREDENCIALES REALES DE FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyArBHe7SW2j45TOF2D1716Nw1FW-PaX20g",
             authDomain: "ineb-cajola-asistencia.firebaseapp.com",
@@ -370,7 +353,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+        // URL alternativa de modelos estable para evitar bloqueos CORS en la nube
+        const MODEL_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model/';
 
         let currentUser = null;
         let userData = { classes: [] };
@@ -388,7 +372,6 @@
         let currentRegDescriptor = null;
         let currentRegPhotoDataUrl = null;
 
-        // ================= EXPONER FUNCIONES AL HTML =================
         window.toggleAuthMode = (mode) => {
             const loginForm = document.getElementById('loginForm');
             const regForm = document.getElementById('registerForm');
@@ -407,7 +390,6 @@
             }
         };
 
-        // ================= 1. AUTENTICACIÓN EN LA NUBE =================
         window.handleRegisterTeacher = async (e) => {
             e.preventDefault();
             const name = document.getElementById('regTeacherName').value.trim();
@@ -472,6 +454,7 @@
                 document.getElementById('authScreen').classList.add('hidden');
                 document.getElementById('appContainer').classList.remove('hidden');
                 await loadTeacherDataFromCloud();
+                await loadFaceApiModels();
             } else {
                 currentUser = null;
                 document.getElementById('appContainer').classList.add('hidden');
@@ -479,7 +462,6 @@
             }
         });
 
-        // ================= 2. LECTURA Y ESCRITURA EN FIRESTORE =================
         async function loadTeacherDataFromCloud() {
             try {
                 const docRef = doc(db, "docentes", currentUser.uid);
@@ -525,7 +507,6 @@
             }
         }
 
-        // ================= 3. GESTIÓN DE AULAS =================
         window.openNewClassModal = () => document.getElementById('newClassModal').classList.remove('hidden');
         window.closeNewClassModal = () => {
             document.getElementById('newClassModal').classList.add('hidden');
@@ -612,7 +593,6 @@
             showToast('Aula eliminada de la nube.', 'success');
         };
 
-        // ================= 4. IA Y COMPRESIÓN DE FOTOS =================
         async function loadFaceApiModels() {
             const dot = document.getElementById('aiStatusDot');
             const text = document.getElementById('aiStatusText');
@@ -630,6 +610,7 @@
                 text.textContent = 'IA Lista';
                 document.getElementById('btnToggleCamera').disabled = false;
             } catch (err) {
+                console.error(err);
                 text.textContent = 'Error IA';
             }
         }
@@ -776,7 +757,6 @@
             showToast(`${name} guardado en la nube correctamente.`, 'success');
         };
 
-        // ================= 5. ESCÁNER DE ASISTENCIA =================
         function getTodayStr() {
             const now = new Date();
             return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -880,7 +860,6 @@
             setTimeout(() => banner.classList.add('hidden'), 3500);
         }
 
-        // ================= 6. RENDERIZADO UI Y EXCEL =================
         window.switchTab = (tabId) => {
             ['scanner', 'register', 'report'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
