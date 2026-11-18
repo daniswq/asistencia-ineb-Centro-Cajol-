@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Asistencia por Cámara</title>
+    <!-- Tailwind CSS para diseño moderno -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Librería SheetJS para exportar a Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-slate-100 min-y-screen p-4">
+
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl p-6">
+        <h1 class="text-2xl font-bold text-slate-800 mb-4 text-center">Control de Asistencia</h1>
+
+        <!-- Contenedor de la Cámara -->
+        <div class="mb-4 relative bg-black rounded-lg overflow-hidden aspect-video flex items-center justify-center">
+            <video id="video" autoplay playsinline class="w-full h-full object-cover"></video>
+            <div class="absolute bottom-2 bg-black/50 text-white text-xs px-2 py-1 rounded">Cámara activa</div>
+        </div>
+
+        <!-- Controles -->
+        <div class="flex gap-2 mb-6">
+            <select id="alumnoSelect" class="flex-1 border border-slate-300 rounded-lg p-2 text-slate-700">
+                <option value="Juan Pérez">Juan Pérez</option>
+                <option value="María Gómez">María Gómez</option>
+                <option value="Carlos López">Carlos López</option>
+                <option value="Ana Torres">Ana Torres</option>
+            </select>
+            <button onclick="marcarAsistencia('Presente')" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg transition">Presente</button>
+            <button onclick="marcarAsistencia('Ausente')" class="bg-red-500 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition">Ausente</button>
+        </div>
+
+        <!-- Tabla de Asistencia -->
+        <h2 class="text-lg font-semibold text-slate-700 mb-2">Registro Actual</h2>
+        <div class="overflow-x-auto border border-slate-200 rounded-lg mb-4">
+            <table id="tablaAsistencia" class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-sm">
+                        <th class="p-3">Alumno</th>
+                        <th class="p-3">Estado</th>
+                        <th class="p-3">Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTabla" class="text-slate-700 text-sm">
+                    <!-- Los registros se llenan aquí -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Botón para descargar Excel -->
+        <button onclick="exportarExcel()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg shadow transition flex items-center justify-center gap-2">
+            📥 Descargar Hoja de Excel (.xlsx)
+        </button>
+    </div>
+
+    <script>
+        // Inicializar la cámara del teléfono
+        const video = document.getElementById('video');
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error al acceder a la cámara: ", err);
+                alert("No se pudo acceder a la cámara. Asegúrate de dar permisos.");
+            });
+
+        let registros = [];
+
+        function marcarAsistencia(estado) {
+            const select = document.getElementById('alumnoSelect');
+            const alumno = select.value;
+            const hora = new Date().toLocaleTimeString();
+
+            // Evitar duplicados exactos rápidos si se desea, o actualizar
+            registros.push({ Alumno: alumno, Estado: estado, Hora: hora });
+            actualizarTabla();
+        }
+
+        function actualizarTabla() {
+            const cuerpo = document.getElementById('cuerpoTabla');
+            cuerpo.innerHTML = '';
+
+            registros.forEach(reg => {
+                const fila = document.createElement('tr');
+                fila.className = "border-b border-slate-100";
+                
+                const colorEstado = reg.Estado === 'Presente' ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold';
+
+                fila.innerHTML = `
+                    <td class="p-3">${reg.Alumno}</td>
+                    <td class="p-3 ${colorEstado}">${reg.Estado}</td>
+                    <td class="p-3 text-slate-500">${reg.Hora}</td>
+                `;
+                cuerpo.appendChild(fila);
+            });
+        }
+
+        function exportarExcel() {
+            if (registros.length === 0) {
+                alert("No hay registros de asistencia para exportar.");
+                return;
+            }
+
+            // Crear hoja de trabajo con SheetJS
+            const worksheet = XLSX.utils.json_to_sheet(registros);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia");
+
+            // Descargar archivo Excel
+            XLSX.writeFile(workbook, "Control_Asistencia.xlsx");
+        }
+    </script>
+</body>
+</html>
