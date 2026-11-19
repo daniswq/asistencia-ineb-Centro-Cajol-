@@ -503,7 +503,7 @@
                 });
             } catch (err) {
                 console.error(err);
-                showToast('Error al sincronizar con la nube.', 'error');
+                showToast('Error al sincronizar con la nube (revisa el límite de tamaño de Firestore).', 'error');
             }
         }
 
@@ -625,20 +625,34 @@
             faceMatcher = new faceapi.FaceMatcher(labeled, 0.52);
         }
 
-        function compressImageToDataUrl(imgElement, maxSize = 150) {
+        // Compresión ultraligera para ahorrar espacio en Firestore y acelerar la carga
+        function compressImageToDataUrl(imgElement, maxSize = 120) {
             const canvas = document.createElement('canvas');
-            let width = imgElement.width || imgElement.videoWidth;
-            let height = imgElement.height || imgElement.videoHeight;
+            let width = imgElement.naturalWidth || imgElement.videoWidth || imgElement.width;
+            let height = imgElement.naturalHeight || imgElement.videoHeight || imgElement.height;
+
+            if (!width || !height) {
+                width = maxSize;
+                height = maxSize;
+            }
 
             if (width > height) {
-                if (width > maxSize) { height *= maxSize / width; width = maxSize; }
+                if (width > maxSize) {
+                    height = Math.round((height * maxSize) / width);
+                    width = maxSize;
+                }
             } else {
-                if (height > maxSize) { width *= maxSize / height; height = maxSize; }
+                if (height > maxSize) {
+                    width = Math.round((width * maxSize) / height);
+                    height = maxSize;
+                }
             }
+
             canvas.width = width;
             canvas.height = height;
-            canvas.getContext('2d').drawImage(imgElement, 0, 0, width, height);
-            return canvas.toDataURL('image/jpeg', 0.6);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(imgElement, 0, 0, width, height);
+            return canvas.toDataURL('image/jpeg', 0.5);
         }
 
         window.handlePhotoUpload = (event) => {
@@ -688,7 +702,7 @@
         window.captureRegSnapshot = async () => {
             const video = document.getElementById('regVideo');
             currentRegPhotoDataUrl = compressImageToDataUrl(video);
-            
+
             const img = document.getElementById('regPreviewImg');
             img.src = currentRegPhotoDataUrl;
             img.classList.remove('hidden');
@@ -704,7 +718,7 @@
             fb.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'bg-red-50', 'text-crimson-700');
             fb.textContent = 'Analizando rostro con IA...';
 
-            const detection = await faceapi.detectSingleFace(mediaElement, new faceapi.TinyFaceDetectorOptions())
+            const detection = await faceapi.detectSingleFace(mediaElement, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
                 .withFaceLandmarks(true)
                 .withFaceDescriptor();
 
@@ -800,14 +814,16 @@
             if (isScanning) { stopAttendanceCamera(); startAttendanceCamera(); }
         };
 
+        // Bucle de escaneo optimizado para mayor fluidez
         async function runScannerLoop() {
             const video = document.getElementById('attendanceVideo');
             const canvas = document.getElementById('attendanceCanvas');
             const cls = getActiveClass();
             if (!isScanning || !cls) return;
 
-            if (!video.paused && !video.ended) {
-                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+            if (!video.paused && !video.ended && video.readyState >= 2) {
+                const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+                const detections = await faceapi.detectAllFaces(video, detectorOptions)
                     .withFaceLandmarks(true)
                     .withFaceDescriptors();
 
