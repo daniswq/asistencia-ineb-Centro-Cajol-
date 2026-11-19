@@ -124,14 +124,14 @@
 
             <div class="bg-navy-950 border-t border-navy-800 px-4 py-2.5">
                 <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+                    <div class="flex items-center gap-2 flex-1 min-w-[220px]">
                         <i data-lucide="layers" class="w-4 h-4 text-crimson-600 shrink-0"></i>
                         <span class="text-xs font-semibold text-slate-300">Aula Activa:</span>
-                        <select id="activeClassSelector" onchange="handleClassChange()" class="bg-navy-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-crimson-600 flex-1 max-w-xs">
+                        <select id="activeClassSelector" onchange="handleClassChange()" class="bg-navy-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-crimson-600 flex-1 max-w-sm">
                         </select>
                     </div>
                     <button onclick="openNewClassModal()" class="text-xs font-bold bg-crimson-600 hover:bg-crimson-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all">
-                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Nuevo Grado / Sección
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Nuevo Grado / Sección (Guía)
                     </button>
                 </div>
             </div>
@@ -157,16 +157,21 @@
         <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-5 pb-20">
             <div id="noClassesAlert" class="hidden bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-2xl text-navy-900 shadow-sm text-center space-y-3">
                 <i data-lucide="folder-plus" class="w-10 h-10 text-amber-600 mx-auto"></i>
-                <h2 class="font-bold text-base">Aún no has creado ningún Grado o Sección</h2>
-                <p class="text-xs text-slate-600 max-w-md mx-auto">Crea tu primera aula para guardar los rostros y datos de tus estudiantes en la nube.</p>
+                <h2 class="font-bold text-base">Aún no hay ningún Grado o Sección registrado</h2>
+                <p class="text-xs text-slate-600 max-w-md mx-auto">Crea tu grado guía para registrar a tus alumnos; una vez guardados, aparecerán automáticamente para todos los maestros autenticados.</p>
                 <button onclick="openNewClassModal()" class="px-4 py-2.5 rounded-xl bg-navy-900 text-white text-xs font-bold hover:bg-navy-800">
-                    + Crear Mi Primera Aula
+                    + Crear Mi Grado Guía
                 </button>
             </div>
 
             <div id="workspaceViews" class="space-y-4">
                 <!-- PESTAÑA 1 -->
                 <section id="view-scanner" class="space-y-4">
+                    <div class="bg-white border border-slate-200 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span class="text-slate-600">Maestro Guía del grado: <strong id="classGuideInfo" class="text-navy-900"></strong></span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-navy-900/5 text-navy-900 font-semibold">Tu asistencia es privada</span>
+                    </div>
+
                     <div class="grid grid-cols-3 gap-2 sm:gap-4">
                         <div class="bg-navy-900 text-white p-3 rounded-2xl text-center">
                             <p class="text-[11px] text-slate-300 font-semibold uppercase">Alumnos Aula</p>
@@ -186,7 +191,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <div>
                                 <h2 class="font-bold text-navy-900 text-base">Escáner Facial: <span id="scannerClassTitle" class="text-crimson-600"></span></h2>
-                                <p class="text-xs text-slate-500">Sincronizado con la nube en tiempo real.</p>
+                                <p class="text-xs text-slate-500">Guarda tu asistencia privada en la nube en tiempo real.</p>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button id="btnToggleCamera" onclick="toggleAttendanceCamera()" disabled class="flex items-center gap-2 bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm">
@@ -207,13 +212,13 @@
                             <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-navy-950/95 text-slate-200">
                                 <i data-lucide="scan-face" class="w-12 h-12 text-crimson-600 mb-2"></i>
                                 <p class="font-bold text-white text-sm">Cámara Lista para Escanear</p>
-                                <p class="text-xs text-slate-400 mt-1">Presiona "Iniciar Cámara" para pasar lista en esta aula.</p>
+                                <p class="text-xs text-slate-400 mt-1">Presiona "Iniciar Cámara" para pasar tu lista en esta aula.</p>
                             </div>
 
                             <div id="lastDetectedBanner" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-navy-900/95 border-l-4 border-emerald-400 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
                                 <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0"></i>
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-[10px] uppercase text-emerald-300 font-bold">Asistencia Guardada</p>
+                                    <p class="text-[10px] uppercase text-emerald-300 font-bold">Tu Asistencia Guardada</p>
                                     <p id="lastDetectedName" class="font-bold text-sm truncate"></p>
                                 </div>
                                 <span id="lastDetectedTime" class="text-xs font-mono bg-navy-800 px-2 py-1 rounded"></span>
@@ -224,10 +229,10 @@
 
                 <!-- PESTAÑA 2 -->
                 <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
-                    <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 h-fit">
+                    <div id="guideEditorCard" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 h-fit">
                         <div class="border-b border-slate-100 pb-2">
-                            <h2 class="font-bold text-navy-900 text-base">Nuevo Alumno en Nube</h2>
-                            <p class="text-xs text-slate-500">Se guardará en: <strong id="regClassLabel" class="text-navy-900"></strong></p>
+                            <h2 class="font-bold text-navy-900 text-base">Registrar Alumno en Grado Guía</h2>
+                            <p class="text-xs text-slate-500">Aula: <strong id="regClassLabel" class="text-navy-900"></strong></p>
                         </div>
 
                         <div class="space-y-3">
@@ -265,14 +270,24 @@
                         <div id="regFaceFeedback" class="hidden text-xs px-3 py-2 rounded-xl font-semibold"></div>
 
                         <button type="button" id="btnSaveStudent" onclick="saveNewStudent()" disabled class="w-full py-2.5 rounded-xl bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold text-sm">
-                            Guardar Alumno en la Nube
+                            Guardar Alumno en Catálogo
                         </button>
                     </div>
 
-                    <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
+                    <div id="readOnlyGuideNotice" class="hidden lg:col-span-5 bg-slate-100 rounded-2xl border border-slate-200 p-5 space-y-2 h-fit">
+                        <div class="flex items-center gap-2 text-navy-900 font-bold text-sm">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-navy-800"></i>
+                            <span>Lista Administrada por Maestro Guía</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Este grado pertenece a <strong id="otherGuideName" class="text-navy-900"></strong>. Puedes ver la lista de alumnos y pasar tu propia asistencia privada, pero solo el maestro guía puede agregar o eliminar alumnos de este grado.
+                        </p>
+                    </div>
+
+                    <div id="studentsListColumn" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <h2 class="font-bold text-navy-900 text-base">Alumnos en esta Aula</h2>
-                            <button onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline">Eliminar Aula</button>
+                            <button id="btnDeleteClass" onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline">Eliminar Aula</button>
                         </div>
                         <div id="registeredStudentsList" class="mt-3 space-y-2 max-h-[450px] overflow-y-auto"></div>
                     </div>
@@ -282,7 +297,7 @@
                 <section id="view-report" class="hidden space-y-4">
                     <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <h2 class="font-bold text-navy-900 text-base">Reporte de Asistencia • <span id="reportClassTitle" class="text-crimson-600"></span></h2>
+                            <h2 class="font-bold text-navy-900 text-base">Mi Reporte de Asistencia • <span id="reportClassTitle" class="text-crimson-600"></span></h2>
                             <p id="reportDateBadge" class="text-xs text-slate-500"></p>
                         </div>
                         <div class="flex gap-2">
@@ -315,10 +330,11 @@
     <!-- Modal Crear Nueva Aula -->
     <div id="newClassModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4">
         <form onsubmit="createNewClass(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border-t-4 border-crimson-600 space-y-4">
-            <h3 class="font-bold text-navy-900 text-base">Crear Nueva Aula</h3>
+            <h3 class="font-bold text-navy-900 text-base">Crear Grado Guía</h3>
+            <p class="text-xs text-slate-500">Quedarás asignado automáticamente como maestro guía de este grado.</p>
             <div>
                 <label class="block text-xs font-bold text-navy-900 mb-1">Grado *</label>
-                <input type="text" id="newClassGrade" required placeholder="Ej. 3ro Básico" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                <input type="text" id="newClassGrade" required placeholder="Ej. 1ro Básico" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
             </div>
             <div>
                 <label class="block text-xs font-bold text-navy-900 mb-1">Sección *</label>
@@ -337,7 +353,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyArBHe7SW2j45TOF2D1716Nw1FW-PaX20g",
@@ -356,7 +372,10 @@
         const MODEL_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model/';
 
         let currentUser = null;
-        let userData = { classes: [] };
+        // Catálogo compartido de aulas y alumnos: [{ id, grade, section, guideUid, guideName, students: [] }]
+        let catalogClasses = [];
+        // Asistencia privada del docente actual: { [classId]: { [YYYY-MM-DD]: { [studentId]: { status, time } } } }
+        let myAttendanceByClass = {};
         let activeClassId = null;
 
         let modelsLoaded = false;
@@ -370,6 +389,17 @@
         let regStream = null;
         let currentRegDescriptor = null;
         let currentRegPhotoDataUrl = null;
+
+        function isCurrentUserGuide(cls) {
+            return Boolean(cls && currentUser && cls.guideUid === currentUser.uid);
+        }
+
+        function getClassAttendance(classId) {
+            if (!myAttendanceByClass[classId]) {
+                myAttendanceByClass[classId] = {};
+            }
+            return myAttendanceByClass[classId];
+        }
 
         window.toggleAuthMode = (mode) => {
             const loginForm = document.getElementById('loginForm');
@@ -406,10 +436,10 @@
                 await setDoc(doc(db, "docentes", userCredential.user.uid), {
                     name: name,
                     email: email,
-                    classes: []
+                    attendanceByClass: {}
                 }, { merge: true });
 
-                showToast('¡Cuenta creada en la nube con éxito!', 'success');
+                showToast('¡Cuenta creada! Cargando grados y alumnos...', 'success');
             } catch (error) {
                 console.error(error);
                 showToast('Error al registrar: ' + error.message, 'error');
@@ -452,62 +482,127 @@
                 document.getElementById('currentTeacherName').textContent = user.displayName || user.email;
                 document.getElementById('authScreen').classList.add('hidden');
                 document.getElementById('appContainer').classList.remove('hidden');
-                await loadTeacherDataFromCloud();
+                await loadSharedCatalogAndPrivateAttendance();
                 await loadFaceApiModels();
             } else {
                 currentUser = null;
+                catalogClasses = [];
+                myAttendanceByClass = {};
+                activeClassId = null;
                 document.getElementById('appContainer').classList.add('hidden');
                 document.getElementById('authScreen').classList.remove('hidden');
             }
         });
 
-        async function loadTeacherDataFromCloud() {
+        async function loadSharedCatalogAndPrivateAttendance() {
             try {
-                const docRef = doc(db, "docentes", currentUser.uid);
-                const docSnap = await getDoc(docRef);
+                // 1. Cargar catálogo compartido de aulas y alumnos (visible para todos los maestros autenticados)
+                const catalogSnap = await getDocs(collection(db, "aulas_catalogo"));
+                const loadedClasses = [];
 
-                if (docSnap.exists()) {
+                catalogSnap.forEach((docSnap) => {
                     const data = docSnap.data();
-                    userData.classes = (data.classes || []).map(cls => ({
-                        ...cls,
-                        students: (cls.students || []).map(s => ({
+                    loadedClasses.push({
+                        id: data.id || docSnap.id,
+                        grade: data.grade || '',
+                        section: data.section || '',
+                        guideUid: data.guideUid || '',
+                        guideName: data.guideName || 'Docente Guía',
+                        students: (data.students || []).map(s => ({
                             ...s,
                             descriptor: new Float32Array(s.descriptor || [])
                         }))
-                    }));
+                    });
+                });
+
+                // Migración automática si el docente tenía aulas guardadas anteriormente en su documento privado
+                const teacherRef = doc(db, "docentes", currentUser.uid);
+                const teacherSnap = await getDoc(teacherRef);
+
+                if (teacherSnap.exists()) {
+                    const tData = teacherSnap.data();
+                    myAttendanceByClass = tData.attendanceByClass || {};
+
+                    if (Array.isArray(tData.classes) && tData.classes.length > 0) {
+                        for (const legacyCls of tData.classes) {
+                            const existsInCatalog = loadedClasses.some(c => c.id === legacyCls.id);
+                            if (!existsInCatalog) {
+                                const migratedClass = {
+                                    id: legacyCls.id,
+                                    grade: legacyCls.grade,
+                                    section: legacyCls.section,
+                                    guideUid: currentUser.uid,
+                                    guideName: currentUser.displayName || currentUser.email || 'Docente Guía',
+                                    students: (legacyCls.students || []).map(s => ({
+                                        ...s,
+                                        descriptor: new Float32Array(s.descriptor || [])
+                                    }))
+                                };
+                                await saveClassCatalogToCloud(migratedClass);
+                                loadedClasses.push(migratedClass);
+                            }
+                            if (legacyCls.attendance && !myAttendanceByClass[legacyCls.id]) {
+                                myAttendanceByClass[legacyCls.id] = legacyCls.attendance;
+                            }
+                        }
+                        await saveMyPrivateAttendanceToCloud();
+                    }
                 } else {
-                    userData = { classes: [] };
-                    await setDoc(docRef, { name: currentUser.displayName || '', email: currentUser.email, classes: [] }, { merge: true });
+                    myAttendanceByClass = {};
+                    await setDoc(teacherRef, {
+                        name: currentUser.displayName || '',
+                        email: currentUser.email || '',
+                        attendanceByClass: {}
+                    }, { merge: true });
                 }
+
+                loadedClasses.sort((a, b) => `${a.grade} ${a.section}`.localeCompare(`${b.grade} ${b.section}`));
+                catalogClasses = loadedClasses;
                 renderClassSelector();
             } catch (err) {
                 console.error(err);
-                showToast('Error al descargar tus datos de la nube.', 'error');
+                showToast('Error al cargar aulas o asistencia de la nube.', 'error');
             }
         }
 
-        async function saveTeacherDataToCloud() {
-            if (!currentUser) return false;
+        async function saveClassCatalogToCloud(cls) {
+            if (!currentUser || !cls) return false;
             try {
-                const serializableClasses = userData.classes.map(cls => ({
-                    ...cls,
-                    students: cls.students.map(s => ({
-                        id: s.id,
-                        name: s.name,
-                        photo: s.photo,
-                        descriptor: Array.from(s.descriptor)
-                    }))
+                const serializableStudents = (cls.students || []).map(s => ({
+                    id: s.id,
+                    name: s.name,
+                    photo: s.photo,
+                    descriptor: Array.from(s.descriptor || [])
                 }));
 
+                await setDoc(doc(db, "aulas_catalogo", cls.id), {
+                    id: cls.id,
+                    grade: cls.grade,
+                    section: cls.section,
+                    guideUid: cls.guideUid,
+                    guideName: cls.guideName,
+                    students: serializableStudents
+                });
+                return true;
+            } catch (err) {
+                console.error(err);
+                showToast('Error al guardar lista del grado en Firestore: ' + (err.code || err.message), 'error');
+                return false;
+            }
+        }
+
+        async function saveMyPrivateAttendanceToCloud() {
+            if (!currentUser) return false;
+            try {
                 await setDoc(doc(db, "docentes", currentUser.uid), {
                     name: currentUser.displayName || '',
                     email: currentUser.email || '',
-                    classes: serializableClasses
+                    attendanceByClass: myAttendanceByClass
                 }, { merge: true });
                 return true;
             } catch (err) {
                 console.error(err);
-                showToast('Error al guardar en Firestore: ' + (err.code || err.message), 'error');
+                showToast('Error al guardar tu asistencia privada: ' + (err.code || err.message), 'error');
                 return false;
             }
         }
@@ -521,24 +616,29 @@
 
         window.createNewClass = async (e) => {
             e.preventDefault();
+            if (!currentUser) return;
+
             const grade = document.getElementById('newClassGrade').value.trim();
             const section = document.getElementById('newClassSection').value.trim();
+            const guideName = currentUser.displayName || currentUser.email || 'Docente Guía';
 
             const newClass = {
                 id: 'class_' + Date.now(),
                 grade,
                 section,
-                students: [],
-                attendance: {}
+                guideUid: currentUser.uid,
+                guideName,
+                students: []
             };
 
-            userData.classes.push(newClass);
+            catalogClasses.push(newClass);
             activeClassId = newClass.id;
             closeNewClassModal();
             renderClassSelector();
-            const saved = await saveTeacherDataToCloud();
+
+            const saved = await saveClassCatalogToCloud(newClass);
             if (saved) {
-                showToast(`Aula "${grade} - ${section}" guardada en la nube.`, 'success');
+                showToast(`Grado guía "${grade} - ${section}" asignado a ${guideName}.`, 'success');
             }
         };
 
@@ -547,7 +647,7 @@
             const noClassesAlert = document.getElementById('noClassesAlert');
             const workspace = document.getElementById('workspaceViews');
 
-            if (userData.classes.length === 0) {
+            if (catalogClasses.length === 0) {
                 selector.innerHTML = '<option value="">Sin aulas creadas</option>';
                 noClassesAlert.classList.remove('hidden');
                 workspace.classList.add('hidden');
@@ -557,19 +657,50 @@
             noClassesAlert.classList.add('hidden');
             workspace.classList.remove('hidden');
 
-            selector.innerHTML = userData.classes.map(c =>
-                `<option value="${c.id}">${c.grade} - ${c.section} (${c.students.length} alumnos)</option>`
-            ).join('');
+            selector.innerHTML = catalogClasses.map(c => {
+                const guideTag = isCurrentUserGuide(c) ? ' • Tu grado guía' : ` • Guía: ${c.guideName}`;
+                return `<option value="${c.id}">${c.grade} - ${c.section} (${c.students.length} alumnos)${guideTag}</option>`;
+            }).join('');
 
-            if (!activeClassId || !userData.classes.some(c => c.id === activeClassId)) {
-                activeClassId = userData.classes[0].id;
+            if (!activeClassId || !catalogClasses.some(c => c.id === activeClassId)) {
+                activeClassId = catalogClasses[0].id;
             }
             selector.value = activeClassId;
             window.handleClassChange();
         }
 
         function getActiveClass() {
-            return userData.classes.find(c => c.id === activeClassId);
+            return catalogClasses.find(c => c.id === activeClassId);
+        }
+
+        function updateGuidePermissionsUI(cls) {
+            const canEditRoster = isCurrentUserGuide(cls);
+            const editorCard = document.getElementById('guideEditorCard');
+            const readOnlyNotice = document.getElementById('readOnlyGuideNotice');
+            const listCol = document.getElementById('studentsListColumn');
+            const deleteClassBtn = document.getElementById('btnDeleteClass');
+            const guideInfo = document.getElementById('classGuideInfo');
+
+            if (!cls) return;
+
+            guideInfo.textContent = canEditRoster
+                ? `${cls.guideName} (Tú eres el guía)`
+                : cls.guideName;
+
+            if (canEditRoster) {
+                editorCard.classList.remove('hidden');
+                readOnlyNotice.classList.add('hidden');
+                listCol.className = 'lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col';
+                deleteClassBtn.classList.remove('hidden');
+            } else {
+                stopRegCamera();
+                document.getElementById('regMediaContainer').classList.add('hidden');
+                editorCard.classList.add('hidden');
+                readOnlyNotice.classList.remove('hidden');
+                document.getElementById('otherGuideName').textContent = cls.guideName;
+                listCol.className = 'lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col';
+                deleteClassBtn.classList.add('hidden');
+            }
         }
 
         window.handleClassChange = () => {
@@ -582,22 +713,33 @@
             document.getElementById('scannerClassTitle').textContent = title;
             document.getElementById('regClassLabel').textContent = title;
             document.getElementById('reportClassTitle').textContent = title;
-            document.getElementById('reportDateBadge').textContent = `Fecha: ${getTodayStr()}`;
+            document.getElementById('reportDateBadge').textContent = `Fecha: ${getTodayStr()} • Registro privado de ${currentUser?.displayName || currentUser?.email || 'Docente'}`;
 
+            updateGuidePermissionsUI(cls);
             rebuildFaceMatcher();
             renderAllUI();
         };
 
         window.deleteCurrentClass = async () => {
             const cls = getActiveClass();
-            if (!cls) return;
-            if (!confirm(`¿Seguro que deseas eliminar el aula ${cls.grade} - ${cls.section}?`)) return;
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede eliminar este grado.', 'error');
+                return;
+            }
+            if (!confirm(`¿Seguro que deseas eliminar el aula ${cls.grade} - ${cls.section} del catálogo?`)) return;
 
-            userData.classes = userData.classes.filter(c => c.id !== activeClassId);
+            const deletedId = cls.id;
+            catalogClasses = catalogClasses.filter(c => c.id !== deletedId);
             activeClassId = null;
             renderClassSelector();
-            await saveTeacherDataToCloud();
-            showToast('Aula eliminada de la nube.', 'success');
+
+            try {
+                await deleteDoc(doc(db, "aulas_catalogo", deletedId));
+                showToast('Aula eliminada del catálogo.', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('No se pudo eliminar el aula en Firestore.', 'error');
+            }
         };
 
         async function loadFaceApiModels() {
@@ -729,7 +871,7 @@
             if (detection) {
                 currentRegDescriptor = detection.descriptor;
                 fb.classList.add('bg-emerald-50', 'text-emerald-700');
-                fb.textContent = '¡Rostro detectado y listo para subir a la nube!';
+                fb.textContent = '¡Rostro detectado y listo para guardar!';
                 document.getElementById('btnSaveStudent').disabled = false;
             } else {
                 currentRegDescriptor = null;
@@ -741,14 +883,15 @@
 
         window.saveNewStudent = async () => {
             const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede registrar alumnos en este grado.', 'error');
+                return;
+            }
+
             const id = document.getElementById('regStudentId').value.trim();
             const name = document.getElementById('regStudentName').value.trim();
             const btn = document.getElementById('btnSaveStudent');
 
-            if (!cls) {
-                showToast('Primero crea o selecciona un aula.', 'error');
-                return;
-            }
             if (!id || !name || !currentRegDescriptor) {
                 showToast('Completa clave, nombre y foto con rostro detectado.', 'error');
                 return;
@@ -771,7 +914,7 @@
             cls.students.push(newStudent);
 
             try {
-                const saved = await saveTeacherDataToCloud();
+                const saved = await saveClassCatalogToCloud(cls);
                 if (!saved) {
                     cls.students.pop();
                     return;
@@ -788,10 +931,10 @@
                 currentRegDescriptor = null;
                 currentRegPhotoDataUrl = null;
 
-                showToast(`${name} guardado en la nube correctamente.`, 'success');
+                showToast(`${name} guardado en el catálogo del grado.`, 'success');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Guardar Alumno en la Nube';
+                btn.textContent = 'Guardar Alumno en Catálogo';
             }
         };
 
@@ -808,7 +951,7 @@
         async function startAttendanceCamera() {
             const cls = getActiveClass();
             if (!cls || cls.students.length === 0) {
-                showToast('Registra alumnos en esta aula antes de escanear.', 'error');
+                showToast('Este grado aún no tiene alumnos registrados.', 'error');
                 return;
             }
             const video = document.getElementById('attendanceVideo');
@@ -883,14 +1026,17 @@
             lastDetectedCooldown[studentId] = now;
 
             const cls = getActiveClass();
+            if (!cls) return;
+
+            const classAttendance = getClassAttendance(cls.id);
             const today = getTodayStr();
-            if (!cls.attendance[today]) cls.attendance[today] = {};
+            if (!classAttendance[today]) classAttendance[today] = {};
 
             const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
-            cls.attendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
+            classAttendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
 
             renderAllUI();
-            await saveTeacherDataToCloud();
+            await saveMyPrivateAttendanceToCloud();
 
             const banner = document.getElementById('lastDetectedBanner');
             document.getElementById('lastDetectedName').textContent = studentName;
@@ -913,8 +1059,10 @@
             const cls = getActiveClass();
             if (!cls) return;
 
+            const canEditRoster = isCurrentUserGuide(cls);
             const today = getTodayStr();
-            const todayRecords = cls.attendance[today] || {};
+            const classAttendance = getClassAttendance(cls.id);
+            const todayRecords = classAttendance[today] || {};
 
             document.getElementById('badgeStudentCount').textContent = cls.students.length;
 
@@ -926,7 +1074,7 @@
 
             const listEl = document.getElementById('registeredStudentsList');
             listEl.innerHTML = cls.students.length === 0
-                ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos en esta sección.</p>'
+                ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos registrados en este grado.</p>'
                 : cls.students.map(s => `
                     <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50">
                         <div class="flex items-center gap-3">
@@ -936,7 +1084,10 @@
                                 <p class="text-[11px] text-slate-500">Clave: ${s.id}</p>
                             </div>
                         </div>
-                        <button onclick="deleteStudent('${s.id}')" class="text-slate-400 hover:text-crimson-600 p-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        ${canEditRoster
+                            ? `<button onclick="deleteStudent('${s.id}')" class="text-slate-400 hover:text-crimson-600 p-1.5" title="Eliminar alumno"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`
+                            : `<span class="text-[10px] font-semibold text-slate-400 px-2">Solo lectura</span>`
+                        }
                     </div>
                 `).join('');
 
@@ -966,33 +1117,53 @@
 
         window.deleteStudent = async (studentId) => {
             const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede eliminar alumnos de este grado.', 'error');
+                return;
+            }
+
+            const previousStudents = [...cls.students];
             cls.students = cls.students.filter(s => s.id !== studentId);
             rebuildFaceMatcher();
             renderClassSelector();
-            await saveTeacherDataToCloud();
+
+            const saved = await saveClassCatalogToCloud(cls);
+            if (!saved) {
+                cls.students = previousStudents;
+                rebuildFaceMatcher();
+                renderClassSelector();
+            } else {
+                showToast('Alumno eliminado del catálogo.', 'success');
+            }
         };
 
         window.toggleManualStatus = async (studentId) => {
             const cls = getActiveClass();
-            const today = getTodayStr();
-            if (!cls.attendance[today]) cls.attendance[today] = {};
+            if (!cls) return;
 
-            if (cls.attendance[today][studentId]?.status === 'ASISTENTE') {
-                cls.attendance[today][studentId] = { status: 'INASISTENTE', time: '--:--' };
+            const classAttendance = getClassAttendance(cls.id);
+            const today = getTodayStr();
+            if (!classAttendance[today]) classAttendance[today] = {};
+
+            if (classAttendance[today][studentId]?.status === 'ASISTENTE') {
+                classAttendance[today][studentId] = { status: 'INASISTENTE', time: '--:--' };
             } else {
                 const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
-                cls.attendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
+                classAttendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
             }
             renderAllUI();
-            await saveTeacherDataToCloud();
+            await saveMyPrivateAttendanceToCloud();
         };
 
         window.resetTodayAttendance = async () => {
             const cls = getActiveClass();
-            cls.attendance[getTodayStr()] = {};
+            if (!cls) return;
+
+            const classAttendance = getClassAttendance(cls.id);
+            classAttendance[getTodayStr()] = {};
             renderAllUI();
-            await saveTeacherDataToCloud();
-            showToast('Asistencia del día reiniciada.', 'success');
+            await saveMyPrivateAttendanceToCloud();
+            showToast('Tu asistencia del día se reinició.', 'success');
         };
 
         window.exportToExcel = async () => {
@@ -1141,8 +1312,8 @@
                 };
             });
 
-            // 5. Filas de alumnos: solo 'A' o 'I' en cada día del mes
-            const attendanceByDate = cls.attendance || {};
+            // 5. Filas de alumnos: solo 'A' o 'I' usando la asistencia privada del docente
+            const attendanceByDate = getClassAttendance(cls.id);
             const todayStr = getTodayStr();
 
             cls.students.forEach((s) => {
