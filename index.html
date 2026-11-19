@@ -24,7 +24,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- face-api.js optimizado -->
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
-    <!-- ExcelJS para exportar .xlsx con imagen de encabezado y estilos -->
+    <!-- ExcelJS para exportar .xlsx con imagen de encabezado y planilla mensual -->
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
     <style>
@@ -999,34 +999,65 @@
             const cls = getActiveClass();
             if (!cls) return;
 
-            const today = getTodayStr();
-            const todayRecords = cls.attendance[today] || {};
+            const now = new Date();
+            const year = now.getFullYear();
+            const monthIndex = now.getMonth();
+            const monthNames = [
+                'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+                'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+            ];
+            const monthName = monthNames[monthIndex];
+            const monthPrefix = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+            const currentTimeStr = now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
             const teacherName = (currentUser && (currentUser.displayName || currentUser.email)) || 'Docente';
 
             const workbook = new ExcelJS.Workbook();
-            const sheet = workbook.addWorksheet('Asistencia');
+            const sheet = workbook.addWorksheet(`Asistencia_${monthName}`);
 
-            sheet.columns = [
-                { width: 8 },
-                { width: 14 },
-                { width: 34 },
-                { width: 16 },
-                { width: 18 },
-                { width: 18 }
+            const columns = [
+                { width: 12 },
+                { width: 32 }
             ];
+            for (let d = 1; d <= daysInMonth; d++) {
+                columns.push({ width: 5 });
+            }
+            sheet.columns = columns;
 
-            // Cargar imagen de encabezado (encabezado_asistencia.png o encabezado_asistencia.jpg)
-            for (const fileName of ['ENCABEZADO.png', 'ENCABEZADO.jpg']) {
+            const totalCols = 2 + daysInMonth;
+            const lastColLetter = sheet.getColumn(totalCols).letter;
+
+            // 1. Cargar imagen de encabezado manteniendo proporción sin estirarse
+            for (const fileName of ['encabezado_asistencia.png', 'encabezado_asistencia.jpg']) {
                 try {
                     const response = await fetch(fileName);
                     if (response.ok) {
                         const buffer = await response.arrayBuffer();
                         const ext = fileName.endsWith('.jpg') ? 'jpeg' : 'png';
                         const imageId = workbook.addImage({ buffer, extension: ext });
+
+                        const blob = new Blob([buffer], { type: `image/${ext}` });
+                        const imgUrl = URL.createObjectURL(blob);
+                        const dims = await new Promise((resolve) => {
+                            const img = new Image();
+                            img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+                            img.onerror = () => resolve({ width: 900, height: 110 });
+                            img.src = imgUrl;
+                        });
+                        URL.revokeObjectURL(imgUrl);
+
+                        const targetWidth = 650;
+                        const targetHeight = Math.round((dims.height / dims.width) * targetWidth);
+
                         sheet.addImage(imageId, {
                             tl: { col: 0, row: 0 },
-                            br: { col: 6, row: 4 }
+                            ext: { width: targetWidth, height: targetHeight }
                         });
+
+                        const perRowHeight = Math.max(16, Math.round((targetHeight / 4) * 0.75));
+                        for (let r = 1; r <= 4; r++) {
+                            sheet.getRow(r).height = perRowHeight;
+                        }
                         break;
                     }
                 } catch (err) {
@@ -1034,13 +1065,8 @@
                 }
             }
 
-            sheet.getRow(1).height = 22;
-            sheet.getRow(2).height = 22;
-            sheet.getRow(3).height = 22;
-            sheet.getRow(4).height = 22;
-
-            // Fila 5: Título ASISTENCIA
-            sheet.mergeCells('A5:F5');
+            // 2. Fila 5: Título ASISTENCIA
+            sheet.mergeCells(`A5:${lastColLetter}5`);
             const titleCell = sheet.getCell('A5');
             titleCell.value = 'ASISTENCIA';
             titleCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
@@ -1048,33 +1074,56 @@
             titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A1E40' } };
             sheet.getRow(5).height = 26;
 
-            // Fila 6: Docente, Grado, Sección y Fecha
-            sheet.mergeCells('A6:C6');
-            sheet.getCell('A6').value = `NOMBRE DEL DOCENTE: ${teacherName}`;
-            sheet.getCell('A6').font = { bold: true, size: 10 };
+            // 3. Fila 6: Docente, Grado, Sección, Mes y Hora
+            const c1End = Math.max(2, Math.floor(totalCols * 0.28));
+            const c2Start = c1End + 1;
+            const c2End = Math.max(c2Start, Math.floor(totalCols * 0.50));
+            const c3Start = c2End + 1;
+            const c3End = Math.max(c3Start, Math.floor(totalCols * 0.68));
+            const c4Start = c3End + 1;
+            const c4End = Math.max(c4Start, Math.floor(totalCols * 0.85));
+            const c5Start = Math.min(totalCols, c4End + 1);
 
-            sheet.getCell('D6').value = `GRADO: ${cls.grade}`;
-            sheet.getCell('D6').font = { bold: true, size: 10 };
+            const colLetter = (idx) => sheet.getColumn(idx).letter;
 
-            sheet.mergeCells('E6:F6');
-            sheet.getCell('E6').value = `SECCIÓN: ${cls.section} | FECHA: ${today}`;
-            sheet.getCell('E6').font = { bold: true, size: 10 };
+            if (c1End > 1) sheet.mergeCells(`A6:${colLetter(c1End)}6`);
+            sheet.getCell('A6').value = `DOCENTE: ${teacherName}`;
+
+            if (c2End > c2Start) sheet.mergeCells(`${colLetter(c2Start)}6:${colLetter(c2End)}6`);
+            sheet.getCell(6, c2Start).value = `GRADO: ${cls.grade}`;
+
+            if (c3End > c3Start) sheet.mergeCells(`${colLetter(c3Start)}6:${colLetter(c3End)}6`);
+            sheet.getCell(6, c3Start).value = `SECCIÓN: ${cls.section}`;
+
+            if (c4End > c4Start) sheet.mergeCells(`${colLetter(c4Start)}6:${colLetter(c4End)}6`);
+            sheet.getCell(6, c4Start).value = `MES: ${monthName} ${year}`;
+
+            if (totalCols > c5Start) sheet.mergeCells(`${colLetter(c5Start)}6:${lastColLetter}6`);
+            sheet.getCell(6, c5Start).value = `HORA: ${currentTimeStr}`;
 
             sheet.getRow(6).height = 22;
-            ['A6', 'D6', 'E6'].forEach(coord => {
-                const cell = sheet.getCell(coord);
+            for (let c = 1; c <= totalCols; c++) {
+                const cell = sheet.getCell(6, c);
+                cell.font = { bold: true, size: 9 };
                 cell.alignment = { vertical: 'middle' };
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
-            });
+            }
 
-            // Fila 7: Cabecera de tabla
+            // 4. Fila 7: Cabecera de tabla (Clave, Estudiante, 01..N)
+            const dayLabels = [];
+            for (let d = 1; d <= daysInMonth; d++) {
+                dayLabels.push(String(d).padStart(2, '0'));
+            }
             const headerRow = sheet.getRow(7);
-            headerRow.values = ['No.', 'Clave', 'Estudiante', 'Hora', 'Estado', 'Fecha'];
-            headerRow.font = { bold: true, size: 10, color: { argb: 'FFFFFFFF' } };
+            headerRow.values = ['Clave', 'Estudiante', ...dayLabels];
+            headerRow.font = { bold: true, size: 9, color: { argb: 'FFFFFFFF' } };
             headerRow.height = 22;
-            headerRow.eachCell(cell => {
+            headerRow.eachCell((cell, colNumber) => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC8102E' } };
-                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.alignment = {
+                    horizontal: colNumber === 2 ? 'left' : 'center',
+                    vertical: 'middle'
+                };
                 cell.border = {
                     top: { style: 'thin' },
                     left: { style: 'thin' },
@@ -1083,24 +1132,40 @@
                 };
             });
 
-            // Filas de alumnos
-            cls.students.forEach((s, idx) => {
-                const rec = todayRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
-                const row = sheet.addRow([
-                    idx + 1,
-                    s.id,
-                    s.name,
-                    rec.time,
-                    rec.status,
-                    today
-                ]);
+            // 5. Filas de alumnos: solo 'A' o 'I' en cada día del mes
+            const attendanceByDate = cls.attendance || {};
+            const todayStr = getTodayStr();
+
+            cls.students.forEach((s) => {
+                const rowValues = [s.id, s.name];
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dayStr = String(d).padStart(2, '0');
+                    const fullDate = `${monthPrefix}-${dayStr}`;
+                    const dayRecord = attendanceByDate[fullDate] && attendanceByDate[fullDate][s.id];
+
+                    if (dayRecord && dayRecord.status === 'ASISTENTE') {
+                        rowValues.push('A');
+                    } else if (fullDate <= todayStr && attendanceByDate[fullDate]) {
+                        rowValues.push('I');
+                    } else {
+                        rowValues.push('');
+                    }
+                }
+
+                const row = sheet.addRow(rowValues);
                 row.height = 20;
                 row.eachCell((cell, colNumber) => {
-                    cell.font = { size: 10 };
+                    cell.font = { size: 9 };
                     cell.alignment = {
-                        horizontal: colNumber === 3 ? 'left' : 'center',
+                        horizontal: colNumber === 2 ? 'left' : 'center',
                         vertical: 'middle'
                     };
+                    if (cell.value === 'A') {
+                        cell.font = { size: 9, bold: true, color: { argb: 'FF065F46' } };
+                    } else if (cell.value === 'I') {
+                        cell.font = { size: 9, bold: true, color: { argb: 'FF991B1B' } };
+                    }
                     cell.border = {
                         top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
                         left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
@@ -1117,7 +1182,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Asistencia_${cls.grade}_${cls.section}_${today}.xlsx`;
+            a.download = `Asistencia_${cls.grade}_${cls.section}_${monthName}_${year}.xlsx`;
             document.body.appendChild(a);
             a.click();
             a.remove();
