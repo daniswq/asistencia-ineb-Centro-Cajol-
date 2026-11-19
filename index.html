@@ -24,8 +24,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- face-api.js optimizado -->
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
-    <!-- SheetJS (xlsx) -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- ExcelJS para exportar .xlsx con imagen de encabezado y estilos -->
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -49,7 +49,7 @@
         <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-t-8 border-crimson-600 space-y-6">
             <div class="text-center space-y-2">
                 <div class="w-20 h-20 mx-auto rounded-2xl bg-white border-2 border-crimson-600 p-1.5 flex items-center justify-center shadow-md overflow-hidden">
-    <img src="logoineb.png" alt="Logo INEB Centro Cajolá" class="w-full h-full object-contain">
+                    <img src="logoineb.png" alt="Logo INEB Centro Cajolá" class="w-full h-full object-contain">
                 </div>
                 <h1 class="font-extrabold text-navy-900 text-xl tracking-wide">INEB CENTRO CAJOLÁ</h1>
                 <p class="text-xs text-slate-500 font-medium">Aula Virtual • Control de Asistencia Facial</p>
@@ -100,7 +100,7 @@
             <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-3 min-w-0">
                     <div class="w-11 h-11 rounded-xl bg-white p-1 border-2 border-crimson-600 flex items-center justify-center shrink-0 overflow-hidden">
-    <img src="logoineb.png" alt="Logo INEB Centro Cajolá" class="w-full h-full object-contain">
+                        <img src="logoineb.png" alt="Logo INEB Centro Cajolá" class="w-full h-full object-contain">
                     </div>
                     <div class="min-w-0">
                         <h1 class="font-extrabold text-white text-sm sm:text-lg tracking-wide truncate">INEB CENTRO CAJOLÁ</h1>
@@ -632,7 +632,6 @@
             faceMatcher = new faceapi.FaceMatcher(labeled, 0.58);
         }
 
-        // Compresión equilibrada (220px al 70% de calidad) para mejor nitidez facial sin saturar Firestore
         function compressImageToDataUrl(imgElement, maxSize = 220) {
             const canvas = document.createElement('canvas');
             let width = imgElement.naturalWidth || imgElement.videoWidth || imgElement.width;
@@ -996,29 +995,133 @@
             showToast('Asistencia del día reiniciada.', 'success');
         };
 
-        window.exportToExcel = () => {
+        window.exportToExcel = async () => {
             const cls = getActiveClass();
+            if (!cls) return;
+
             const today = getTodayStr();
             const todayRecords = cls.attendance[today] || {};
+            const teacherName = (currentUser && (currentUser.displayName || currentUser.email)) || 'Docente';
 
-            const rows = cls.students.map((s, idx) => {
-                const rec = todayRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
-                return {
-                    'No.': idx + 1,
-                    'Clave': s.id,
-                    'Estudiante': s.name,
-                    'Grado': cls.grade,
-                    'Sección': cls.section,
-                    'Fecha': today,
-                    'Hora': rec.time,
-                    'Estado': rec.status
+            const workbook = new ExcelJS.Workbook();
+            const sheet = workbook.addWorksheet('Asistencia');
+
+            sheet.columns = [
+                { width: 8 },
+                { width: 14 },
+                { width: 34 },
+                { width: 16 },
+                { width: 18 },
+                { width: 18 }
+            ];
+
+            // Cargar imagen de encabezado (encabezado_asistencia.png o encabezado_asistencia.jpg)
+            for (const fileName of ['ENCABEADO.png', 'ENCABEZADO.jpg']) {
+                try {
+                    const response = await fetch(fileName);
+                    if (response.ok) {
+                        const buffer = await response.arrayBuffer();
+                        const ext = fileName.endsWith('.jpg') ? 'jpeg' : 'png';
+                        const imageId = workbook.addImage({ buffer, extension: ext });
+                        sheet.addImage(imageId, {
+                            tl: { col: 0, row: 0 },
+                            br: { col: 6, row: 4 }
+                        });
+                        break;
+                    }
+                } catch (err) {
+                    console.warn('No se pudo cargar ' + fileName, err);
+                }
+            }
+
+            sheet.getRow(1).height = 22;
+            sheet.getRow(2).height = 22;
+            sheet.getRow(3).height = 22;
+            sheet.getRow(4).height = 22;
+
+            // Fila 5: Título ASISTENCIA
+            sheet.mergeCells('A5:F5');
+            const titleCell = sheet.getCell('A5');
+            titleCell.value = 'ASISTENCIA';
+            titleCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+            titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A1E40' } };
+            sheet.getRow(5).height = 26;
+
+            // Fila 6: Docente, Grado, Sección y Fecha
+            sheet.mergeCells('A6:C6');
+            sheet.getCell('A6').value = `NOMBRE DEL DOCENTE: ${teacherName}`;
+            sheet.getCell('A6').font = { bold: true, size: 10 };
+
+            sheet.getCell('D6').value = `GRADO: ${cls.grade}`;
+            sheet.getCell('D6').font = { bold: true, size: 10 };
+
+            sheet.mergeCells('E6:F6');
+            sheet.getCell('E6').value = `SECCIÓN: ${cls.section} | FECHA: ${today}`;
+            sheet.getCell('E6').font = { bold: true, size: 10 };
+
+            sheet.getRow(6).height = 22;
+            ['A6', 'D6', 'E6'].forEach(coord => {
+                const cell = sheet.getCell(coord);
+                cell.alignment = { vertical: 'middle' };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+            });
+
+            // Fila 7: Cabecera de tabla
+            const headerRow = sheet.getRow(7);
+            headerRow.values = ['No.', 'Clave', 'Estudiante', 'Hora', 'Estado', 'Fecha'];
+            headerRow.font = { bold: true, size: 10, color: { argb: 'FFFFFFFF' } };
+            headerRow.height = 22;
+            headerRow.eachCell(cell => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC8102E' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
                 };
             });
 
-            const ws = XLSX.utils.json_to_sheet(rows);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
-            XLSX.writeFile(wb, `Asistencia_${cls.grade}_${cls.section}_${today}.xlsx`);
+            // Filas de alumnos
+            cls.students.forEach((s, idx) => {
+                const rec = todayRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
+                const row = sheet.addRow([
+                    idx + 1,
+                    s.id,
+                    s.name,
+                    rec.time,
+                    rec.status,
+                    today
+                ]);
+                row.height = 20;
+                row.eachCell((cell, colNumber) => {
+                    cell.font = { size: 10 };
+                    cell.alignment = {
+                        horizontal: colNumber === 3 ? 'left' : 'center',
+                        vertical: 'middle'
+                    };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                    };
+                });
+            });
+
+            const outBuffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([outBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Asistencia_${cls.grade}_${cls.section}_${today}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
         };
 
         function showToast(msg, type = 'success') {
