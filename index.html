@@ -1015,20 +1015,28 @@
             const workbook = new ExcelJS.Workbook();
             const sheet = workbook.addWorksheet(`Asistencia_${monthName}`);
 
+            sheet.pageSetup = {
+                orientation: 'landscape',
+                paperSize: 1,
+                fitToPage: true,
+                fitToWidth: 1,
+                fitToHeight: 0
+            };
+
             const columns = [
-                { width: 12 },
+                { width: 10 },
                 { width: 32 }
             ];
             for (let d = 1; d <= daysInMonth; d++) {
-                columns.push({ width: 5 });
+                columns.push({ width: 4.5 });
             }
             sheet.columns = columns;
 
             const totalCols = 2 + daysInMonth;
             const lastColLetter = sheet.getColumn(totalCols).letter;
 
-            // 1. Cargar imagen de encabezado manteniendo proporción sin estirarse
-            for (const fileName of ['ENCABEZADO.png' , 'ENCABEZADO.jpg']) {
+            // 1. Cargar imagen de encabezado cubriendo todo el ancho de la tabla sin estirarse
+            for (const fileName of ['encabezado_asistencia.png', 'encabezado_asistencia.jpg']) {
                 try {
                     const response = await fetch(fileName);
                     if (response.ok) {
@@ -1046,7 +1054,8 @@
                         });
                         URL.revokeObjectURL(imgUrl);
 
-                        const targetWidth = 650;
+                        const totalSheetWidthPx = sheet.columns.reduce((sum, col) => sum + ((col.width || 10) * 7.2), 0);
+                        const targetWidth = Math.round(totalSheetWidthPx);
                         const targetHeight = Math.round((dims.height / dims.width) * targetWidth);
 
                         sheet.addImage(imageId, {
