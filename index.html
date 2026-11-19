@@ -372,9 +372,7 @@
         const MODEL_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model/';
 
         let currentUser = null;
-        // Catálogo compartido de aulas y alumnos: [{ id, grade, section, guideUid, guideName, students: [] }]
         let catalogClasses = [];
-        // Asistencia privada del docente actual: { [classId]: { [YYYY-MM-DD]: { [studentId]: { status, time } } } }
         let myAttendanceByClass = {};
         let activeClassId = null;
 
@@ -436,7 +434,8 @@
                 await setDoc(doc(db, "docentes", userCredential.user.uid), {
                     name: name,
                     email: email,
-                    attendanceByClass: {}
+                    attendanceByClass: {},
+                    classesMigrated: true
                 }, { merge: true });
 
                 showToast('¡Cuenta creada! Cargando grados y alumnos...', 'success');
@@ -496,7 +495,6 @@
 
         async function loadSharedCatalogAndPrivateAttendance() {
             try {
-                // 1. Cargar catálogo compartido de aulas y alumnos (visible para todos los maestros autenticados)
                 const catalogSnap = await getDocs(collection(db, "aulas_catalogo"));
                 const loadedClasses = [];
 
@@ -515,7 +513,6 @@
                     });
                 });
 
-                // Migración automática si el docente tenía aulas guardadas anteriormente en su documento privado
                 const teacherRef = doc(db, "docentes", currentUser.uid);
                 const teacherSnap = await getDoc(teacherRef);
 
@@ -523,7 +520,7 @@
                     const tData = teacherSnap.data();
                     myAttendanceByClass = tData.attendanceByClass || {};
 
-                    if (Array.isArray(tData.classes) && tData.classes.length > 0) {
+                    if (!tData.classesMigrated && Array.isArray(tData.classes) && tData.classes.length > 0) {
                         for (const legacyCls of tData.classes) {
                             const existsInCatalog = loadedClasses.some(c => c.id === legacyCls.id);
                             if (!existsInCatalog) {
@@ -545,14 +542,20 @@
                                 myAttendanceByClass[legacyCls.id] = legacyCls.attendance;
                             }
                         }
-                        await saveMyPrivateAttendanceToCloud();
+                        await setDoc(teacherRef, {
+                            name: currentUser.displayName || '',
+                            email: currentUser.email || '',
+                            attendanceByClass: myAttendanceByClass,
+                            classesMigrated: true
+                        }, { merge: true });
                     }
                 } else {
                     myAttendanceByClass = {};
                     await setDoc(teacherRef, {
                         name: currentUser.displayName || '',
                         email: currentUser.email || '',
-                        attendanceByClass: {}
+                        attendanceByClass: {},
+                        classesMigrated: true
                     }, { merge: true });
                 }
 
@@ -735,6 +738,11 @@
 
             try {
                 await deleteDoc(doc(db, "aulas_catalogo", deletedId));
+                if (currentUser) {
+                    await setDoc(doc(db, "docentes", currentUser.uid), {
+                        classesMigrated: true
+                    }, { merge: true });
+                }
                 showToast('Aula eliminada del catálogo.', 'success');
             } catch (err) {
                 console.error(err);
@@ -1206,8 +1214,7 @@
             const totalCols = 2 + daysInMonth;
             const lastColLetter = sheet.getColumn(totalCols).letter;
 
-            // 1. Cargar imagen de encabezado cubriendo todo el ancho de la tabla sin estirarse
-            for (const fileName of ['encabezado1.png', 'encabezado1.jpg']) {
+            for (const fileName of ['encabezado_asistencia.png', 'encabezado_asistencia.jpg']) {
                 try {
                     const response = await fetch(fileName);
                     if (response.ok) {
@@ -1245,7 +1252,6 @@
                 }
             }
 
-            // 2. Fila 5: Título ASISTENCIA
             sheet.mergeCells(`A5:${lastColLetter}5`);
             const titleCell = sheet.getCell('A5');
             titleCell.value = 'ASISTENCIA';
@@ -1254,7 +1260,6 @@
             titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A1E40' } };
             sheet.getRow(5).height = 26;
 
-            // 3. Fila 6: Docente, Grado, Sección, Mes y Hora
             const c1End = Math.max(2, Math.floor(totalCols * 0.28));
             const c2Start = c1End + 1;
             const c2End = Math.max(c2Start, Math.floor(totalCols * 0.50));
@@ -1289,7 +1294,6 @@
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
             }
 
-            // 4. Fila 7: Cabecera de tabla (Clave, Estudiante, 01..N)
             const dayLabels = [];
             for (let d = 1; d <= daysInMonth; d++) {
                 dayLabels.push(String(d).padStart(2, '0'));
@@ -1312,7 +1316,6 @@
                 };
             });
 
-            // 5. Filas de alumnos: solo 'A' o 'I' usando la asistencia privada del docente
             const attendanceByDate = getClassAttendance(cls.id);
             const todayStr = getTodayStr();
 
