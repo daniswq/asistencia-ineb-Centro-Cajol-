@@ -441,13 +441,11 @@
                 const normId = normalizeText(student.id);
                 const nameParts = normName.split(' ').filter(p => p.length >= 2);
 
-                // Coincidencia por clave o número ("clave 05" / "05")
                 if (normId && tokens.includes(normId)) {
                     matchedIds.add(student.id);
                     return;
                 }
 
-                // Coincidencia por nombre completo o partes significativas del nombre (evita palabras sueltas de 1 letra)
                 if (normName && normPhrase.includes(normName)) {
                     matchedIds.add(student.id);
                     return;
@@ -1407,6 +1405,17 @@
             showToast('Tu asistencia del día se reinició.', 'success');
         };
 
+        function getDayAttendanceTime(dayRecords) {
+            if (!dayRecords || typeof dayRecords !== 'object') return '';
+            for (const studentId of Object.keys(dayRecords)) {
+                const rec = dayRecords[studentId];
+                if (rec && rec.time && rec.time !== '--:--') {
+                    return rec.time;
+                }
+            }
+            return '';
+        }
+
         window.exportToExcel = async () => {
             const cls = getActiveClass();
             if (!cls) return;
@@ -1440,7 +1449,7 @@
                 { width: 32 }
             ];
             for (let d = 1; d <= daysInMonth; d++) {
-                columns.push({ width: 4.5 });
+                columns.push({ width: 5.5 });
             }
             sheet.columns = columns;
 
@@ -1527,11 +1536,40 @@
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
             }
 
+            const attendanceByDate = getClassAttendance(cls.id);
+            const todayStr = getTodayStr();
+
+            // Fila 7: Hora en que se tomó asistencia arriba de cada día
+            const dayTimes = [];
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayStr = String(d).padStart(2, '0');
+                const fullDate = `${monthPrefix}-${dayStr}`;
+                dayTimes.push(getDayAttendanceTime(attendanceByDate[fullDate]));
+            }
+            const timeRow = sheet.getRow(7);
+            timeRow.values = ['', 'Hora pase', ...dayTimes];
+            timeRow.font = { bold: true, size: 7.5, color: { argb: 'FF0A1E40' } };
+            timeRow.height = 18;
+            timeRow.eachCell((cell, colNumber) => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+                cell.alignment = {
+                    horizontal: colNumber === 2 ? 'left' : 'center',
+                    vertical: 'middle'
+                };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+                    left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+                    bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+                    right: { style: 'thin', color: { argb: 'FF94A3B8' } }
+                };
+            });
+
+            // Fila 8: Cabecera de tabla (Clave, Estudiante, 01..N)
             const dayLabels = [];
             for (let d = 1; d <= daysInMonth; d++) {
                 dayLabels.push(String(d).padStart(2, '0'));
             }
-            const headerRow = sheet.getRow(7);
+            const headerRow = sheet.getRow(8);
             headerRow.values = ['Clave', 'Estudiante', ...dayLabels];
             headerRow.font = { bold: true, size: 9, color: { argb: 'FFFFFFFF' } };
             headerRow.height = 22;
@@ -1549,9 +1587,7 @@
                 };
             });
 
-            const attendanceByDate = getClassAttendance(cls.id);
-            const todayStr = getTodayStr();
-
+            // Filas de alumnos: solo 'A' o 'I' usando la asistencia privada del docente
             cls.students.forEach((s) => {
                 const rowValues = [s.id, s.name];
 
