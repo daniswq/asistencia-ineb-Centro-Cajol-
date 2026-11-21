@@ -190,10 +190,14 @@
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <div>
-                                <h2 class="font-bold text-navy-900 text-base">Escáner Facial: <span id="scannerClassTitle" class="text-crimson-600"></span></h2>
+                                <h2 class="font-bold text-navy-900 text-base">Escáner Facial y Voz: <span id="scannerClassTitle" class="text-crimson-600"></span></h2>
                                 <p class="text-xs text-slate-500">Guarda tu asistencia privada en la nube en tiempo real.</p>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button id="btnVoiceAttendance" type="button" onclick="toggleVoiceAttendance()" class="flex items-center gap-1.5 bg-navy-800 hover:bg-navy-900 text-white font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all">
+                                    <i data-lucide="mic" id="voiceIcon" class="w-4 h-4 text-emerald-400"></i>
+                                    <span id="btnVoiceText">Asistencia por Voz</span>
+                                </button>
                                 <button id="btnToggleCamera" onclick="toggleAttendanceCamera()" disabled class="flex items-center gap-2 bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm">
                                     <i data-lucide="video" class="w-4 h-4"></i>
                                     <span id="btnToggleCameraText">Iniciar Cámara</span>
@@ -205,14 +209,26 @@
                             </div>
                         </div>
 
+                        <div id="voicePanel" class="hidden rounded-xl border border-navy-800/20 bg-slate-50 p-3 space-y-1.5">
+                            <div class="flex items-center justify-between text-xs">
+                                <span id="voiceStatusLabel" class="font-bold text-navy-900 flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping"></span>
+                                    Escuchando... di por ejemplo: "Todos asistieron excepto Juan y Luisa"
+                                </span>
+                                <button type="button" onclick="stopVoiceAttendance()" class="text-[11px] font-bold text-crimson-600 hover:underline">Cerrar</button>
+                            </div>
+                            <p id="voiceTranscriptText" class="text-xs italic text-slate-600">Esperando tu voz...</p>
+                            <p id="voiceResultSummary" class="text-xs font-semibold text-emerald-700"></p>
+                        </div>
+
                         <div class="video-wrapper aspect-[4/3] sm:aspect-video max-h-[58vh] flex items-center justify-center border-2 border-navy-900">
                             <video id="attendanceVideo" autoplay muted playsinline></video>
                             <canvas id="attendanceCanvas"></canvas>
 
                             <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-navy-950/95 text-slate-200">
                                 <i data-lucide="scan-face" class="w-12 h-12 text-crimson-600 mb-2"></i>
-                                <p class="font-bold text-white text-sm">Cámara Lista para Escanear</p>
-                                <p class="text-xs text-slate-400 mt-1">Presiona "Iniciar Cámara" para pasar tu lista en esta aula.</p>
+                                <p class="font-bold text-white text-sm">Cámara o Micrófono Listos</p>
+                                <p class="text-xs text-slate-400 mt-1">Usa "Iniciar Cámara" para escanear rostros o "Asistencia por Voz" para dictar tu lista.</p>
                             </div>
 
                             <div id="lastDetectedBanner" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-navy-900/95 border-l-4 border-emerald-400 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
@@ -388,6 +404,10 @@
         let currentRegDescriptor = null;
         let currentRegPhotoDataUrl = null;
 
+        // Reconocimiento de voz
+        let speechRecognition = null;
+        let isListeningVoice = false;
+
         function isCurrentUserGuide(cls) {
             return Boolean(cls && currentUser && cls.guideUid === currentUser.uid);
         }
@@ -398,6 +418,213 @@
             }
             return myAttendanceByClass[classId];
         }
+
+        function normalizeText(str) {
+            return (str || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function matchStudentsFromPhrase(phrase, students) {
+            const normPhrase = normalizeText(phrase);
+            if (!normPhrase) return [];
+
+            const tokens = normPhrase.split(' ');
+            const matchedIds = new Set();
+
+            students.forEach((student) => {
+                const normName = normalizeText(student.name);
+                const normId = normalizeText(student.id);
+                const nameParts = normName.split(' ').filter(p => p.length >= 2);
+
+                // Coincidencia por clave o número ("clave 05" / "05")
+                if (normId && tokens.includes(normId)) {
+                    matchedIds.add(student.id);
+                    return;
+                }
+
+                // Coincidencia por nombre completo o partes significativas del nombre (evita palabras sueltas de 1 letra)
+                if (normName && normPhrase.includes(normName)) {
+                    matchedIds.add(student.id);
+                    return;
+                }
+
+                for (const part of nameParts) {
+                    if (part.length >= 3 && tokens.includes(part)) {
+                        matchedIds.add(student.id);
+                        break;
+                    }
+                }
+            });
+
+            return Array.from(matchedIds);
+        }
+
+        async function applyVoiceAttendanceCommand(transcript) {
+            const cls = getActiveClass();
+            if (!cls || cls.students.length === 0) {
+                showToast('Selecciona un aula con alumnos registrados.', 'error');
+                return;
+            }
+
+            const norm = normalizeText(transcript);
+            const classAttendance = getClassAttendance(cls.id);
+            const today = getTodayStr();
+            if (!classAttendance[today]) classAttendance[today] = {};
+            const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+
+            const hasAllKeyword = /\b(todos|todas|todo el mundo|la clase completa)\b/.test(norm);
+            const splitMatch = norm.match(/\b(excepto|menos|salvo|fuera de|sin)\b([\s\S]*)/);
+
+            let absentIds = [];
+            let presentIds = [];
+
+            if (hasAllKeyword && splitMatch) {
+                const afterException = splitMatch[2] || '';
+                absentIds = matchStudentsFromPhrase(afterException, cls.students);
+
+                cls.students.forEach((s) => {
+                    if (absentIds.includes(s.id)) {
+                        classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
+                    } else {
+                        classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr };
+                        presentIds.push(s.id);
+                    }
+                });
+            } else if (hasAllKeyword) {
+                cls.students.forEach((s) => {
+                    classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr };
+                    presentIds.push(s.id);
+                });
+            } else {
+                presentIds = matchStudentsFromPhrase(norm, cls.students);
+                presentIds.forEach((id) => {
+                    classAttendance[today][id] = { status: 'ASISTENTE', time: timeStr };
+                });
+            }
+
+            renderAllUI();
+            await saveMyPrivateAttendanceToCloud();
+
+            const absentNames = cls.students
+                .filter(s => absentIds.includes(s.id))
+                .map(s => s.name);
+
+            const summaryEl = document.getElementById('voiceResultSummary');
+            if (hasAllKeyword && splitMatch) {
+                summaryEl.textContent = absentNames.length > 0
+                    ? `Guardado: ${presentIds.length} asistentes. Inasistentes: ${absentNames.join(', ')}.`
+                    : `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
+            } else if (hasAllKeyword) {
+                summaryEl.textContent = `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
+            } else {
+                const presentNames = cls.students.filter(s => presentIds.includes(s.id)).map(s => s.name);
+                summaryEl.textContent = presentNames.length > 0
+                    ? `Guardado como asistentes: ${presentNames.join(', ')}.`
+                    : 'No se reconoció ningún alumno de esta aula en la frase.';
+            }
+
+            showToast('Asistencia por voz actualizada.', 'success');
+        }
+
+        window.toggleVoiceAttendance = () => {
+            if (isListeningVoice) {
+                window.stopVoiceAttendance();
+            } else {
+                startVoiceAttendance();
+            }
+        };
+
+        function startVoiceAttendance() {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRec) {
+                showToast('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.', 'error');
+                return;
+            }
+
+            const cls = getActiveClass();
+            if (!cls || cls.students.length === 0) {
+                showToast('Este grado no tiene alumnos registrados.', 'error');
+                return;
+            }
+
+            stopAttendanceCamera();
+
+            const panel = document.getElementById('voicePanel');
+            const transcriptEl = document.getElementById('voiceTranscriptText');
+            const summaryEl = document.getElementById('voiceResultSummary');
+            const statusLabel = document.getElementById('voiceStatusLabel');
+            const btnText = document.getElementById('btnVoiceText');
+
+            panel.classList.remove('hidden');
+            transcriptEl.textContent = 'Escuchando...';
+            summaryEl.textContent = '';
+            statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping"></span> Escuchando... di por ejemplo: "Todos asistieron excepto Juan y Luisa"';
+            btnText.textContent = 'Detener Voz';
+            isListeningVoice = true;
+
+            speechRecognition = new SpeechRec();
+            speechRecognition.lang = 'es-GT';
+            speechRecognition.interimResults = true;
+            speechRecognition.continuous = false;
+            speechRecognition.maxAlternatives = 1;
+
+            let finalTranscript = '';
+
+            speechRecognition.onresult = (event) => {
+                let interim = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const txt = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += txt + ' ';
+                    } else {
+                        interim += txt;
+                    }
+                }
+                transcriptEl.textContent = `"${(finalTranscript + interim).trim()}"`;
+            };
+
+            speechRecognition.onerror = (event) => {
+                console.error('Speech error:', event.error);
+                showToast('Error de micrófono: ' + event.error, 'error');
+                window.stopVoiceAttendance();
+            };
+
+            speechRecognition.onend = async () => {
+                const spoken = finalTranscript.trim();
+                isListeningVoice = false;
+                btnText.textContent = 'Asistencia por Voz';
+                statusLabel.textContent = 'Procesando comando de voz...';
+
+                if (spoken) {
+                    await applyVoiceAttendanceCommand(spoken);
+                    statusLabel.textContent = 'Comando aplicado. Puedes pulsar "Asistencia por Voz" para otro dictado.';
+                } else {
+                    statusLabel.textContent = 'No se detectó voz. Intenta de nuevo.';
+                }
+            };
+
+            try {
+                speechRecognition.start();
+            } catch (err) {
+                console.error(err);
+                showToast('No se pudo iniciar el micrófono.', 'error');
+                window.stopVoiceAttendance();
+            }
+        }
+
+        window.stopVoiceAttendance = () => {
+            if (speechRecognition) {
+                try { speechRecognition.stop(); } catch (_) {}
+                speechRecognition = null;
+            }
+            isListeningVoice = false;
+            document.getElementById('btnVoiceText').textContent = 'Asistencia por Voz';
+        };
 
         window.toggleAuthMode = (mode) => {
             const loginForm = document.getElementById('loginForm');
@@ -471,6 +698,7 @@
         window.logoutTeacher = async () => {
             stopAttendanceCamera();
             stopRegCamera();
+            window.stopVoiceAttendance();
             await signOut(auth);
         };
 
@@ -708,6 +936,7 @@
 
         window.handleClassChange = () => {
             stopAttendanceCamera();
+            window.stopVoiceAttendance();
             activeClassId = document.getElementById('activeClassSelector').value;
             const cls = getActiveClass();
             if (!cls) return;
@@ -957,6 +1186,7 @@
         };
 
         async function startAttendanceCamera() {
+            window.stopVoiceAttendance();
             const cls = getActiveClass();
             if (!cls || cls.students.length === 0) {
                 showToast('Este grado aún no tiene alumnos registrados.', 'error');
@@ -1060,7 +1290,10 @@
             });
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80';
-            if (tabId !== 'scanner') stopAttendanceCamera();
+            if (tabId !== 'scanner') {
+                stopAttendanceCamera();
+                window.stopVoiceAttendance();
+            }
         };
 
         function renderAllUI() {
@@ -1214,7 +1447,7 @@
             const totalCols = 2 + daysInMonth;
             const lastColLetter = sheet.getColumn(totalCols).letter;
 
-            for (const fileName of ['encabezado1.png', 'encabezado1.jpg']) {
+            for (const fileName of ['encabezado_asistencia.png', 'encabezado_asistencia.jpg']) {
                 try {
                     const response = await fetch(fileName);
                     if (response.ok) {
