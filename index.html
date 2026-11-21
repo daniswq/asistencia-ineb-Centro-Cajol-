@@ -302,7 +302,10 @@
 
                     <div id="studentsListColumn" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                            <h2 class="font-bold text-navy-900 text-base">Alumnos en esta Aula</h2>
+                            <div>
+                                <h2 class="font-bold text-navy-900 text-base">Alumnos en esta Aula</h2>
+                                <p class="text-[11px] text-slate-500">Usa ↑ / ↓ para cambiar el orden o el lápiz para corregir clave y nombre.</p>
+                            </div>
                             <button id="btnDeleteClass" onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline">Eliminar Aula</button>
                         </div>
                         <div id="registeredStudentsList" class="mt-3 space-y-2 max-h-[450px] overflow-y-auto"></div>
@@ -324,15 +327,15 @@
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
                         <table class="w-full text-left border-collapse text-xs sm:text-sm">
-                            <thead class="bg-navy-900 text-white text-[11px] uppercase">
+                            <thead class="bg-navy-900 text-white text-[10px] sm:text-[11px] uppercase">
                                 <tr>
-                                    <th class="py-3 px-4">Clave</th>
-                                    <th class="py-3 px-4">Estudiante</th>
-                                    <th class="py-3 px-4">Hora</th>
-                                    <th class="py-3 px-4">Estado</th>
-                                    <th class="py-3 px-4 text-right">Manual</th>
+                                    <th class="py-2.5 px-2 sm:px-4">Clave</th>
+                                    <th class="py-2.5 px-2 sm:px-4">Estudiante</th>
+                                    <th class="py-2.5 px-2 sm:px-4">Hora</th>
+                                    <th class="py-2.5 px-2 sm:px-4">Estado</th>
+                                    <th class="py-2.5 px-2 sm:px-4 text-right">Manual</th>
                                 </tr>
                             </thead>
                             <tbody id="attendanceTableBody" class="divide-y divide-slate-100"></tbody>
@@ -359,6 +362,26 @@
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="closeNewClassModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
                 <button type="submit" class="px-4 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold">Guardar en Nube</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal Editar Alumno (Clave y Nombre) -->
+    <div id="editStudentModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4">
+        <form onsubmit="saveEditedStudent(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border-t-4 border-navy-900 space-y-4">
+            <h3 class="font-bold text-navy-900 text-base">Editar Datos del Alumno</h3>
+            <input type="hidden" id="editStudentOriginalId">
+            <div>
+                <label class="block text-xs font-bold text-navy-900 mb-1">Código / Clave *</label>
+                <input type="text" id="editStudentId" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Completo *</label>
+                <input type="text" id="editStudentName" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeEditStudentModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
+                <button type="submit" id="btnSaveEditedStudent" class="px-4 py-2 rounded-xl bg-navy-900 text-white text-xs font-bold">Guardar Cambios</button>
             </div>
         </form>
     </div>
@@ -1173,6 +1196,111 @@
             }
         };
 
+        window.moveStudentOrder = async (index, direction) => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede reordenar alumnos.', 'error');
+                return;
+            }
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= cls.students.length) return;
+
+            const previousStudents = [...cls.students];
+            const temp = cls.students[index];
+            cls.students[index] = cls.students[targetIndex];
+            cls.students[targetIndex] = temp;
+
+            renderAllUI();
+            const saved = await saveClassCatalogToCloud(cls);
+            if (!saved) {
+                cls.students = previousStudents;
+                renderAllUI();
+            } else {
+                showToast('Orden actualizado.', 'success');
+            }
+        };
+
+        window.openEditStudentModal = (studentId) => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede editar alumnos.', 'error');
+                return;
+            }
+            const student = cls.students.find(s => s.id === studentId);
+            if (!student) return;
+
+            document.getElementById('editStudentOriginalId').value = student.id;
+            document.getElementById('editStudentId').value = student.id;
+            document.getElementById('editStudentName').value = student.name;
+            document.getElementById('editStudentModal').classList.remove('hidden');
+        };
+
+        window.closeEditStudentModal = () => {
+            document.getElementById('editStudentModal').classList.add('hidden');
+            document.getElementById('editStudentOriginalId').value = '';
+            document.getElementById('editStudentId').value = '';
+            document.getElementById('editStudentName').value = '';
+        };
+
+        window.saveEditedStudent = async (e) => {
+            e.preventDefault();
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) return;
+
+            const originalId = document.getElementById('editStudentOriginalId').value;
+            const newId = document.getElementById('editStudentId').value.trim();
+            const newName = document.getElementById('editStudentName').value.trim();
+            const btn = document.getElementById('btnSaveEditedStudent');
+
+            if (!newId || !newName) {
+                showToast('Clave y nombre son obligatorios.', 'error');
+                return;
+            }
+            if (newId !== originalId && cls.students.some(s => s.id === newId)) {
+                showToast('Ya existe otro alumno con esa clave en esta aula.', 'error');
+                return;
+            }
+
+            const student = cls.students.find(s => s.id === originalId);
+            if (!student) return;
+
+            const prevId = student.id;
+            const prevName = student.name;
+
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            student.id = newId;
+            student.name = newName;
+
+            if (newId !== prevId) {
+                const classAtt = getClassAttendance(cls.id);
+                Object.keys(classAtt).forEach((dateKey) => {
+                    if (classAtt[dateKey] && classAtt[dateKey][prevId]) {
+                        classAtt[dateKey][newId] = classAtt[dateKey][prevId];
+                        delete classAtt[dateKey][prevId];
+                    }
+                });
+                await saveMyPrivateAttendanceToCloud();
+            }
+
+            try {
+                const saved = await saveClassCatalogToCloud(cls);
+                if (!saved) {
+                    student.id = prevId;
+                    student.name = prevName;
+                    return;
+                }
+                rebuildFaceMatcher();
+                renderAllUI();
+                closeEditStudentModal();
+                showToast('Datos del alumno actualizados.', 'success');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar Cambios';
+            }
+        };
+
         function getTodayStr() {
             const now = new Date();
             return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -1314,18 +1442,31 @@
             const listEl = document.getElementById('registeredStudentsList');
             listEl.innerHTML = cls.students.length === 0
                 ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos registrados en este grado.</p>'
-                : cls.students.map(s => `
-                    <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50">
-                        <div class="flex items-center gap-3">
-                            <img src="${s.photo}" class="w-10 h-10 rounded-full object-cover border">
-                            <div>
-                                <p class="font-bold text-navy-900 text-sm">${s.name}</p>
+                : cls.students.map((s, idx) => `
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <img src="${s.photo}" class="w-10 h-10 rounded-full object-cover border shrink-0">
+                            <div class="min-w-0">
+                                <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">${s.name}</p>
                                 <p class="text-[11px] text-slate-500">Clave: ${s.id}</p>
                             </div>
                         </div>
                         ${canEditRoster
-                            ? `<button onclick="deleteStudent('${s.id}')" class="text-slate-400 hover:text-crimson-600 p-1.5" title="Eliminar alumno"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`
-                            : `<span class="text-[10px] font-semibold text-slate-400 px-2">Solo lectura</span>`
+                            ? `<div class="flex items-center gap-1 shrink-0">
+                                <button type="button" onclick="moveStudentOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30 hover:bg-slate-100" title="Subir en orden">
+                                    <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <button type="button" onclick="moveStudentOrder(${idx}, 1)" ${idx === cls.students.length - 1 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30 hover:bg-slate-100" title="Bajar en orden">
+                                    <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <button type="button" onclick="openEditStudentModal('${s.id}')" class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 hover:bg-slate-100" title="Editar clave y nombre">
+                                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <button type="button" onclick="deleteStudent('${s.id}')" class="text-slate-400 hover:text-crimson-600 p-1.5" title="Eliminar alumno">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>`
+                            : `<span class="text-[10px] font-semibold text-slate-400 px-2 shrink-0">Solo lectura</span>`
                         }
                     </div>
                 `).join('');
@@ -1336,17 +1477,19 @@
                 const isPresent = rec.status === 'ASISTENTE';
                 return `
                     <tr>
-                        <td class="py-3 px-4 font-bold">${s.id}</td>
-                        <td class="py-3 px-4 flex items-center gap-2">
-                            <img src="${s.photo}" class="w-7 h-7 rounded-full object-cover">
-                            <span>${s.name}</span>
+                        <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap">${s.id}</td>
+                        <td class="py-2.5 px-2 sm:px-4">
+                            <div class="flex items-center gap-2 min-w-[110px]">
+                                <img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0">
+                                <span class="leading-tight">${s.name}</span>
+                            </div>
                         </td>
-                        <td class="py-3 px-4 font-mono">${rec.time}</td>
-                        <td class="py-3 px-4">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">${rec.status}</span>
+                        <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap">${rec.time}</td>
+                        <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap">
+                            <span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">${rec.status}</span>
                         </td>
-                        <td class="py-3 px-4 text-right">
-                            <button onclick="toggleManualStatus('${s.id}')" class="text-xs underline font-semibold text-navy-900">Cambiar</button>
+                        <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap">
+                            <button type="button" onclick="toggleManualStatus('${s.id}')" class="px-2 py-1 rounded-lg bg-navy-900 text-white text-[11px] sm:text-xs font-bold hover:bg-navy-800">Cambiar</button>
                         </td>
                     </tr>
                 `;
@@ -1449,7 +1592,7 @@
                 { width: 32 }
             ];
             for (let d = 1; d <= daysInMonth; d++) {
-                columns.push({ width: 5.5 });
+                columns.push({ width: 6.2 });
             }
             sheet.columns = columns;
 
@@ -1539,7 +1682,7 @@
             const attendanceByDate = getClassAttendance(cls.id);
             const todayStr = getTodayStr();
 
-            // Fila 7: Hora en que se tomó asistencia arriba de cada día
+            // Fila 7: Hora en que se tomó asistencia arriba de cada día (tamaño compacto para caber en la celda)
             const dayTimes = [];
             for (let d = 1; d <= daysInMonth; d++) {
                 const dayStr = String(d).padStart(2, '0');
@@ -1547,10 +1690,10 @@
                 dayTimes.push(getDayAttendanceTime(attendanceByDate[fullDate]));
             }
             const timeRow = sheet.getRow(7);
-            timeRow.values = ['', 'Hora pase', ...dayTimes];
-            timeRow.font = { bold: true, size: 7.5, color: { argb: 'FF0A1E40' } };
-            timeRow.height = 18;
+            timeRow.values = ['', 'Hora', ...dayTimes];
+            timeRow.height = 16;
             timeRow.eachCell((cell, colNumber) => {
+                cell.font = { bold: true, size: colNumber <= 2 ? 8 : 6.5, color: { argb: 'FF0A1E40' } };
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
                 cell.alignment = {
                     horizontal: colNumber === 2 ? 'left' : 'center',
