@@ -28,7 +28,12 @@
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: clip;
+            max-width: 100%;
+        }
         .video-wrapper { position: relative; width: 100%; overflow: hidden; border-radius: 1rem; background-color: #061329; }
         .video-wrapper video { width: 100%; height: auto; display: block; object-fit: cover; }
         .video-wrapper canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -95,26 +100,26 @@
     </div>
 
     <!-- APLICACIÓN PRINCIPAL -->
-    <div id="appContainer" class="hidden flex-1 flex flex-col">
-        <header class="bg-navy-900 text-white sticky top-0 z-30 shadow-md border-b-4 border-crimson-600">
-            <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-11 h-11 rounded-xl bg-white p-1 border-2 border-crimson-600 flex items-center justify-center shrink-0 overflow-hidden">
+    <div id="appContainer" class="hidden flex-1 flex flex-col w-full max-w-full overflow-x-clip">
+        <header class="bg-navy-900 text-white sticky top-0 z-30 shadow-md border-b-4 border-crimson-600 w-full">
+            <div class="max-w-5xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white p-1 border-2 border-crimson-600 flex items-center justify-center shrink-0 overflow-hidden">
                         <img src="logoineb.png" alt="Logo INEB Centro Cajolá" class="w-full h-full object-contain">
                     </div>
                     <div class="min-w-0">
-                        <h1 class="font-extrabold text-white text-sm sm:text-lg tracking-wide truncate">INEB CENTRO CAJOLÁ</h1>
+                        <h1 class="font-extrabold text-white text-xs sm:text-lg tracking-wide truncate">INEB CENTRO CAJOLÁ</h1>
                         <p class="text-[11px] text-slate-300 truncate flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                            <span id="currentTeacherName" class="font-bold text-white"></span>
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                            <span id="currentTeacherName" class="font-bold text-white truncate"></span>
                         </p>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <div id="aiStatusBadge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-navy-800 text-amber-300 border border-amber-400/40">
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <div id="aiStatusBadge" class="flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-navy-800 text-amber-300 border border-amber-400/40">
                         <span id="aiStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                        <span id="aiStatusText">Cargando IA...</span>
+                        <span id="aiStatusText">IA...</span>
                     </div>
                     <button onclick="logoutTeacher()" class="p-2 rounded-xl bg-navy-800 hover:bg-crimson-600 text-slate-200 hover:text-white transition-colors" title="Cerrar Sesión">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
@@ -122,39 +127,48 @@
                 </div>
             </div>
 
-            <div class="bg-navy-950 border-t border-navy-800 px-4 py-2.5">
-                <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex items-center gap-2 flex-1 min-w-[220px]">
+            <div class="bg-navy-950 border-t border-navy-800 px-3 sm:px-4 py-2 w-full">
+                <div class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
+                    <div class="flex items-center gap-1.5 min-w-0 flex-1">
                         <i data-lucide="layers" class="w-4 h-4 text-crimson-600 shrink-0"></i>
-                        <span class="text-xs font-semibold text-slate-300">Aula Activa:</span>
-                        <select id="activeClassSelector" onchange="handleClassChange()" class="bg-navy-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-crimson-600 flex-1 max-w-sm">
+                        <select id="activeClassSelector" onchange="handleClassChange()" class="bg-navy-800 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-crimson-600 min-w-0 flex-1 sm:max-w-xs truncate">
                         </select>
+                        <button type="button" onclick="toggleGuideInfoPopover()" class="shrink-0 inline-flex items-center gap-1 bg-navy-800 hover:bg-navy-700 text-slate-200 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-700" title="Ver información del maestro guía">
+                            <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>Guía</span>
+                        </button>
                     </div>
-                    <button onclick="openNewClassModal()" class="text-xs font-bold bg-crimson-600 hover:bg-crimson-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all">
+                    <button onclick="openNewClassModal()" class="text-xs font-bold bg-crimson-600 hover:bg-crimson-700 text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0 w-full sm:w-auto">
                         <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Nuevo Grado / Sección (Guía)
                     </button>
                 </div>
+
+                <!-- Panel desplegable al dar clic en "Guía" -->
+                <div id="guideInfoBox" class="hidden max-w-5xl mx-auto mt-2 bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-xs text-slate-200 flex items-center justify-between gap-2">
+                    <span class="truncate">Maestro Guía: <strong id="classGuideInfo" class="text-white"></strong></span>
+                    <button type="button" onclick="toggleGuideInfoPopover()" class="text-[11px] text-slate-400 hover:text-white shrink-0">Cerrar</button>
+                </div>
             </div>
 
-            <nav class="bg-white border-b border-slate-200">
-                <div class="max-w-5xl mx-auto px-2 sm:px-4 grid grid-cols-3 gap-1">
-                    <button onclick="switchTab('scanner')" id="tab-scanner" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80">
-                        <i data-lucide="camera" class="w-4 h-4 text-crimson-600"></i>
-                        <span>1. Escáner Aula</span>
+            <nav class="bg-white border-b border-slate-200 w-full">
+                <div class="max-w-5xl mx-auto px-1.5 sm:px-4 grid grid-cols-3 gap-1">
+                    <button onclick="switchTab('scanner')" id="tab-scanner" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80 min-w-0">
+                        <i data-lucide="camera" class="w-4 h-4 text-crimson-600 shrink-0"></i>
+                        <span class="truncate">1. Escáner</span>
                     </button>
-                    <button onclick="switchTab('register')" id="tab-register" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900">
-                        <i data-lucide="user-plus" class="w-4 h-4"></i>
-                        <span>2. Alumnos (<span id="badgeStudentCount">0</span>)</span>
+                    <button onclick="switchTab('register')" id="tab-register" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900 min-w-0">
+                        <i data-lucide="user-plus" class="w-4 h-4 shrink-0"></i>
+                        <span class="truncate">2. Alumnos (<span id="badgeStudentCount">0</span>)</span>
                     </button>
-                    <button onclick="switchTab('report')" id="tab-report" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900">
-                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                        <span>3. Lista y Excel</span>
+                    <button onclick="switchTab('report')" id="tab-report" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900 min-w-0">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4 shrink-0"></i>
+                        <span class="truncate">3. Lista/Excel</span>
                     </button>
                 </div>
             </nav>
         </header>
 
-        <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-5 pb-20">
+        <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 pb-20 min-w-0">
             <div id="noClassesAlert" class="hidden bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-2xl text-navy-900 shadow-sm text-center space-y-3">
                 <i data-lucide="folder-plus" class="w-10 h-10 text-amber-600 mx-auto"></i>
                 <h2 class="font-bold text-base">Aún no hay ningún Grado o Sección registrado</h2>
@@ -164,45 +178,40 @@
                 </button>
             </div>
 
-            <div id="workspaceViews" class="space-y-4">
+            <div id="workspaceViews" class="space-y-4 min-w-0">
                 <!-- PESTAÑA 1 -->
-                <section id="view-scanner" class="space-y-4">
-                    <div class="bg-white border border-slate-200 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <span class="text-slate-600">Maestro Guía del grado: <strong id="classGuideInfo" class="text-navy-900"></strong></span>
-                        <span class="px-2.5 py-0.5 rounded-full bg-navy-900/5 text-navy-900 font-semibold">Tu asistencia es privada</span>
-                    </div>
-
+                <section id="view-scanner" class="space-y-4 min-w-0">
                     <div class="grid grid-cols-3 gap-2 sm:gap-4">
-                        <div class="bg-navy-900 text-white p-3 rounded-2xl text-center">
-                            <p class="text-[11px] text-slate-300 font-semibold uppercase">Alumnos Aula</p>
-                            <p id="statTotal" class="text-xl font-extrabold mt-0.5">0</p>
+                        <div class="bg-navy-900 text-white p-2.5 sm:p-3 rounded-2xl text-center">
+                            <p class="text-[10px] sm:text-[11px] text-slate-300 font-semibold uppercase">Alumnos</p>
+                            <p id="statTotal" class="text-lg sm:text-xl font-extrabold mt-0.5">0</p>
                         </div>
-                        <div class="bg-white p-3 rounded-2xl border-2 border-navy-800/20 text-center">
-                            <p class="text-[11px] text-navy-800 font-bold uppercase">Asistentes</p>
-                            <p id="statPresent" class="text-xl font-extrabold text-emerald-600 mt-0.5">0</p>
+                        <div class="bg-white p-2.5 sm:p-3 rounded-2xl border-2 border-navy-800/20 text-center">
+                            <p class="text-[10px] sm:text-[11px] text-navy-800 font-bold uppercase">Asistentes</p>
+                            <p id="statPresent" class="text-lg sm:text-xl font-extrabold text-emerald-600 mt-0.5">0</p>
                         </div>
-                        <div class="bg-white p-3 rounded-2xl border-2 border-crimson-600/25 text-center">
-                            <p class="text-[11px] text-crimson-600 font-bold uppercase">Inasistentes</p>
-                            <p id="statAbsent" class="text-xl font-extrabold text-crimson-600 mt-0.5">0</p>
+                        <div class="bg-white p-2.5 sm:p-3 rounded-2xl border-2 border-crimson-600/25 text-center">
+                            <p class="text-[10px] sm:text-[11px] text-crimson-600 font-bold uppercase">Faltas</p>
+                            <p id="statAbsent" class="text-lg sm:text-xl font-extrabold text-crimson-600 mt-0.5">0</p>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4">
-                        <div class="flex flex-wrap items-center justify-between gap-2">
-                            <div>
-                                <h2 class="font-bold text-navy-900 text-base">Escáner Facial y Voz: <span id="scannerClassTitle" class="text-crimson-600"></span></h2>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sm:p-4 space-y-4 min-w-0">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div class="min-w-0">
+                                <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Escáner Facial y Voz: <span id="scannerClassTitle" class="text-crimson-600"></span></h2>
                                 <p class="text-xs text-slate-500">Guarda tu asistencia privada en la nube en tiempo real.</p>
                             </div>
-                            <div class="flex flex-wrap items-center gap-2">
-                                <button id="btnVoiceAttendance" type="button" onclick="toggleVoiceAttendance()" class="flex items-center gap-1.5 bg-navy-800 hover:bg-navy-900 text-white font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all">
+                            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                <button id="btnVoiceAttendance" type="button" onclick="toggleVoiceAttendance()" class="flex items-center gap-1.5 bg-navy-800 hover:bg-navy-900 text-white font-bold px-3 py-2 rounded-xl text-xs transition-all">
                                     <i data-lucide="mic" id="voiceIcon" class="w-4 h-4 text-emerald-400"></i>
-                                    <span id="btnVoiceText">Asistencia por Voz</span>
+                                    <span id="btnVoiceText">Voz</span>
                                 </button>
-                                <button id="btnToggleCamera" onclick="toggleAttendanceCamera()" disabled class="flex items-center gap-2 bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm">
+                                <button id="btnToggleCamera" onclick="toggleAttendanceCamera()" disabled class="flex items-center gap-1.5 bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold px-3 py-2 rounded-xl text-xs">
                                     <i data-lucide="video" class="w-4 h-4"></i>
                                     <span id="btnToggleCameraText">Iniciar Cámara</span>
                                 </button>
-                                <button onclick="switchCameraFacing()" class="flex items-center gap-1 bg-navy-900 hover:bg-navy-800 text-white font-semibold px-3 py-2 rounded-xl text-xs">
+                                <button onclick="switchCameraFacing()" class="flex items-center gap-1 bg-navy-900 hover:bg-navy-800 text-white font-semibold px-2.5 py-2 rounded-xl text-xs">
                                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                                     <span id="facingLabel">Trasera</span>
                                 </button>
@@ -210,12 +219,12 @@
                         </div>
 
                         <div id="voicePanel" class="hidden rounded-xl border border-navy-800/20 bg-slate-50 p-3 space-y-1.5">
-                            <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center justify-between text-xs gap-2">
                                 <span id="voiceStatusLabel" class="font-bold text-navy-900 flex items-center gap-1.5">
-                                    <span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping"></span>
+                                    <span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span>
                                     Escuchando... di por ejemplo: "Todos asistieron excepto Juan y Luisa"
                                 </span>
-                                <button type="button" onclick="stopVoiceAttendance()" class="text-[11px] font-bold text-crimson-600 hover:underline">Cerrar</button>
+                                <button type="button" onclick="stopVoiceAttendance()" class="text-[11px] font-bold text-crimson-600 hover:underline shrink-0">Cerrar</button>
                             </div>
                             <p id="voiceTranscriptText" class="text-xs italic text-slate-600">Esperando tu voz...</p>
                             <p id="voiceResultSummary" class="text-xs font-semibold text-emerald-700"></p>
@@ -228,7 +237,7 @@
                             <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-navy-950/95 text-slate-200">
                                 <i data-lucide="scan-face" class="w-12 h-12 text-crimson-600 mb-2"></i>
                                 <p class="font-bold text-white text-sm">Cámara o Micrófono Listos</p>
-                                <p class="text-xs text-slate-400 mt-1">Usa "Iniciar Cámara" para escanear rostros o "Asistencia por Voz" para dictar tu lista.</p>
+                                <p class="text-xs text-slate-400 mt-1">Usa "Iniciar Cámara" para escanear rostros o "Voz" para dictar tu lista.</p>
                             </div>
 
                             <div id="lastDetectedBanner" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-navy-900/95 border-l-4 border-emerald-400 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
@@ -244,11 +253,11 @@
                 </section>
 
                 <!-- PESTAÑA 2 -->
-                <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
-                    <div id="guideEditorCard" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 h-fit">
+                <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4 min-w-0">
+                    <div id="guideEditorCard" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 h-fit min-w-0">
                         <div class="border-b border-slate-100 pb-2">
                             <h2 class="font-bold text-navy-900 text-base">Registrar Alumno en Grado Guía</h2>
-                            <p class="text-xs text-slate-500">Aula: <strong id="regClassLabel" class="text-navy-900"></strong></p>
+                            <p class="text-xs text-slate-500 truncate">Aula: <strong id="regClassLabel" class="text-navy-900"></strong></p>
                         </div>
 
                         <div class="space-y-3">
@@ -290,9 +299,9 @@
                         </button>
                     </div>
 
-                    <div id="readOnlyGuideNotice" class="hidden lg:col-span-5 bg-slate-100 rounded-2xl border border-slate-200 p-5 space-y-2 h-fit">
+                    <div id="readOnlyGuideNotice" class="hidden lg:col-span-5 bg-slate-100 rounded-2xl border border-slate-200 p-5 space-y-2 h-fit min-w-0">
                         <div class="flex items-center gap-2 text-navy-900 font-bold text-sm">
-                            <i data-lucide="shield-check" class="w-5 h-5 text-navy-800"></i>
+                            <i data-lucide="shield-check" class="w-5 h-5 text-navy-800 shrink-0"></i>
                             <span>Lista Administrada por Maestro Guía</span>
                         </div>
                         <p class="text-xs text-slate-600 leading-relaxed">
@@ -300,34 +309,34 @@
                         </p>
                     </div>
 
-                    <div id="studentsListColumn" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                            <div>
-                                <h2 class="font-bold text-navy-900 text-base">Alumnos en esta Aula</h2>
+                    <div id="studentsListColumn" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col min-w-0">
+                        <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                            <div class="min-w-0">
+                                <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Alumnos en esta Aula</h2>
                                 <p class="text-[11px] text-slate-500">Usa ↑ / ↓ para cambiar el orden o el lápiz para corregir clave y nombre.</p>
                             </div>
-                            <button id="btnDeleteClass" onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline">Eliminar Aula</button>
+                            <button id="btnDeleteClass" onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline shrink-0">Eliminar Aula</button>
                         </div>
                         <div id="registeredStudentsList" class="mt-3 space-y-2 max-h-[450px] overflow-y-auto"></div>
                     </div>
                 </section>
 
                 <!-- PESTAÑA 3 -->
-                <section id="view-report" class="hidden space-y-4">
-                    <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <h2 class="font-bold text-navy-900 text-base">Mi Reporte de Asistencia • <span id="reportClassTitle" class="text-crimson-600"></span></h2>
-                            <p id="reportDateBadge" class="text-xs text-slate-500"></p>
+                <section id="view-report" class="hidden space-y-4 min-w-0">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+                        <div class="min-w-0">
+                            <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Reporte • <span id="reportClassTitle" class="text-crimson-600"></span></h2>
+                            <p id="reportDateBadge" class="text-[11px] sm:text-xs text-slate-500 truncate"></p>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 shrink-0">
                             <button onclick="resetTodayAttendance()" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold">Reiniciar Día</button>
-                            <button onclick="exportToExcel()" class="px-4 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold flex items-center gap-1.5">
+                            <button onclick="exportToExcel()" class="px-3.5 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold flex items-center gap-1.5">
                                 <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar Excel
                             </button>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto max-w-full">
                         <table class="w-full text-left border-collapse text-xs sm:text-sm">
                             <thead class="bg-navy-900 text-white text-[10px] sm:text-[11px] uppercase">
                                 <tr>
@@ -430,6 +439,10 @@
         // Reconocimiento de voz
         let speechRecognition = null;
         let isListeningVoice = false;
+
+        window.toggleGuideInfoPopover = () => {
+            document.getElementById('guideInfoBox').classList.toggle('hidden');
+        };
 
         function isCurrentUserGuide(cls) {
             return Boolean(cls && currentUser && cls.guideUid === currentUser.uid);
@@ -584,8 +597,8 @@
             panel.classList.remove('hidden');
             transcriptEl.textContent = 'Escuchando...';
             summaryEl.textContent = '';
-            statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping"></span> Escuchando... di por ejemplo: "Todos asistieron excepto Juan y Luisa"';
-            btnText.textContent = 'Detener Voz';
+            statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span> Escuchando... di por ejemplo: "Todos asistieron excepto Juan y Luisa"';
+            btnText.textContent = 'Detener';
             isListeningVoice = true;
 
             speechRecognition = new SpeechRec();
@@ -618,12 +631,12 @@
             speechRecognition.onend = async () => {
                 const spoken = finalTranscript.trim();
                 isListeningVoice = false;
-                btnText.textContent = 'Asistencia por Voz';
+                btnText.textContent = 'Voz';
                 statusLabel.textContent = 'Procesando comando de voz...';
 
                 if (spoken) {
                     await applyVoiceAttendanceCommand(spoken);
-                    statusLabel.textContent = 'Comando aplicado. Puedes pulsar "Asistencia por Voz" para otro dictado.';
+                    statusLabel.textContent = 'Comando aplicado. Puedes pulsar "Voz" para otro dictado.';
                 } else {
                     statusLabel.textContent = 'No se detectó voz. Intenta de nuevo.';
                 }
@@ -644,7 +657,7 @@
                 speechRecognition = null;
             }
             isListeningVoice = false;
-            document.getElementById('btnVoiceText').textContent = 'Asistencia por Voz';
+            document.getElementById('btnVoiceText').textContent = 'Voz';
         };
 
         window.toggleAuthMode = (mode) => {
@@ -909,10 +922,9 @@
             noClassesAlert.classList.add('hidden');
             workspace.classList.remove('hidden');
 
-            selector.innerHTML = catalogClasses.map(c => {
-                const guideTag = isCurrentUserGuide(c) ? ' • Tu grado guía' : ` • Guía: ${c.guideName}`;
-                return `<option value="${c.id}">${c.grade} - ${c.section} (${c.students.length} alumnos)${guideTag}</option>`;
-            }).join('');
+            selector.innerHTML = catalogClasses.map(c =>
+                `<option value="${c.id}">${c.grade} - ${c.section} (${c.students.length})</option>`
+            ).join('');
 
             if (!activeClassId || !catalogClasses.some(c => c.id === activeClassId)) {
                 activeClassId = catalogClasses[0].id;
@@ -942,7 +954,7 @@
             if (canEditRoster) {
                 editorCard.classList.remove('hidden');
                 readOnlyNotice.classList.add('hidden');
-                listCol.className = 'lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col';
+                listCol.className = 'lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col min-w-0';
                 deleteClassBtn.classList.remove('hidden');
             } else {
                 stopRegCamera();
@@ -950,7 +962,7 @@
                 editorCard.classList.add('hidden');
                 readOnlyNotice.classList.remove('hidden');
                 document.getElementById('otherGuideName').textContent = cls.guideName;
-                listCol.className = 'lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col';
+                listCol.className = 'lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col min-w-0';
                 deleteClassBtn.classList.add('hidden');
             }
         }
@@ -966,7 +978,7 @@
             document.getElementById('scannerClassTitle').textContent = title;
             document.getElementById('regClassLabel').textContent = title;
             document.getElementById('reportClassTitle').textContent = title;
-            document.getElementById('reportDateBadge').textContent = `Fecha: ${getTodayStr()} • Registro privado de ${currentUser?.displayName || currentUser?.email || 'Docente'}`;
+            document.getElementById('reportDateBadge').textContent = `${getTodayStr()} • ${currentUser?.displayName || currentUser?.email || 'Docente'}`;
 
             updateGuidePermissionsUI(cls);
             rebuildFaceMatcher();
@@ -1412,10 +1424,10 @@
         window.switchTab = (tabId) => {
             ['scanner', 'register', 'report'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-semibold border-b-4 border-transparent text-slate-500';
+                document.getElementById(`tab-${t}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 min-w-0';
             });
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 text-xs sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80';
+            document.getElementById(`tab-${tabId}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80 min-w-0';
             if (tabId !== 'scanner') {
                 stopAttendanceCamera();
                 window.stopVoiceAttendance();
@@ -1443,9 +1455,9 @@
             listEl.innerHTML = cls.students.length === 0
                 ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos registrados en este grado.</p>'
                 : cls.students.map((s, idx) => `
-                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                            <img src="${s.photo}" class="w-10 h-10 rounded-full object-cover border shrink-0">
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 min-w-0">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <img src="${s.photo}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border shrink-0">
                             <div class="min-w-0">
                                 <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">${s.name}</p>
                                 <p class="text-[11px] text-slate-500">Clave: ${s.id}</p>
@@ -1479,7 +1491,7 @@
                     <tr>
                         <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap">${s.id}</td>
                         <td class="py-2.5 px-2 sm:px-4">
-                            <div class="flex items-center gap-2 min-w-[110px]">
+                            <div class="flex items-center gap-2 min-w-[100px]">
                                 <img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0">
                                 <span class="leading-tight">${s.name}</span>
                             </div>
@@ -1599,7 +1611,7 @@
             const totalCols = 2 + daysInMonth;
             const lastColLetter = sheet.getColumn(totalCols).letter;
 
-            for (const fileName of ['encabezado1.png', 'encabezado1.jpg']) {
+            for (const fileName of ['encabezado_asistencia.png', 'encabezado_asistencia.jpg']) {
                 try {
                     const response = await fetch(fileName);
                     if (response.ok) {
@@ -1682,7 +1694,6 @@
             const attendanceByDate = getClassAttendance(cls.id);
             const todayStr = getTodayStr();
 
-            // Fila 7: Hora en que se tomó asistencia arriba de cada día (tamaño compacto para caber en la celda)
             const dayTimes = [];
             for (let d = 1; d <= daysInMonth; d++) {
                 const dayStr = String(d).padStart(2, '0');
@@ -1707,7 +1718,6 @@
                 };
             });
 
-            // Fila 8: Cabecera de tabla (Clave, Estudiante, 01..N)
             const dayLabels = [];
             for (let d = 1; d <= daysInMonth; d++) {
                 dayLabels.push(String(d).padStart(2, '0'));
@@ -1730,7 +1740,6 @@
                 };
             });
 
-            // Filas de alumnos: solo 'A' o 'I' usando la asistencia privada del docente
             cls.students.forEach((s) => {
                 const rowValues = [s.id, s.name];
 
