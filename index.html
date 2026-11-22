@@ -75,7 +75,7 @@
             <form id="registerForm" onsubmit="handleRegisterTeacher(event)" class="hidden space-y-3.5">
                 <div>
                     <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Docente</label>
-                    <input type="text" id="regTeacherName" required placeholder="Ej. Prof. Nelson Danilo Pérez Díaz" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
+                    <input type="text" id="regTeacherName" required placeholder="Ej. Prof. Carlos López" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-navy-900 mb-1">Correo Electrónico</label>
@@ -86,7 +86,7 @@
                     <input type="password" id="regTeacherPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
                 <button type="submit" id="btnRegSubmit" class="w-full py-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-sm shadow-md transition-all">
-                    Crear Cuenta
+                    Crear Cuenta en la Nube
                 </button>
             </form>
         </div>
@@ -159,7 +159,7 @@
             </nav>
         </header>
 
-        <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 pb-20 min-w-0">
+        <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 pb-10 min-w-0">
             <div id="noClassesAlert" class="hidden bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-2xl text-navy-900 shadow-sm text-center space-y-3">
                 <i data-lucide="folder-plus" class="w-10 h-10 text-amber-600 mx-auto"></i>
                 <h2 class="font-bold text-base">Aún no hay ningún Grado o Sección registrado</h2>
@@ -208,13 +208,16 @@
                             </div>
                         </div>
 
-                        <div id="voicePanel" class="hidden rounded-xl border border-navy-800/20 bg-slate-50 p-3 space-y-1.5">
+                        <div id="voicePanel" class="hidden rounded-xl border border-navy-800/20 bg-slate-50 p-3 space-y-2">
                             <div class="flex items-center justify-between text-xs gap-2">
                                 <span id="voiceStatusLabel" class="font-bold text-navy-900 flex items-center gap-1.5">
                                     <span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span>
                                     Escuchando... di por ejemplo: "Todos asistieron excepto Juan y Luisa"
                                 </span>
-                                <button type="button" onclick="stopVoiceAttendance()" class="text-[11px] font-bold text-crimson-600 hover:underline shrink-0">Cerrar</button>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <button type="button" onclick="applyVoiceNow()" class="text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg">Aplicar</button>
+                                    <button type="button" onclick="stopVoiceAttendance()" class="text-[11px] font-bold text-crimson-600 hover:underline">Cerrar</button>
+                                </div>
                             </div>
                             <p id="voiceTranscriptText" class="text-xs italic text-slate-600">Esperando tu voz...</p>
                             <p id="voiceResultSummary" class="text-xs font-semibold text-emerald-700"></p>
@@ -243,60 +246,21 @@
                 </section>
 
                 <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4 min-w-0">
-                    <div id="guideEditorCard" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 h-fit min-w-0">
+                    <div id="guideEditorCard" class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3 h-fit min-w-0">
                         <div class="border-b border-slate-100 pb-2">
-                            <h2 class="font-bold text-navy-900 text-base">Registrar Alumno en Grado Guía</h2>
+                            <h2 class="font-bold text-navy-900 text-base">Catálogo del Grado Guía</h2>
                             <p class="text-xs text-slate-500 truncate">Aula: <strong id="regClassLabel" class="text-navy-900"></strong></p>
                         </div>
-
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-xs font-bold text-navy-900 mb-1">Código / Clave *</label>
-                                <input type="text" id="regStudentId" placeholder="Ej. 01" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Completo *</label>
-                                <input type="text" id="regStudentName" placeholder="Ej. María Fernanda Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Encargado</label>
-                                <input type="text" id="regGuardianName" placeholder="Ej. Doña Marta Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono del Encargado</label>
-                                <input type="tel" id="regGuardianPhone" placeholder="Ej. 5555-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block text-xs font-bold text-navy-900">Fotografía Facial *</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button type="button" onclick="startRegCamera()" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-navy-900 text-white text-xs font-bold">
-                                    <i data-lucide="camera" class="w-4 h-4"></i> Cámara
-                                </button>
-                                <button type="button" onclick="document.getElementById('regPhotoInput').click()" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-300 text-navy-900 text-xs font-bold">
-                                    <i data-lucide="upload" class="w-4 h-4 text-crimson-600"></i> Subir Foto
-                                </button>
-                                <input type="file" id="regPhotoInput" accept="image/*" onchange="handlePhotoUpload(event)" class="hidden">
-                            </div>
-                        </div>
-
-                        <div id="regMediaContainer" class="hidden relative rounded-xl overflow-hidden bg-navy-950 aspect-[4/3] flex items-center justify-center">
-                            <video id="regVideo" autoplay muted playsinline class="hidden w-full h-full object-cover"></video>
-                            <img id="regPreviewImg" alt="Vista previa" class="hidden w-full h-full object-cover">
-                            <div id="regCameraControls" class="hidden absolute bottom-2 flex gap-2">
-                                <button type="button" onclick="captureRegSnapshot()" class="bg-crimson-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow">Capturar Rostro</button>
-                            </div>
-                        </div>
-
-                        <div id="regFaceFeedback" class="hidden text-xs px-3 py-2 rounded-xl font-semibold"></div>
-
-                        <button type="button" id="btnSaveStudent" onclick="saveNewStudent()" disabled class="w-full py-2.5 rounded-xl bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold text-sm">
-                            Guardar Alumno en Catálogo
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Abre el formulario para registrar clave, nombre, encargado, teléfono, salud, medicamentos y fotografía facial.
+                        </p>
+                        <button type="button" onclick="openRegisterStudentModal()" class="w-full py-3 px-4 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-colors">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                            <span>Registrar Alumno</span>
                         </button>
                     </div>
 
-                    <div id="readOnlyGuideNotice" class="hidden lg:col-span-5 bg-slate-100 rounded-2xl border border-slate-200 p-5 space-y-2 h-fit min-w-0">
+                    <div id="readOnlyGuideNotice" class="hidden lg:col-span-4 bg-slate-100 rounded-2xl border border-slate-200 p-5 space-y-2 h-fit min-w-0">
                         <div class="flex items-center gap-2 text-navy-900 font-bold text-sm">
                             <i data-lucide="shield-check" class="w-5 h-5 text-navy-800 shrink-0"></i>
                             <span>Lista Administrada por Maestro Guía</span>
@@ -306,11 +270,11 @@
                         </p>
                     </div>
 
-                    <div id="studentsListColumn" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col min-w-0">
+                    <div id="studentsListColumn" class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col min-w-0">
                         <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
                             <div class="min-w-0">
                                 <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Alumnos en esta Aula</h2>
-                                <p class="text-[11px] text-slate-500">Toca el nombre o la foto para ver encargado, llamar o enviar WhatsApp.</p>
+                                <p class="text-[11px] text-slate-500">Toca el nombre o la foto para ver encargado, salud, llamar o enviar WhatsApp.</p>
                             </div>
                             <button id="btnDeleteClass" onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline shrink-0">Eliminar Aula</button>
                         </div>
@@ -350,10 +314,103 @@
                 </section>
             </div>
         </main>
+
+        <footer class="bg-navy-950 text-slate-300 border-t-2 border-navy-800 py-3 px-4 text-center text-xs mt-auto">
+            <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
+                <span>INEB Centro Cajolá • Aula Virtual</span>
+                <span class="font-semibold text-white">Desarrollador Web / CEO: <span id="developerCeoName" class="text-emerald-400">[Tu Nombre Aquí]</span></span>
+            </div>
+        </footer>
     </div>
 
-    <div id="guardianInfoModal" onclick="if(event.target === this) closeGuardianInfoModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-4">
+    <!-- Recuadro emergente para registrar un nuevo alumno -->
+    <div id="registerStudentModal" onclick="if(event.target === this) closeRegisterStudentModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-3.5 my-auto max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <div>
+                    <h3 class="font-bold text-navy-900 text-base">Registrar Nuevo Alumno</h3>
+                    <p class="text-[11px] text-slate-500">Completa los datos personales, de encargado y salud.</p>
+                </div>
+                <button type="button" onclick="closeRegisterStudentModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100" title="Cerrar">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2.5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Clave *</label>
+                        <input type="text" id="regStudentId" placeholder="Ej. 01" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Estudiante *</label>
+                        <input type="text" id="regStudentName" placeholder="Ej. María Fernanda Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Encargado</label>
+                        <input type="text" id="regGuardianName" placeholder="Ej. Doña Marta Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono del Encargado</label>
+                        <input type="tel" id="regGuardianPhone" placeholder="Ej. 5555-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
+                    <p class="text-[11px] font-extrabold uppercase tracking-wider text-crimson-600">Registro de Salud y Emergencias</p>
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">¿Padece alguna enfermedad o discapacidad?</label>
+                        <input type="text" id="regHealthCondition" placeholder="Ej. Ninguna / Asma / Discapacidad visual" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Medicamentos que usa para tratarla</label>
+                        <input type="text" id="regHealthMedication" placeholder="Ej. Ninguno / Inhalador de salbutamol" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono de Bomberos o Puesto de Salud</label>
+                        <input type="tel" id="regEmergencyPhone" placeholder="Ej. 122 o 7767-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-navy-900">Fotografía Facial *</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="startRegCamera()" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-navy-900 text-white text-xs font-bold">
+                        <i data-lucide="camera" class="w-4 h-4"></i> Cámara
+                    </button>
+                    <button type="button" onclick="document.getElementById('regPhotoInput').click()" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-300 text-navy-900 text-xs font-bold">
+                        <i data-lucide="upload" class="w-4 h-4 text-crimson-600"></i> Subir Foto
+                    </button>
+                    <input type="file" id="regPhotoInput" accept="image/*" onchange="handlePhotoUpload(event)" class="hidden">
+                </div>
+            </div>
+
+            <div id="regMediaContainer" class="hidden relative rounded-xl overflow-hidden bg-navy-950 aspect-[4/3] flex items-center justify-center">
+                <video id="regVideo" autoplay muted playsinline class="hidden w-full h-full object-cover"></video>
+                <img id="regPreviewImg" alt="Vista previa" class="hidden w-full h-full object-cover">
+                <div id="regCameraControls" class="hidden absolute bottom-2 flex gap-2">
+                    <button type="button" onclick="captureRegSnapshot()" class="bg-crimson-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow">Capturar Rostro</button>
+                </div>
+            </div>
+
+            <div id="regFaceFeedback" class="hidden text-xs px-3 py-2 rounded-xl font-semibold"></div>
+
+            <div class="flex justify-end gap-2 pt-1">
+                <button type="button" onclick="closeRegisterStudentModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
+                <button type="button" id="btnSaveStudent" onclick="saveNewStudent()" disabled class="flex-1 py-2.5 rounded-xl bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold text-sm">
+                    Guardar Alumno
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recuadro de información del alumno, encargado, salud y contacto -->
+    <div id="guardianInfoModal" onclick="if(event.target === this) closeGuardianInfoModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-3.5 my-auto max-h-[90vh] overflow-y-auto">
             <div class="flex items-start justify-between gap-2">
                 <div class="flex items-center gap-3 min-w-0">
                     <img id="guardianModalPhoto" src="" alt="Foto del alumno" class="w-14 h-14 rounded-2xl object-cover border-2 border-navy-900 shrink-0">
@@ -367,7 +424,7 @@
                 </button>
             </div>
 
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 text-xs">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs">
                 <div>
                     <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nombre del Encargado</p>
                     <p id="guardianModalName" class="font-bold text-navy-900 text-sm mt-0.5 break-words">—</p>
@@ -378,7 +435,23 @@
                 </div>
             </div>
 
-            <div id="guardianContactButtons" class="grid grid-cols-2 gap-2.5 pt-1">
+            <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 space-y-2 text-xs">
+                <p class="text-[10px] font-extrabold uppercase tracking-wider text-crimson-600">Ficha de Salud y Emergencia</p>
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Enfermedad o Discapacidad</p>
+                    <p id="guardianModalHealthCondition" class="font-bold text-navy-900 text-xs mt-0.5 break-words">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Medicamentos para la Enfermedad</p>
+                    <p id="guardianModalHealthMedication" class="font-semibold text-navy-900 text-xs mt-0.5 break-words">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Bomberos / Puesto de Salud</p>
+                    <p id="guardianModalEmergencyPhone" class="font-mono font-bold text-navy-900 text-xs mt-0.5">—</p>
+                </div>
+            </div>
+
+            <div id="guardianContactButtons" class="grid grid-cols-2 gap-2.5 pt-0.5">
                 <a id="btnDirectCall" href="#" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-xs shadow-sm transition-colors">
                     <i data-lucide="phone-call" class="w-4 h-4 text-emerald-400 shrink-0"></i>
                     <span>Llamar</span>
@@ -391,6 +464,11 @@
             <p id="guardianNoPhoneHint" class="hidden text-center text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-xl py-2 px-3 font-medium">
                 Este alumno aún no tiene número de teléfono de encargado registrado.
             </p>
+
+            <a id="btnEmergencyCall" href="#" class="hidden w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white font-bold text-xs shadow-sm transition-colors">
+                <i data-lucide="siren" class="w-4 h-4 text-white shrink-0"></i>
+                <span id="btnEmergencyCallLabel">Llamar a Bomberos / Puesto de Salud</span>
+            </a>
         </div>
     </div>
 
@@ -413,25 +491,44 @@
         </form>
     </div>
 
-    <div id="editStudentModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4">
-        <form onsubmit="saveEditedStudent(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border-t-4 border-navy-900 space-y-4">
+    <div id="editStudentModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4 overflow-y-auto">
+        <form onsubmit="saveEditedStudent(event)" class="bg-white rounded-2xl max-w-md w-full p-5 shadow-xl border-t-4 border-navy-900 space-y-3 my-auto max-h-[90vh] overflow-y-auto">
             <h3 class="font-bold text-navy-900 text-base">Editar Datos del Alumno</h3>
             <input type="hidden" id="editStudentOriginalId">
-            <div>
-                <label class="block text-xs font-bold text-navy-900 mb-1">Código / Clave *</label>
-                <input type="text" id="editStudentId" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Clave *</label>
+                    <input type="text" id="editStudentId" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Completo *</label>
+                    <input type="text" id="editStudentName" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Completo *</label>
-                <input type="text" id="editStudentName" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Encargado</label>
+                    <input type="text" id="editGuardianName" placeholder="Ej. Doña Marta Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono del Encargado</label>
+                    <input type="tel" id="editGuardianPhone" placeholder="Ej. 5555-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Encargado</label>
-                <input type="text" id="editGuardianName" placeholder="Ej. Doña Marta Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono del Encargado</label>
-                <input type="tel" id="editGuardianPhone" placeholder="Ej. 5555-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
+                <p class="text-[11px] font-extrabold uppercase tracking-wider text-crimson-600">Salud y Emergencias</p>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">¿Padece alguna enfermedad o discapacidad?</label>
+                    <input type="text" id="editHealthCondition" placeholder="Ej. Ninguna / Asma" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Medicamentos para tratarla</label>
+                    <input type="text" id="editHealthMedication" placeholder="Ej. Ninguno / Inhalador" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono de Bomberos o Puesto de Salud</label>
+                    <input type="tel" id="editEmergencyPhone" placeholder="Ej. 122 o 7767-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
+                </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="closeEditStudentModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
@@ -445,7 +542,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyArBHe7SW2j45TOF2D1716Nw1FW-PaX20g",
@@ -481,9 +578,27 @@
 
         let speechRecognition = null;
         let isListeningVoice = false;
+        let voiceFinalBuffer = '';
+        let voiceLatestHeard = '';
 
         window.toggleGuideInfoPopover = () => {
             document.getElementById('guideInfoBox').classList.toggle('hidden');
+        };
+
+        window.openRegisterStudentModal = () => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede registrar alumnos en este grado.', 'error');
+                return;
+            }
+            document.getElementById('registerStudentModal').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.closeRegisterStudentModal = () => {
+            stopRegCamera();
+            document.getElementById('regCameraControls').classList.add('hidden');
+            document.getElementById('registerStudentModal').classList.add('hidden');
         };
 
         function formatPhoneForLinks(rawPhone) {
@@ -507,6 +622,9 @@
             document.getElementById('guardianModalStudentName').textContent = s.name;
             document.getElementById('guardianModalName').textContent = (s.guardianName || '').trim() || 'No registrado';
             document.getElementById('guardianModalPhone').textContent = (s.guardianPhone || '').trim() || 'No registrado';
+            document.getElementById('guardianModalHealthCondition').textContent = (s.healthCondition || '').trim() || 'No registrado';
+            document.getElementById('guardianModalHealthMedication').textContent = (s.healthMedication || '').trim() || 'No registrado';
+            document.getElementById('guardianModalEmergencyPhone').textContent = (s.emergencyPhone || '').trim() || 'No registrado';
 
             const { telHref, waHref } = formatPhoneForLinks(s.guardianPhone);
             const buttonsWrap = document.getElementById('guardianContactButtons');
@@ -527,6 +645,18 @@
                 noPhoneHint.classList.remove('hidden');
             }
 
+            const emergencyDigits = (s.emergencyPhone || '').replace(/\D+/g, '');
+            const btnEmerg = document.getElementById('btnEmergencyCall');
+            const emergLabel = document.getElementById('btnEmergencyCallLabel');
+            if (emergencyDigits) {
+                btnEmerg.href = `tel:${emergencyDigits}`;
+                emergLabel.textContent = `Llamar a Emergencia (${s.emergencyPhone.trim()})`;
+                btnEmerg.classList.remove('hidden');
+            } else {
+                btnEmerg.href = '#';
+                btnEmerg.classList.add('hidden');
+            }
+
             document.getElementById('guardianInfoModal').classList.remove('hidden');
             lucide.createIcons();
         };
@@ -545,23 +675,41 @@
         }
 
         function normalizeText(str) {
-            return (str || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+            return (str || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
         }
 
         function matchStudentsFromPhrase(phrase, students) {
             const normPhrase = normalizeText(phrase);
             if (!normPhrase) return [];
             const tokens = normPhrase.split(' ');
+            const normalizedTokens = tokens.map(t => (/^\d+$/.test(t) ? String(parseInt(t, 10)) : t));
             const matchedIds = new Set();
 
             students.forEach((student) => {
                 const normName = normalizeText(student.name);
                 const normId = normalizeText(student.id);
+                const normIdNum = /^\d+$/.test(normId) ? String(parseInt(normId, 10)) : normId;
                 const nameParts = normName.split(' ').filter(p => p.length >= 2);
-                if (normId && tokens.includes(normId)) { matchedIds.add(student.id); return; }
-                if (normName && normPhrase.includes(normName)) { matchedIds.add(student.id); return; }
+
+                if (normId && (tokens.includes(normId) || (normIdNum && normalizedTokens.includes(normIdNum)))) {
+                    matchedIds.add(student.id);
+                    return;
+                }
+                if (normName && normPhrase.includes(normName)) {
+                    matchedIds.add(student.id);
+                    return;
+                }
                 for (const part of nameParts) {
-                    if (part.length >= 3 && tokens.includes(part)) { matchedIds.add(student.id); break; }
+                    if (part.length >= 3 && tokens.includes(part)) {
+                        matchedIds.add(student.id);
+                        break;
+                    }
                 }
             });
             return Array.from(matchedIds);
@@ -569,91 +717,183 @@
 
         async function applyVoiceAttendanceCommand(transcript) {
             const cls = getActiveClass();
-            if (!cls || cls.students.length === 0) { showToast('Selecciona un aula con alumnos registrados.', 'error'); return; }
-            const norm = normalizeText(transcript);
+            if (!cls || cls.students.length === 0) {
+                showToast('Selecciona un aula con alumnos registrados.', 'error');
+                return;
+            }
+            const rawClean = (transcript || '').trim();
+            if (!rawClean) {
+                showToast('No se detectó ninguna frase para aplicar.', 'error');
+                return;
+            }
+
+            const norm = normalizeText(rawClean);
             const classAttendance = getClassAttendance(cls.id);
             const today = getTodayStr();
             if (!classAttendance[today]) classAttendance[today] = {};
             const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
 
-            const hasAllKeyword = / (todos|todas|todo el mundo|la clase completa) /.test(norm);
-            const splitMatch = norm.match(/ (excepto|menos|salvo|fuera de|sin) ([\s\S]*)/);
+            const hasAllKeyword = /\b(todos|todas|todo el mundo|la clase completa|presentes todos)\b/.test(norm);
+            const splitExceptMatch = norm.match(/\b(excepto|menos|salvo|fuera de|sin)\b([\s\S]*)/);
+            const splitAbsentOnlyMatch = !hasAllKeyword && /\b(falta|faltan|falto|faltaron|ausente|ausentes|no vino|no vinieron)\b([\s\S]*)/.test(norm)
+                ? norm.match(/\b(falta|faltan|falto|faltaron|ausente|ausentes|no vino|no vinieron)\b([\s\S]*)/)
+                : null;
+
             let absentIds = [];
             let presentIds = [];
 
-            if (hasAllKeyword && splitMatch) {
-                absentIds = matchStudentsFromPhrase(splitMatch[2] || '', cls.students);
+            if (hasAllKeyword && splitExceptMatch) {
+                absentIds = matchStudentsFromPhrase(splitExceptMatch[2] || '', cls.students);
                 cls.students.forEach((s) => {
-                    if (absentIds.includes(s.id)) classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
-                    else { classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr }; presentIds.push(s.id); }
+                    if (absentIds.includes(s.id)) {
+                        classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
+                    } else {
+                        classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr };
+                        presentIds.push(s.id);
+                    }
                 });
             } else if (hasAllKeyword) {
-                cls.students.forEach((s) => { classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr }; presentIds.push(s.id); });
+                cls.students.forEach((s) => {
+                    classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr };
+                    presentIds.push(s.id);
+                });
+            } else if (splitAbsentOnlyMatch) {
+                absentIds = matchStudentsFromPhrase(splitAbsentOnlyMatch[2] || norm, cls.students);
+                absentIds.forEach((id) => {
+                    classAttendance[today][id] = { status: 'INASISTENTE', time: '--:--' };
+                });
             } else {
                 presentIds = matchStudentsFromPhrase(norm, cls.students);
-                presentIds.forEach((id) => { classAttendance[today][id] = { status: 'ASISTENTE', time: timeStr }; });
+                presentIds.forEach((id) => {
+                    classAttendance[today][id] = { status: 'ASISTENTE', time: timeStr };
+                });
             }
 
             renderAllUI();
             await saveMyPrivateAttendanceToCloud();
+
             const absentNames = cls.students.filter(s => absentIds.includes(s.id)).map(s => s.name);
+            const presentNames = cls.students.filter(s => presentIds.includes(s.id)).map(s => s.name);
             const summaryEl = document.getElementById('voiceResultSummary');
-            if (hasAllKeyword && splitMatch) summaryEl.textContent = absentNames.length > 0 ? `Guardado: ${presentIds.length} asistentes. Inasistentes: ${absentNames.join(', ')}.` : `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
-            else if (hasAllKeyword) summaryEl.textContent = `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
-            else {
-                const presentNames = cls.students.filter(s => presentIds.includes(s.id)).map(s => s.name);
-                summaryEl.textContent = presentNames.length > 0 ? `Guardado como asistentes: ${presentNames.join(', ')}.` : 'No se reconoció ningún alumno de esta aula en la frase.';
+
+            if (hasAllKeyword && splitExceptMatch) {
+                summaryEl.textContent = absentNames.length > 0
+                    ? `Guardado: ${presentIds.length} asistentes. Faltas: ${absentNames.join(', ')}.`
+                    : `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
+            } else if (hasAllKeyword) {
+                summaryEl.textContent = `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
+            } else if (splitAbsentOnlyMatch) {
+                summaryEl.textContent = absentNames.length > 0
+                    ? `Marcados como falta: ${absentNames.join(', ')}.`
+                    : 'No se reconoció ningún alumno para marcar falta en la frase.';
+            } else {
+                summaryEl.textContent = presentNames.length > 0
+                    ? `Guardado como asistentes: ${presentNames.join(', ')}.`
+                    : 'No se reconoció ningún alumno de esta aula en la frase.';
             }
             showToast('Asistencia por voz actualizada.', 'success');
         }
 
-        window.toggleVoiceAttendance = () => { if (isListeningVoice) window.stopVoiceAttendance(); else startVoiceAttendance(); };
+        window.applyVoiceNow = async () => {
+            const spoken = (voiceFinalBuffer || voiceLatestHeard || '').trim();
+            window.stopVoiceAttendance();
+            await applyVoiceAttendanceCommand(spoken);
+        };
+
+        window.toggleVoiceAttendance = () => {
+            if (isListeningVoice) window.stopVoiceAttendance();
+            else startVoiceAttendance();
+        };
 
         function startVoiceAttendance() {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRec) { showToast('Tu navegador no soporta reconocimiento de voz.', 'error'); return; }
+            if (!SpeechRec) {
+                showToast('Tu navegador no soporta reconocimiento de voz.', 'error');
+                return;
+            }
             const cls = getActiveClass();
-            if (!cls || cls.students.length === 0) { showToast('Este grado no tiene alumnos registrados.', 'error'); return; }
+            if (!cls || cls.students.length === 0) {
+                showToast('Este grado no tiene alumnos registrados.', 'error');
+                return;
+            }
             stopAttendanceCamera();
+
             const panel = document.getElementById('voicePanel');
             const transcriptEl = document.getElementById('voiceTranscriptText');
             const summaryEl = document.getElementById('voiceResultSummary');
             const statusLabel = document.getElementById('voiceStatusLabel');
             const btnText = document.getElementById('btnVoiceText');
+
             panel.classList.remove('hidden');
             transcriptEl.textContent = 'Escuchando...';
             summaryEl.textContent = '';
             statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span> Escuchando... di por ejemplo: "Todos asistieron excepto Juan y Luisa"';
             btnText.textContent = 'Detener';
+
+            voiceFinalBuffer = '';
+            voiceLatestHeard = '';
             isListeningVoice = true;
+
             speechRecognition = new SpeechRec();
             speechRecognition.lang = 'es-GT';
             speechRecognition.interimResults = true;
-            let finalTranscript = '';
+            speechRecognition.maxAlternatives = 1;
+
             speechRecognition.onresult = (event) => {
                 let interim = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const txt = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) finalTranscript += txt + ' ';
-                    else interim += txt;
+                let builtFinal = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    const res = event.results[i];
+                    const txt = (res[0] && res[0].transcript) ? res[0].transcript : '';
+                    if (res.isFinal) builtFinal += txt + ' ';
+                    else interim += txt + ' ';
                 }
-                transcriptEl.textContent = `"${(finalTranscript + interim).trim()}"`;
+                if (builtFinal.trim()) {
+                    voiceFinalBuffer = builtFinal.trim();
+                }
+                voiceLatestHeard = (voiceFinalBuffer + ' ' + interim).trim();
+                transcriptEl.textContent = `"${voiceLatestHeard || 'Escuchando...'}"`;
             };
-            speechRecognition.onerror = (event) => { showToast('Error de micrófono: ' + event.error, 'error'); window.stopVoiceAttendance(); };
+
+            speechRecognition.onerror = (event) => {
+                showToast('Error de micrófono: ' + event.error, 'error');
+                window.stopVoiceAttendance();
+            };
+
             speechRecognition.onend = async () => {
-                const spoken = finalTranscript.trim();
+                const hadSession = isListeningVoice;
                 isListeningVoice = false;
                 btnText.textContent = 'Voz';
-                if (spoken) { await applyVoiceAttendanceCommand(spoken); statusLabel.textContent = 'Comando aplicado. Puedes pulsar "Voz" para otro dictado.'; }
-                else statusLabel.textContent = 'No se detectó voz. Intenta de nuevo.';
+                speechRecognition = null;
+                if (!hadSession) return;
+                const spoken = (voiceFinalBuffer || voiceLatestHeard || '').trim();
+                if (spoken) {
+                    await applyVoiceAttendanceCommand(spoken);
+                    statusLabel.textContent = 'Comando aplicado. Puedes pulsar "Voz" para otro dictado.';
+                } else {
+                    statusLabel.textContent = 'No se detectó voz. Intenta de nuevo.';
+                }
             };
-            try { speechRecognition.start(); } catch (_) { showToast('No se pudo iniciar el micrófono.', 'error'); window.stopVoiceAttendance(); }
+
+            try {
+                speechRecognition.start();
+            } catch (_) {
+                isListeningVoice = false;
+                btnText.textContent = 'Voz';
+                showToast('No se pudo iniciar el micrófono.', 'error');
+            }
         }
 
         window.stopVoiceAttendance = () => {
-            if (speechRecognition) { try { speechRecognition.stop(); } catch (_) {} speechRecognition = null; }
+            const wasListening = isListeningVoice;
             isListeningVoice = false;
             document.getElementById('btnVoiceText').textContent = 'Voz';
+            if (speechRecognition) {
+                try {
+                    if (wasListening) speechRecognition.stop();
+                } catch (_) {}
+                speechRecognition = null;
+            }
         };
 
         window.toggleAuthMode = (mode) => {
@@ -717,26 +957,51 @@
             }
         });
 
+        function mapStudentRecord(s, fallbackOrder = 0) {
+            return {
+                ...s,
+                _order: typeof s._order === 'number' ? s._order : fallbackOrder,
+                guardianName: s.guardianName || '',
+                guardianPhone: s.guardianPhone || '',
+                healthCondition: s.healthCondition || '',
+                healthMedication: s.healthMedication || '',
+                emergencyPhone: s.emergencyPhone || '',
+                descriptor: new Float32Array(s.descriptor || [])
+            };
+        }
+
         async function loadSharedCatalogAndPrivateAttendance() {
             try {
                 const catalogSnap = await getDocs(collection(db, "aulas_catalogo"));
                 const loadedClasses = [];
-                catalogSnap.forEach((docSnap) => {
+                for (const docSnap of catalogSnap.docs) {
                     const data = docSnap.data();
+                    const classId = data.id || docSnap.id;
+                    const studentsMap = new Map();
+
+                    (data.students || []).forEach((s, idx) => {
+                        if (s && s.id) studentsMap.set(s.id, mapStudentRecord(s, idx));
+                    });
+
+                    const alunosSnap = await getDocs(collection(db, "aulas_catalogo", classId, "alumnos"));
+                    alunosSnap.forEach((aDoc) => {
+                        const s = aDoc.data();
+                        if (s && s.id) studentsMap.set(s.id, mapStudentRecord(s, 999999));
+                    });
+
+                    const orderedStudents = Array.from(studentsMap.values())
+                        .sort((a, b) => (a._order ?? 0) - (b._order ?? 0))
+                        .map(({ _order, ...rest }) => rest);
+
                     loadedClasses.push({
-                        id: data.id || docSnap.id,
+                        id: classId,
                         grade: data.grade || '',
                         section: data.section || '',
                         guideUid: data.guideUid || '',
                         guideName: data.guideName || 'Docente Guía',
-                        students: (data.students || []).map(s => ({
-                            ...s,
-                            guardianName: s.guardianName || '',
-                            guardianPhone: s.guardianPhone || '',
-                            descriptor: new Float32Array(s.descriptor || [])
-                        }))
+                        students: orderedStudents
                     });
-                });
+                }
                 const teacherRef = doc(db, "docentes", currentUser.uid);
                 const teacherSnap = await getDoc(teacherRef);
                 if (teacherSnap.exists()) {
@@ -748,12 +1013,7 @@
                                 const migratedClass = {
                                     id: legacyCls.id, grade: legacyCls.grade, section: legacyCls.section,
                                     guideUid: currentUser.uid, guideName: currentUser.displayName || currentUser.email || 'Docente Guía',
-                                    students: (legacyCls.students || []).map(s => ({
-                                        ...s,
-                                        guardianName: s.guardianName || '',
-                                        guardianPhone: s.guardianPhone || '',
-                                        descriptor: new Float32Array(s.descriptor || [])
-                                    }))
+                                    students: (legacyCls.students || []).map((s, idx) => mapStudentRecord(s, idx))
                                 };
                                 await saveClassCatalogToCloud(migratedClass);
                                 loadedClasses.push(migratedClass);
@@ -772,20 +1032,73 @@
             } catch (_) { showToast('Error al cargar aulas o asistencia de la nube.', 'error'); }
         }
 
-        async function saveClassCatalogToCloud(cls) {
+        function serializeStudentDoc(s, orderIndex = 0) {
+            return {
+                id: s.id,
+                name: s.name,
+                guardianName: s.guardianName || '',
+                guardianPhone: s.guardianPhone || '',
+                healthCondition: s.healthCondition || '',
+                healthMedication: s.healthMedication || '',
+                emergencyPhone: s.emergencyPhone || '',
+                photo: s.photo,
+                descriptor: Array.from(s.descriptor || []),
+                _order: orderIndex
+            };
+        }
+
+        async function saveClassMetaToCloud(cls) {
             if (!currentUser || !cls) return false;
             try {
                 await setDoc(doc(db, "aulas_catalogo", cls.id), {
-                    id: cls.id, grade: cls.grade, section: cls.section, guideUid: cls.guideUid, guideName: cls.guideName,
-                    students: (cls.students || []).map(s => ({
-                        id: s.id,
-                        name: s.name,
-                        guardianName: s.guardianName || '',
-                        guardianPhone: s.guardianPhone || '',
-                        photo: s.photo,
-                        descriptor: Array.from(s.descriptor || [])
-                    }))
+                    id: cls.id,
+                    grade: cls.grade,
+                    section: cls.section,
+                    guideUid: cls.guideUid,
+                    guideName: cls.guideName
+                }, { merge: true });
+                return true;
+            } catch (err) { showToast('Error al guardar aula en Firestore: ' + (err.code || err.message), 'error'); return false; }
+        }
+
+        async function saveSingleStudentToCloud(cls, student, orderIndex = 0) {
+            if (!currentUser || !cls || !student) return false;
+            try {
+                await setDoc(doc(db, "aulas_catalogo", cls.id, "alumnos", student.id), serializeStudentDoc(student, orderIndex));
+                return true;
+            } catch (err) { showToast('Error al guardar alumno en Firestore: ' + (err.code || err.message), 'error'); return false; }
+        }
+
+        async function deleteSingleStudentFromCloud(classId, studentId) {
+            if (!currentUser || !classId || !studentId) return false;
+            try {
+                await deleteDoc(doc(db, "aulas_catalogo", classId, "alumnos", studentId));
+                return true;
+            } catch (err) { showToast('Error al eliminar alumno en Firestore: ' + (err.code || err.message), 'error'); return false; }
+        }
+
+        async function saveStudentsOrderToCloud(cls) {
+            if (!currentUser || !cls) return false;
+            try {
+                const batch = writeBatch(db);
+                (cls.students || []).forEach((s, idx) => {
+                    batch.set(doc(db, "aulas_catalogo", cls.id, "alumnos", s.id), { _order: idx }, { merge: true });
                 });
+                await batch.commit();
+                return true;
+            } catch (err) { showToast('Error al guardar orden en Firestore: ' + (err.code || err.message), 'error'); return false; }
+        }
+
+        async function saveClassCatalogToCloud(cls) {
+            if (!currentUser || !cls) return false;
+            try {
+                const metaOk = await saveClassMetaToCloud(cls);
+                if (!metaOk) return false;
+                const batch = writeBatch(db);
+                (cls.students || []).forEach((s, idx) => {
+                    batch.set(doc(db, "aulas_catalogo", cls.id, "alumnos", s.id), serializeStudentDoc(s, idx));
+                });
+                await batch.commit();
                 return true;
             } catch (err) { showToast('Error al guardar en Firestore: ' + (err.code || err.message), 'error'); return false; }
         }
@@ -812,7 +1125,7 @@
             activeClassId = newClass.id;
             closeNewClassModal();
             renderClassSelector();
-            if (await saveClassCatalogToCloud(newClass)) showToast(`Grado guía "${grade} - ${section}" creado.`, 'success');
+            if (await saveClassMetaToCloud(newClass)) showToast(`Grado guía "${grade} - ${section}" creado.`, 'success');
         };
 
         function renderClassSelector() {
@@ -841,7 +1154,7 @@
                 document.getElementById('readOnlyGuideNotice').classList.add('hidden');
                 document.getElementById('btnDeleteClass').classList.remove('hidden');
             } else {
-                stopRegCamera();
+                closeRegisterStudentModal();
                 document.getElementById('regMediaContainer').classList.add('hidden');
                 document.getElementById('guideEditorCard').classList.add('hidden');
                 document.getElementById('readOnlyGuideNotice').classList.remove('hidden');
@@ -971,24 +1284,35 @@
             const name = document.getElementById('regStudentName').value.trim();
             const guardianName = document.getElementById('regGuardianName').value.trim();
             const guardianPhone = document.getElementById('regGuardianPhone').value.trim();
+            const healthCondition = document.getElementById('regHealthCondition').value.trim();
+            const healthMedication = document.getElementById('regHealthMedication').value.trim();
+            const emergencyPhone = document.getElementById('regEmergencyPhone').value.trim();
             const btn = document.getElementById('btnSaveStudent');
+
             if (!id || !name || !currentRegDescriptor) { showToast('Completa clave, nombre y foto.', 'error'); return; }
             if (cls.students.some(s => s.id === id)) { showToast('Ya existe un alumno con esa clave.', 'error'); return; }
+
             btn.disabled = true; btn.textContent = 'Subiendo a la nube...';
-            cls.students.push({ id, name, guardianName, guardianPhone, photo: currentRegPhotoDataUrl, descriptor: currentRegDescriptor });
+            const newStudent = { id, name, guardianName, guardianPhone, healthCondition, healthMedication, emergencyPhone, photo: currentRegPhotoDataUrl, descriptor: currentRegDescriptor };
+            const newIndex = cls.students.length;
+            cls.students.push(newStudent);
             try {
-                if (!(await saveClassCatalogToCloud(cls))) { cls.students.pop(); return; }
+                if (!(await saveSingleStudentToCloud(cls, newStudent, newIndex))) { cls.students.pop(); return; }
                 rebuildFaceMatcher(); renderClassSelector();
                 document.getElementById('regStudentId').value = '';
                 document.getElementById('regStudentName').value = '';
                 document.getElementById('regGuardianName').value = '';
                 document.getElementById('regGuardianPhone').value = '';
+                document.getElementById('regHealthCondition').value = '';
+                document.getElementById('regHealthMedication').value = '';
+                document.getElementById('regEmergencyPhone').value = '';
                 document.getElementById('regPhotoInput').value = '';
                 document.getElementById('regMediaContainer').classList.add('hidden');
                 document.getElementById('regFaceFeedback').classList.add('hidden');
                 currentRegDescriptor = null; currentRegPhotoDataUrl = null;
+                closeRegisterStudentModal();
                 showToast(`${name} guardado.`, 'success');
-            } finally { btn.disabled = false; btn.textContent = 'Guardar Alumno en Catálogo'; }
+            } finally { btn.disabled = false; btn.textContent = 'Guardar Alumno'; }
         };
 
         window.moveStudentOrder = async (index, direction) => {
@@ -999,7 +1323,7 @@
             const prev = [...cls.students];
             [cls.students[index], cls.students[targetIndex]] = [cls.students[targetIndex], cls.students[index]];
             renderAllUI();
-            if (!(await saveClassCatalogToCloud(cls))) { cls.students = prev; renderAllUI(); }
+            if (!(await saveStudentsOrderToCloud(cls))) { cls.students = prev; renderAllUI(); }
         };
 
         window.openEditStudentModal = (studentId) => {
@@ -1012,6 +1336,9 @@
             document.getElementById('editStudentName').value = s.name;
             document.getElementById('editGuardianName').value = s.guardianName || '';
             document.getElementById('editGuardianPhone').value = s.guardianPhone || '';
+            document.getElementById('editHealthCondition').value = s.healthCondition || '';
+            document.getElementById('editHealthMedication').value = s.healthMedication || '';
+            document.getElementById('editEmergencyPhone').value = s.emergencyPhone || '';
             document.getElementById('editStudentModal').classList.remove('hidden');
         };
 
@@ -1026,29 +1353,44 @@
             const newName = document.getElementById('editStudentName').value.trim();
             const newGuardianName = document.getElementById('editGuardianName').value.trim();
             const newGuardianPhone = document.getElementById('editGuardianPhone').value.trim();
+            const newHealthCondition = document.getElementById('editHealthCondition').value.trim();
+            const newHealthMedication = document.getElementById('editHealthMedication').value.trim();
+            const newEmergencyPhone = document.getElementById('editEmergencyPhone').value.trim();
+
             const student = cls.students.find(s => s.id === originalId);
             if (!student) return;
-            const prevId = student.id;
-            const prevName = student.name;
-            const prevGuardianName = student.guardianName || '';
-            const prevGuardianPhone = student.guardianPhone || '';
+            const prev = {
+                id: student.id,
+                name: student.name,
+                guardianName: student.guardianName || '',
+                guardianPhone: student.guardianPhone || '',
+                healthCondition: student.healthCondition || '',
+                healthMedication: student.healthMedication || '',
+                emergencyPhone: student.emergencyPhone || ''
+            };
+
             student.id = newId;
             student.name = newName;
             student.guardianName = newGuardianName;
             student.guardianPhone = newGuardianPhone;
-            if (newId !== prevId) {
+            student.healthCondition = newHealthCondition;
+            student.healthMedication = newHealthMedication;
+            student.emergencyPhone = newEmergencyPhone;
+
+            if (newId !== prev.id) {
                 const classAtt = getClassAttendance(cls.id);
                 Object.keys(classAtt).forEach((dKey) => {
-                    if (classAtt[dKey]?.[prevId]) { classAtt[dKey][newId] = classAtt[dKey][prevId]; delete classAtt[dKey][prevId]; }
+                    if (classAtt[dKey]?.[prev.id]) { classAtt[dKey][newId] = classAtt[dKey][prev.id]; delete classAtt[dKey][prev.id]; }
                 });
                 await saveMyPrivateAttendanceToCloud();
             }
-            if (!(await saveClassCatalogToCloud(cls))) {
-                student.id = prevId;
-                student.name = prevName;
-                student.guardianName = prevGuardianName;
-                student.guardianPhone = prevGuardianPhone;
+            const studentIdx = cls.students.findIndex(st => st.id === newId);
+            if (!(await saveSingleStudentToCloud(cls, student, studentIdx >= 0 ? studentIdx : 0))) {
+                Object.assign(student, prev);
                 return;
+            }
+            if (newId !== prev.id) {
+                await deleteSingleStudentFromCloud(cls.id, prev.id);
             }
             rebuildFaceMatcher(); renderAllUI(); closeEditStudentModal(); showToast('Datos actualizados.', 'success');
         };
@@ -1215,7 +1557,7 @@
             const prev = [...cls.students];
             cls.students = cls.students.filter(s => s.id !== studentId);
             rebuildFaceMatcher(); renderClassSelector();
-            if (!(await saveClassCatalogToCloud(cls))) { cls.students = prev; rebuildFaceMatcher(); renderClassSelector(); }
+            if (!(await deleteSingleStudentFromCloud(cls.id, studentId))) { cls.students = prev; rebuildFaceMatcher(); renderClassSelector(); }
         };
 
         window.toggleManualStatus = async (studentId) => {
@@ -1270,7 +1612,7 @@
             const totalCols = 2 + daysInMonth;
             const lastColLetter = sheet.getColumn(totalCols).letter;
 
-            for (const fileName of ['encabezado1.png', 'encabezado1.jpg']) {
+            for (const fileName of ['encabezado_asistencia.png', 'encabezado_asistencia.jpg']) {
                 try {
                     const response = await fetch(fileName);
                     if (response.ok) {
