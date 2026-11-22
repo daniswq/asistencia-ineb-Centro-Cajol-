@@ -310,7 +310,7 @@
                         <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
                             <div class="min-w-0">
                                 <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Alumnos en esta Aula</h2>
-                                <p class="text-[11px] text-slate-500">Usa ↑ / ↓ para cambiar el orden o el lápiz para corregir datos.</p>
+                                <p class="text-[11px] text-slate-500">Toca el nombre o la foto para ver encargado, llamar o enviar WhatsApp.</p>
                             </div>
                             <button id="btnDeleteClass" onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline shrink-0">Eliminar Aula</button>
                         </div>
@@ -350,6 +350,48 @@
                 </section>
             </div>
         </main>
+    </div>
+
+    <div id="guardianInfoModal" onclick="if(event.target === this) closeGuardianInfoModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-4">
+            <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-3 min-w-0">
+                    <img id="guardianModalPhoto" src="" alt="Foto del alumno" class="w-14 h-14 rounded-2xl object-cover border-2 border-navy-900 shrink-0">
+                    <div class="min-w-0">
+                        <span id="guardianModalCode" class="inline-block text-[11px] font-extrabold bg-navy-900 text-white px-2 py-0.5 rounded-md">Clave: —</span>
+                        <h3 id="guardianModalStudentName" class="font-extrabold text-navy-900 text-base leading-tight mt-1 break-words"></h3>
+                    </div>
+                </div>
+                <button type="button" onclick="closeGuardianInfoModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100 shrink-0" title="Cerrar">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 text-xs">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nombre del Encargado</p>
+                    <p id="guardianModalName" class="font-bold text-navy-900 text-sm mt-0.5 break-words">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Teléfono del Encargado</p>
+                    <p id="guardianModalPhone" class="font-mono font-bold text-navy-900 text-sm mt-0.5">—</p>
+                </div>
+            </div>
+
+            <div id="guardianContactButtons" class="grid grid-cols-2 gap-2.5 pt-1">
+                <a id="btnDirectCall" href="#" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-xs shadow-sm transition-colors">
+                    <i data-lucide="phone-call" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                    <span>Llamar</span>
+                </a>
+                <a id="btnWhatsAppContact" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-colors">
+                    <i data-lucide="message-circle" class="w-4 h-4 text-white shrink-0"></i>
+                    <span>WhatsApp</span>
+                </a>
+            </div>
+            <p id="guardianNoPhoneHint" class="hidden text-center text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-xl py-2 px-3 font-medium">
+                Este alumno aún no tiene número de teléfono de encargado registrado.
+            </p>
+        </div>
     </div>
 
     <div id="newClassModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4">
@@ -442,6 +484,55 @@
 
         window.toggleGuideInfoPopover = () => {
             document.getElementById('guideInfoBox').classList.toggle('hidden');
+        };
+
+        function formatPhoneForLinks(rawPhone) {
+            const digits = (rawPhone || '').replace(/\D+/g, '');
+            if (!digits) return { telHref: '', waHref: '' };
+            const waNumber = digits.length === 8 ? `502${digits}` : digits;
+            return {
+                telHref: `tel:${digits}`,
+                waHref: `https://wa.me/${waNumber}`
+            };
+        }
+
+        window.openGuardianInfoModal = (studentId) => {
+            const cls = getActiveClass();
+            if (!cls) return;
+            const s = cls.students.find(st => st.id === studentId);
+            if (!s) return;
+
+            document.getElementById('guardianModalPhoto').src = s.photo || 'logoineb.png';
+            document.getElementById('guardianModalCode').textContent = `Clave: ${s.id}`;
+            document.getElementById('guardianModalStudentName').textContent = s.name;
+            document.getElementById('guardianModalName').textContent = (s.guardianName || '').trim() || 'No registrado';
+            document.getElementById('guardianModalPhone').textContent = (s.guardianPhone || '').trim() || 'No registrado';
+
+            const { telHref, waHref } = formatPhoneForLinks(s.guardianPhone);
+            const buttonsWrap = document.getElementById('guardianContactButtons');
+            const noPhoneHint = document.getElementById('guardianNoPhoneHint');
+            const btnCall = document.getElementById('btnDirectCall');
+            const btnWa = document.getElementById('btnWhatsAppContact');
+
+            if (telHref && waHref) {
+                btnCall.href = telHref;
+                const defaultMsg = encodeURIComponent(`Buen día, le saludamos de INEB Centro Cajolá respecto al estudiante ${s.name} (Clave ${s.id}).`);
+                btnWa.href = `${waHref}?text=${defaultMsg}`;
+                buttonsWrap.classList.remove('hidden');
+                noPhoneHint.classList.add('hidden');
+            } else {
+                btnCall.href = '#';
+                btnWa.href = '#';
+                buttonsWrap.classList.add('hidden');
+                noPhoneHint.classList.remove('hidden');
+            }
+
+            document.getElementById('guardianInfoModal').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.closeGuardianInfoModal = () => {
+            document.getElementById('guardianInfoModal').classList.add('hidden');
         };
 
         function isCurrentUserGuide(cls) {
@@ -1087,16 +1178,13 @@
                 ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos registrados en este grado.</p>'
                 : cls.students.map((s, idx) => `
                     <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 min-w-0">
-                        <div class="flex items-center gap-2 min-w-0">
+                        <button type="button" onclick="openGuardianInfoModal('${s.id}')" class="flex items-center gap-2 min-w-0 flex-1 text-left rounded-lg hover:bg-slate-100/90 p-1 -m-1 transition-colors cursor-pointer">
                             <img src="${s.photo}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border shrink-0">
                             <div class="min-w-0">
-                                <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">${s.name}</p>
+                                <p class="font-bold text-navy-900 text-xs sm:text-sm truncate underline decoration-slate-300 underline-offset-2">${s.name}</p>
                                 <p class="text-[11px] text-slate-500">Clave: ${s.id}</p>
-                                ${(s.guardianName || s.guardianPhone)
-                                    ? `<p class="text-[11px] text-slate-500 truncate">Encargado: ${s.guardianName || '—'}${s.guardianPhone ? ` • ${s.guardianPhone}` : ''}</p>`
-                                    : ''}
                             </div>
-                        </div>
+                        </button>
                         ${canEditRoster ? `<div class="flex items-center gap-1 shrink-0">
                             <button type="button" onclick="moveStudentOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
                             <button type="button" onclick="moveStudentOrder(${idx}, 1)" ${idx === cls.students.length - 1 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
@@ -1111,7 +1199,7 @@
                 const isPresent = rec.status === 'ASISTENTE';
                 return `<tr>
                     <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap">${s.id}</td>
-                    <td class="py-2.5 px-2 sm:px-4"><div class="flex items-center gap-2 min-w-[100px]"><img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0"><span class="leading-tight">${s.name}</span></div></td>
+                    <td class="py-2.5 px-2 sm:px-4"><button type="button" onclick="openGuardianInfoModal('${s.id}')" class="flex items-center gap-2 min-w-[100px] text-left hover:underline cursor-pointer"><img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0"><span class="leading-tight">${s.name}</span></button></td>
                     <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap">${rec.time}</td>
                     <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">${rec.status}</span></td>
                     <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap"><button type="button" onclick="toggleManualStatus('${s.id}')" class="px-2 py-1 rounded-lg bg-navy-900 text-white text-[11px] sm:text-xs font-bold">Cambiar</button></td>
