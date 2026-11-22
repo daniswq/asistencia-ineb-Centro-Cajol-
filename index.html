@@ -82,7 +82,7 @@
             <form id="registerForm" onsubmit="handleRegisterTeacher(event)" class="hidden space-y-3.5">
                 <div>
                     <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Docente</label>
-                    <input type="text" id="regTeacherName" required placeholder="Ej. Prof. Danilo Perez" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
+                    <input type="text" id="regTeacherName" required placeholder="Ej. Prof. Carlos López" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-navy-900 mb-1">Correo Electrónico</label>
@@ -328,8 +328,9 @@
                             <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Reporte • <span id="reportClassTitle" class="text-crimson-600"></span></h2>
                             <p id="reportDateBadge" class="text-[11px] sm:text-xs text-slate-500 truncate"></p>
                         </div>
-                        <div class="flex gap-2 shrink-0">
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
                             <button onclick="resetTodayAttendance()" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold">Reiniciar Día</button>
+                            <select id="exportMonthSelector" class="px-2.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-navy-900 text-xs font-bold focus:outline-none focus:border-navy-900"></select>
                             <button onclick="exportToExcel()" class="px-3.5 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold flex items-center gap-1.5">
                                 <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar Excel
                             </button>
@@ -459,7 +460,7 @@
             return (str || '')
                 .toLowerCase()
                 .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[̀-ͯ]/g, '')
                 .replace(/[^a-z0-9\s]/g, ' ')
                 .replace(/\s+/g, ' ')
                 .trim();
@@ -511,8 +512,8 @@
             if (!classAttendance[today]) classAttendance[today] = {};
             const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
 
-            const hasAllKeyword = /\b(todos|todas|todo el mundo|la clase completa)\b/.test(norm);
-            const splitMatch = norm.match(/\b(excepto|menos|salvo|fuera de|sin)\b([\s\S]*)/);
+            const hasAllKeyword = / (todos|todas|todo el mundo|la clase completa) /.test(norm);
+            const splitMatch = norm.match(/ (excepto|menos|salvo|fuera de|sin) ([\s\S]*)/);
 
             let absentIds = [];
             let presentIds = [];
@@ -1434,6 +1435,39 @@
             }
         };
 
+        function updateExportMonthSelector() {
+            const selector = document.getElementById('exportMonthSelector');
+            const cls = getActiveClass();
+            if (!selector || !cls) return;
+
+            const monthNames = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+
+            const now = new Date();
+            const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const classAttendance = getClassAttendance(cls.id);
+
+            const monthsSet = new Set([currentMonthKey]);
+            Object.keys(classAttendance).forEach((dateKey) => {
+                if (/^\d{4}-\d{2}-\d{2}$/.test(dateKey) && Object.keys(classAttendance[dateKey] || {}).length > 0) {
+                    monthsSet.add(dateKey.slice(0, 7));
+                }
+            });
+
+            const sortedMonths = Array.from(monthsSet).sort().reverse();
+            const prevValue = selector.value;
+
+            selector.innerHTML = sortedMonths.map((ym) => {
+                const [y, m] = ym.split('-');
+                const label = `${monthNames[parseInt(m, 10) - 1]} ${y}`;
+                return `<option value="${ym}">${label}</option>`;
+            }).join('');
+
+            selector.value = sortedMonths.includes(prevValue) ? prevValue : currentMonthKey;
+        }
+
         function renderAllUI() {
             const cls = getActiveClass();
             if (!cls) return;
@@ -1506,6 +1540,7 @@
                     </tr>
                 `;
             }).join('');
+            updateExportMonthSelector();
             lucide.createIcons();
         }
 
@@ -1576,8 +1611,11 @@
             if (!cls) return;
 
             const now = new Date();
-            const year = now.getFullYear();
-            const monthIndex = now.getMonth();
+            const selectedMonthVal = document.getElementById('exportMonthSelector')?.value
+                || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const [yearStr, monthStr] = selectedMonthVal.split('-');
+            const year = parseInt(yearStr, 10);
+            const monthIndex = parseInt(monthStr, 10) - 1;
             const monthNames = [
                 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
                 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
