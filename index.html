@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>INEB CENTRO CAJOLÁ - Aula Virtual en la Nube</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -18,13 +17,9 @@
             }
         }
     </script>
-    <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- face-api.js optimizado -->
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
-    <!-- ExcelJS para exportar .xlsx con imagen de encabezado y planilla mensual -->
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
     <style>
@@ -43,13 +38,11 @@
 </head>
 <body class="bg-slate-50 text-navy-900 min-h-screen flex flex-col">
 
-    <!-- PANTALLA DE CARGA INICIAL -->
     <div id="loadingOverlay" class="fixed inset-0 z-50 bg-navy-950 flex flex-col items-center justify-center text-white gap-3">
         <div class="w-12 h-12 border-4 border-crimson-600 border-t-transparent rounded-full animate-spin"></div>
         <p class="text-sm font-bold tracking-wide">Conectando con la Nube INEB...</p>
     </div>
 
-    <!-- PANTALLA 0: LOGIN Y REGISTRO DOCENTE -->
     <div id="authScreen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-t-8 border-crimson-600 space-y-6">
             <div class="text-center space-y-2">
@@ -99,7 +92,6 @@
         </div>
     </div>
 
-    <!-- APLICACIÓN PRINCIPAL -->
     <div id="appContainer" class="hidden flex-1 flex flex-col w-full max-w-full overflow-x-clip">
         <header class="bg-navy-900 text-white sticky top-0 z-30 shadow-md border-b-4 border-crimson-600 w-full">
             <div class="max-w-5xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 min-w-0">
@@ -143,7 +135,6 @@
                     </button>
                 </div>
 
-                <!-- Panel desplegable al dar clic en "Guía" -->
                 <div id="guideInfoBox" class="hidden max-w-5xl mx-auto mt-2 bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-xs text-slate-200 flex items-center justify-between gap-2">
                     <span class="truncate">Maestro Guía: <strong id="classGuideInfo" class="text-white"></strong></span>
                     <button type="button" onclick="toggleGuideInfoPopover()" class="text-[11px] text-slate-400 hover:text-white shrink-0">Cerrar</button>
@@ -179,7 +170,6 @@
             </div>
 
             <div id="workspaceViews" class="space-y-4 min-w-0">
-                <!-- PESTAÑA 1 -->
                 <section id="view-scanner" class="space-y-4 min-w-0">
                     <div class="grid grid-cols-3 gap-2 sm:gap-4">
                         <div class="bg-navy-900 text-white p-2.5 sm:p-3 rounded-2xl text-center">
@@ -252,7 +242,6 @@
                     </div>
                 </section>
 
-                <!-- PESTAÑA 2 -->
                 <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4 min-w-0">
                     <div id="guideEditorCard" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 h-fit min-w-0">
                         <div class="border-b border-slate-100 pb-2">
@@ -268,6 +257,14 @@
                             <div>
                                 <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Completo *</label>
                                 <input type="text" id="regStudentName" placeholder="Ej. María Fernanda Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Encargado</label>
+                                <input type="text" id="regGuardianName" placeholder="Ej. Doña Marta Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono del Encargado</label>
+                                <input type="tel" id="regGuardianPhone" placeholder="Ej. 5555-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
                             </div>
                         </div>
 
@@ -305,7 +302,7 @@
                             <span>Lista Administrada por Maestro Guía</span>
                         </div>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Este grado pertenece a <strong id="otherGuideName" class="text-navy-900"></strong>. Puedes ver la lista de alumnos y pasar tu propia asistencia privada, pero solo el maestro guía puede agregar o eliminar alumnos de este grado.
+                            Este grado pertenece a <strong id="otherGuideName" class="text-navy-900"></strong>. Puedes ver la lista de alumnos y pasar tu propia asistencia privada, pero solo el maestro guía puede agregar, editar o eliminar alumnos de este grado.
                         </p>
                     </div>
 
@@ -313,7 +310,7 @@
                         <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
                             <div class="min-w-0">
                                 <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Alumnos en esta Aula</h2>
-                                <p class="text-[11px] text-slate-500">Usa ↑ / ↓ para cambiar el orden o el lápiz para corregir clave y nombre.</p>
+                                <p class="text-[11px] text-slate-500">Usa ↑ / ↓ para cambiar el orden o el lápiz para corregir datos.</p>
                             </div>
                             <button id="btnDeleteClass" onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline shrink-0">Eliminar Aula</button>
                         </div>
@@ -321,7 +318,6 @@
                     </div>
                 </section>
 
-                <!-- PESTAÑA 3 -->
                 <section id="view-report" class="hidden space-y-4 min-w-0">
                     <div class="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
                         <div class="min-w-0">
@@ -356,7 +352,6 @@
         </main>
     </div>
 
-    <!-- Modal Crear Nueva Aula -->
     <div id="newClassModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4">
         <form onsubmit="createNewClass(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border-t-4 border-crimson-600 space-y-4">
             <h3 class="font-bold text-navy-900 text-base">Crear Grado Guía</h3>
@@ -376,7 +371,6 @@
         </form>
     </div>
 
-    <!-- Modal Editar Alumno (Clave y Nombre) -->
     <div id="editStudentModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4">
         <form onsubmit="saveEditedStudent(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border-t-4 border-navy-900 space-y-4">
             <h3 class="font-bold text-navy-900 text-base">Editar Datos del Alumno</h3>
@@ -389,6 +383,14 @@
                 <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Completo *</label>
                 <input type="text" id="editStudentName" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
             </div>
+            <div>
+                <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Encargado</label>
+                <input type="text" id="editGuardianName" placeholder="Ej. Doña Marta Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono del Encargado</label>
+                <input type="tel" id="editGuardianPhone" placeholder="Ej. 5555-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="closeEditStudentModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
                 <button type="submit" id="btnSaveEditedStudent" class="px-4 py-2 rounded-xl bg-navy-900 text-white text-xs font-bold">Guardar Cambios</button>
@@ -398,7 +400,6 @@
 
     <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- FIREBASE SDK Y LÓGICA DEL SISTEMA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
@@ -417,7 +418,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
         const MODEL_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model/';
 
         let currentUser = null;
@@ -437,7 +437,6 @@
         let currentRegDescriptor = null;
         let currentRegPhotoDataUrl = null;
 
-        // Reconocimiento de voz
         let speechRecognition = null;
         let isListeningVoice = false;
 
@@ -450,26 +449,17 @@
         }
 
         function getClassAttendance(classId) {
-            if (!myAttendanceByClass[classId]) {
-                myAttendanceByClass[classId] = {};
-            }
+            if (!myAttendanceByClass[classId]) myAttendanceByClass[classId] = {};
             return myAttendanceByClass[classId];
         }
 
         function normalizeText(str) {
-            return (str || '')
-                .toLowerCase()
-                .normalize('NFD')
-                .replace(/[̀-ͯ]/g, '')
-                .replace(/[^a-z0-9\s]/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
+            return (str || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
         }
 
         function matchStudentsFromPhrase(phrase, students) {
             const normPhrase = normalizeText(phrase);
             if (!normPhrase) return [];
-
             const tokens = normPhrase.split(' ');
             const matchedIds = new Set();
 
@@ -477,35 +467,18 @@
                 const normName = normalizeText(student.name);
                 const normId = normalizeText(student.id);
                 const nameParts = normName.split(' ').filter(p => p.length >= 2);
-
-                if (normId && tokens.includes(normId)) {
-                    matchedIds.add(student.id);
-                    return;
-                }
-
-                if (normName && normPhrase.includes(normName)) {
-                    matchedIds.add(student.id);
-                    return;
-                }
-
+                if (normId && tokens.includes(normId)) { matchedIds.add(student.id); return; }
+                if (normName && normPhrase.includes(normName)) { matchedIds.add(student.id); return; }
                 for (const part of nameParts) {
-                    if (part.length >= 3 && tokens.includes(part)) {
-                        matchedIds.add(student.id);
-                        break;
-                    }
+                    if (part.length >= 3 && tokens.includes(part)) { matchedIds.add(student.id); break; }
                 }
             });
-
             return Array.from(matchedIds);
         }
 
         async function applyVoiceAttendanceCommand(transcript) {
             const cls = getActiveClass();
-            if (!cls || cls.students.length === 0) {
-                showToast('Selecciona un aula con alumnos registrados.', 'error');
-                return;
-            }
-
+            if (!cls || cls.students.length === 0) { showToast('Selecciona un aula con alumnos registrados.', 'error'); return; }
             const norm = normalizeText(transcript);
             const classAttendance = getClassAttendance(cls.id);
             const today = getTodayStr();
@@ -514,149 +487,80 @@
 
             const hasAllKeyword = / (todos|todas|todo el mundo|la clase completa) /.test(norm);
             const splitMatch = norm.match(/ (excepto|menos|salvo|fuera de|sin) ([\s\S]*)/);
-
             let absentIds = [];
             let presentIds = [];
 
             if (hasAllKeyword && splitMatch) {
-                const afterException = splitMatch[2] || '';
-                absentIds = matchStudentsFromPhrase(afterException, cls.students);
-
+                absentIds = matchStudentsFromPhrase(splitMatch[2] || '', cls.students);
                 cls.students.forEach((s) => {
-                    if (absentIds.includes(s.id)) {
-                        classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
-                    } else {
-                        classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr };
-                        presentIds.push(s.id);
-                    }
+                    if (absentIds.includes(s.id)) classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
+                    else { classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr }; presentIds.push(s.id); }
                 });
             } else if (hasAllKeyword) {
-                cls.students.forEach((s) => {
-                    classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr };
-                    presentIds.push(s.id);
-                });
+                cls.students.forEach((s) => { classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr }; presentIds.push(s.id); });
             } else {
                 presentIds = matchStudentsFromPhrase(norm, cls.students);
-                presentIds.forEach((id) => {
-                    classAttendance[today][id] = { status: 'ASISTENTE', time: timeStr };
-                });
+                presentIds.forEach((id) => { classAttendance[today][id] = { status: 'ASISTENTE', time: timeStr }; });
             }
 
             renderAllUI();
             await saveMyPrivateAttendanceToCloud();
-
-            const absentNames = cls.students
-                .filter(s => absentIds.includes(s.id))
-                .map(s => s.name);
-
+            const absentNames = cls.students.filter(s => absentIds.includes(s.id)).map(s => s.name);
             const summaryEl = document.getElementById('voiceResultSummary');
-            if (hasAllKeyword && splitMatch) {
-                summaryEl.textContent = absentNames.length > 0
-                    ? `Guardado: ${presentIds.length} asistentes. Inasistentes: ${absentNames.join(', ')}.`
-                    : `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
-            } else if (hasAllKeyword) {
-                summaryEl.textContent = `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
-            } else {
+            if (hasAllKeyword && splitMatch) summaryEl.textContent = absentNames.length > 0 ? `Guardado: ${presentIds.length} asistentes. Inasistentes: ${absentNames.join(', ')}.` : `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
+            else if (hasAllKeyword) summaryEl.textContent = `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
+            else {
                 const presentNames = cls.students.filter(s => presentIds.includes(s.id)).map(s => s.name);
-                summaryEl.textContent = presentNames.length > 0
-                    ? `Guardado como asistentes: ${presentNames.join(', ')}.`
-                    : 'No se reconoció ningún alumno de esta aula en la frase.';
+                summaryEl.textContent = presentNames.length > 0 ? `Guardado como asistentes: ${presentNames.join(', ')}.` : 'No se reconoció ningún alumno de esta aula en la frase.';
             }
-
             showToast('Asistencia por voz actualizada.', 'success');
         }
 
-        window.toggleVoiceAttendance = () => {
-            if (isListeningVoice) {
-                window.stopVoiceAttendance();
-            } else {
-                startVoiceAttendance();
-            }
-        };
+        window.toggleVoiceAttendance = () => { if (isListeningVoice) window.stopVoiceAttendance(); else startVoiceAttendance(); };
 
         function startVoiceAttendance() {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRec) {
-                showToast('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.', 'error');
-                return;
-            }
-
+            if (!SpeechRec) { showToast('Tu navegador no soporta reconocimiento de voz.', 'error'); return; }
             const cls = getActiveClass();
-            if (!cls || cls.students.length === 0) {
-                showToast('Este grado no tiene alumnos registrados.', 'error');
-                return;
-            }
-
+            if (!cls || cls.students.length === 0) { showToast('Este grado no tiene alumnos registrados.', 'error'); return; }
             stopAttendanceCamera();
-
             const panel = document.getElementById('voicePanel');
             const transcriptEl = document.getElementById('voiceTranscriptText');
             const summaryEl = document.getElementById('voiceResultSummary');
             const statusLabel = document.getElementById('voiceStatusLabel');
             const btnText = document.getElementById('btnVoiceText');
-
             panel.classList.remove('hidden');
             transcriptEl.textContent = 'Escuchando...';
             summaryEl.textContent = '';
             statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span> Escuchando... di por ejemplo: "Todos asistieron excepto Juan y Luisa"';
             btnText.textContent = 'Detener';
             isListeningVoice = true;
-
             speechRecognition = new SpeechRec();
             speechRecognition.lang = 'es-GT';
             speechRecognition.interimResults = true;
-            speechRecognition.continuous = false;
-            speechRecognition.maxAlternatives = 1;
-
             let finalTranscript = '';
-
             speechRecognition.onresult = (event) => {
                 let interim = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const txt = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += txt + ' ';
-                    } else {
-                        interim += txt;
-                    }
+                    if (event.results[i].isFinal) finalTranscript += txt + ' ';
+                    else interim += txt;
                 }
                 transcriptEl.textContent = `"${(finalTranscript + interim).trim()}"`;
             };
-
-            speechRecognition.onerror = (event) => {
-                console.error('Speech error:', event.error);
-                showToast('Error de micrófono: ' + event.error, 'error');
-                window.stopVoiceAttendance();
-            };
-
+            speechRecognition.onerror = (event) => { showToast('Error de micrófono: ' + event.error, 'error'); window.stopVoiceAttendance(); };
             speechRecognition.onend = async () => {
                 const spoken = finalTranscript.trim();
                 isListeningVoice = false;
                 btnText.textContent = 'Voz';
-                statusLabel.textContent = 'Procesando comando de voz...';
-
-                if (spoken) {
-                    await applyVoiceAttendanceCommand(spoken);
-                    statusLabel.textContent = 'Comando aplicado. Puedes pulsar "Voz" para otro dictado.';
-                } else {
-                    statusLabel.textContent = 'No se detectó voz. Intenta de nuevo.';
-                }
+                if (spoken) { await applyVoiceAttendanceCommand(spoken); statusLabel.textContent = 'Comando aplicado. Puedes pulsar "Voz" para otro dictado.'; }
+                else statusLabel.textContent = 'No se detectó voz. Intenta de nuevo.';
             };
-
-            try {
-                speechRecognition.start();
-            } catch (err) {
-                console.error(err);
-                showToast('No se pudo iniciar el micrófono.', 'error');
-                window.stopVoiceAttendance();
-            }
+            try { speechRecognition.start(); } catch (_) { showToast('No se pudo iniciar el micrófono.', 'error'); window.stopVoiceAttendance(); }
         }
 
         window.stopVoiceAttendance = () => {
-            if (speechRecognition) {
-                try { speechRecognition.stop(); } catch (_) {}
-                speechRecognition = null;
-            }
+            if (speechRecognition) { try { speechRecognition.stop(); } catch (_) {} speechRecognition = null; }
             isListeningVoice = false;
             document.getElementById('btnVoiceText').textContent = 'Voz';
         };
@@ -667,13 +571,11 @@
             const btnLogin = document.getElementById('btnShowLogin');
             const btnReg = document.getElementById('btnShowRegister');
             if (mode === 'login') {
-                loginForm.classList.remove('hidden');
-                regForm.classList.add('hidden');
+                loginForm.classList.remove('hidden'); regForm.classList.add('hidden');
                 btnLogin.className = 'py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all';
                 btnReg.className = 'py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all';
             } else {
-                loginForm.classList.add('hidden');
-                regForm.classList.remove('hidden');
+                loginForm.classList.add('hidden'); regForm.classList.remove('hidden');
                 btnReg.className = 'py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all';
                 btnLogin.className = 'py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all';
             }
@@ -685,29 +587,14 @@
             const email = document.getElementById('regTeacherEmail').value.trim();
             const password = document.getElementById('regTeacherPassword').value;
             const btn = document.getElementById('btnRegSubmit');
-
-            btn.disabled = true;
-            btn.textContent = 'Creando cuenta en Firebase...';
-
+            btn.disabled = true; btn.textContent = 'Creando cuenta en Firebase...';
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
-
-                await setDoc(doc(db, "docentes", userCredential.user.uid), {
-                    name: name,
-                    email: email,
-                    attendanceByClass: {},
-                    classesMigrated: true
-                }, { merge: true });
-
-                showToast('¡Cuenta creada! Cargando grados y alumnos...', 'success');
-            } catch (error) {
-                console.error(error);
-                showToast('Error al registrar: ' + error.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Crear Cuenta en la Nube';
-            }
+                await setDoc(doc(db, "docentes", userCredential.user.uid), { name, email, attendanceByClass: {}, classesMigrated: true }, { merge: true });
+                showToast('¡Cuenta creada!', 'success');
+            } catch (error) { showToast('Error al registrar: ' + error.message, 'error'); }
+            finally { btn.disabled = false; btn.textContent = 'Crear Cuenta en la Nube'; }
         };
 
         window.handleLogin = async (e) => {
@@ -715,27 +602,13 @@
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             const btn = document.getElementById('btnLoginSubmit');
-
-            btn.disabled = true;
-            btn.textContent = 'Verificando credenciales...';
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                showToast('Sesión iniciada correctamente.', 'success');
-            } catch (error) {
-                showToast('Correo o contraseña incorrectos.', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Ingresar a mis Aulas';
-            }
+            btn.disabled = true; btn.textContent = 'Verificando credenciales...';
+            try { await signInWithEmailAndPassword(auth, email, password); showToast('Sesión iniciada correctamente.', 'success'); }
+            catch (_) { showToast('Correo o contraseña incorrectos.', 'error'); }
+            finally { btn.disabled = false; btn.textContent = 'Ingresar a mis Aulas'; }
         };
 
-        window.logoutTeacher = async () => {
-            stopAttendanceCamera();
-            stopRegCamera();
-            window.stopVoiceAttendance();
-            await signOut(auth);
-        };
+        window.logoutTeacher = async () => { stopAttendanceCamera(); stopRegCamera(); window.stopVoiceAttendance(); await signOut(auth); };
 
         onAuthStateChanged(auth, async (user) => {
             document.getElementById('loadingOverlay').classList.add('hidden');
@@ -747,10 +620,7 @@
                 await loadSharedCatalogAndPrivateAttendance();
                 await loadFaceApiModels();
             } else {
-                currentUser = null;
-                catalogClasses = [];
-                myAttendanceByClass = {};
-                activeClassId = null;
+                currentUser = null; catalogClasses = []; myAttendanceByClass = {}; activeClassId = null;
                 document.getElementById('appContainer').classList.add('hidden');
                 document.getElementById('authScreen').classList.remove('hidden');
             }
@@ -760,7 +630,6 @@
             try {
                 const catalogSnap = await getDocs(collection(db, "aulas_catalogo"));
                 const loadedClasses = [];
-
                 catalogSnap.forEach((docSnap) => {
                     const data = docSnap.data();
                     loadedClasses.push({
@@ -771,216 +640,135 @@
                         guideName: data.guideName || 'Docente Guía',
                         students: (data.students || []).map(s => ({
                             ...s,
+                            guardianName: s.guardianName || '',
+                            guardianPhone: s.guardianPhone || '',
                             descriptor: new Float32Array(s.descriptor || [])
                         }))
                     });
                 });
-
                 const teacherRef = doc(db, "docentes", currentUser.uid);
                 const teacherSnap = await getDoc(teacherRef);
-
                 if (teacherSnap.exists()) {
                     const tData = teacherSnap.data();
                     myAttendanceByClass = tData.attendanceByClass || {};
-
                     if (!tData.classesMigrated && Array.isArray(tData.classes) && tData.classes.length > 0) {
                         for (const legacyCls of tData.classes) {
-                            const existsInCatalog = loadedClasses.some(c => c.id === legacyCls.id);
-                            if (!existsInCatalog) {
+                            if (!loadedClasses.some(c => c.id === legacyCls.id)) {
                                 const migratedClass = {
-                                    id: legacyCls.id,
-                                    grade: legacyCls.grade,
-                                    section: legacyCls.section,
-                                    guideUid: currentUser.uid,
-                                    guideName: currentUser.displayName || currentUser.email || 'Docente Guía',
+                                    id: legacyCls.id, grade: legacyCls.grade, section: legacyCls.section,
+                                    guideUid: currentUser.uid, guideName: currentUser.displayName || currentUser.email || 'Docente Guía',
                                     students: (legacyCls.students || []).map(s => ({
                                         ...s,
+                                        guardianName: s.guardianName || '',
+                                        guardianPhone: s.guardianPhone || '',
                                         descriptor: new Float32Array(s.descriptor || [])
                                     }))
                                 };
                                 await saveClassCatalogToCloud(migratedClass);
                                 loadedClasses.push(migratedClass);
                             }
-                            if (legacyCls.attendance && !myAttendanceByClass[legacyCls.id]) {
-                                myAttendanceByClass[legacyCls.id] = legacyCls.attendance;
-                            }
+                            if (legacyCls.attendance && !myAttendanceByClass[legacyCls.id]) myAttendanceByClass[legacyCls.id] = legacyCls.attendance;
                         }
-                        await setDoc(teacherRef, {
-                            name: currentUser.displayName || '',
-                            email: currentUser.email || '',
-                            attendanceByClass: myAttendanceByClass,
-                            classesMigrated: true
-                        }, { merge: true });
+                        await setDoc(teacherRef, { name: currentUser.displayName || '', email: currentUser.email || '', attendanceByClass: myAttendanceByClass, classesMigrated: true }, { merge: true });
                     }
                 } else {
                     myAttendanceByClass = {};
-                    await setDoc(teacherRef, {
-                        name: currentUser.displayName || '',
-                        email: currentUser.email || '',
-                        attendanceByClass: {},
-                        classesMigrated: true
-                    }, { merge: true });
+                    await setDoc(teacherRef, { name: currentUser.displayName || '', email: currentUser.email || '', attendanceByClass: {}, classesMigrated: true }, { merge: true });
                 }
-
                 loadedClasses.sort((a, b) => `${a.grade} ${a.section}`.localeCompare(`${b.grade} ${b.section}`));
                 catalogClasses = loadedClasses;
                 renderClassSelector();
-            } catch (err) {
-                console.error(err);
-                showToast('Error al cargar aulas o asistencia de la nube.', 'error');
-            }
+            } catch (_) { showToast('Error al cargar aulas o asistencia de la nube.', 'error'); }
         }
 
         async function saveClassCatalogToCloud(cls) {
             if (!currentUser || !cls) return false;
             try {
-                const serializableStudents = (cls.students || []).map(s => ({
-                    id: s.id,
-                    name: s.name,
-                    photo: s.photo,
-                    descriptor: Array.from(s.descriptor || [])
-                }));
-
                 await setDoc(doc(db, "aulas_catalogo", cls.id), {
-                    id: cls.id,
-                    grade: cls.grade,
-                    section: cls.section,
-                    guideUid: cls.guideUid,
-                    guideName: cls.guideName,
-                    students: serializableStudents
+                    id: cls.id, grade: cls.grade, section: cls.section, guideUid: cls.guideUid, guideName: cls.guideName,
+                    students: (cls.students || []).map(s => ({
+                        id: s.id,
+                        name: s.name,
+                        guardianName: s.guardianName || '',
+                        guardianPhone: s.guardianPhone || '',
+                        photo: s.photo,
+                        descriptor: Array.from(s.descriptor || [])
+                    }))
                 });
                 return true;
-            } catch (err) {
-                console.error(err);
-                showToast('Error al guardar lista del grado en Firestore: ' + (err.code || err.message), 'error');
-                return false;
-            }
+            } catch (err) { showToast('Error al guardar en Firestore: ' + (err.code || err.message), 'error'); return false; }
         }
 
         async function saveMyPrivateAttendanceToCloud() {
             if (!currentUser) return false;
             try {
-                await setDoc(doc(db, "docentes", currentUser.uid), {
-                    name: currentUser.displayName || '',
-                    email: currentUser.email || '',
-                    attendanceByClass: myAttendanceByClass
-                }, { merge: true });
+                await setDoc(doc(db, "docentes", currentUser.uid), { name: currentUser.displayName || '', email: currentUser.email || '', attendanceByClass: myAttendanceByClass }, { merge: true });
                 return true;
-            } catch (err) {
-                console.error(err);
-                showToast('Error al guardar tu asistencia privada: ' + (err.code || err.message), 'error');
-                return false;
-            }
+            } catch (err) { showToast('Error al guardar asistencia: ' + (err.code || err.message), 'error'); return false; }
         }
 
         window.openNewClassModal = () => document.getElementById('newClassModal').classList.remove('hidden');
-        window.closeNewClassModal = () => {
-            document.getElementById('newClassModal').classList.add('hidden');
-            document.getElementById('newClassGrade').value = '';
-            document.getElementById('newClassSection').value = '';
-        };
+        window.closeNewClassModal = () => { document.getElementById('newClassModal').classList.add('hidden'); document.getElementById('newClassGrade').value = ''; document.getElementById('newClassSection').value = ''; };
 
         window.createNewClass = async (e) => {
             e.preventDefault();
             if (!currentUser) return;
-
             const grade = document.getElementById('newClassGrade').value.trim();
             const section = document.getElementById('newClassSection').value.trim();
             const guideName = currentUser.displayName || currentUser.email || 'Docente Guía';
-
-            const newClass = {
-                id: 'class_' + Date.now(),
-                grade,
-                section,
-                guideUid: currentUser.uid,
-                guideName,
-                students: []
-            };
-
+            const newClass = { id: 'class_' + Date.now(), grade, section, guideUid: currentUser.uid, guideName, students: [] };
             catalogClasses.push(newClass);
             activeClassId = newClass.id;
             closeNewClassModal();
             renderClassSelector();
-
-            const saved = await saveClassCatalogToCloud(newClass);
-            if (saved) {
-                showToast(`Grado guía "${grade} - ${section}" asignado a ${guideName}.`, 'success');
-            }
+            if (await saveClassCatalogToCloud(newClass)) showToast(`Grado guía "${grade} - ${section}" creado.`, 'success');
         };
 
         function renderClassSelector() {
             const selector = document.getElementById('activeClassSelector');
             const noClassesAlert = document.getElementById('noClassesAlert');
             const workspace = document.getElementById('workspaceViews');
-
             if (catalogClasses.length === 0) {
                 selector.innerHTML = '<option value="">Sin aulas creadas</option>';
-                noClassesAlert.classList.remove('hidden');
-                workspace.classList.add('hidden');
-                return;
+                noClassesAlert.classList.remove('hidden'); workspace.classList.add('hidden'); return;
             }
-
-            noClassesAlert.classList.add('hidden');
-            workspace.classList.remove('hidden');
-
-            selector.innerHTML = catalogClasses.map(c =>
-                `<option value="${c.id}">${c.grade} - ${c.section} (${c.students.length})</option>`
-            ).join('');
-
-            if (!activeClassId || !catalogClasses.some(c => c.id === activeClassId)) {
-                activeClassId = catalogClasses[0].id;
-            }
+            noClassesAlert.classList.add('hidden'); workspace.classList.remove('hidden');
+            selector.innerHTML = catalogClasses.map(c => `<option value="${c.id}">${c.grade} - ${c.section} (${c.students.length})</option>`).join('');
+            if (!activeClassId || !catalogClasses.some(c => c.id === activeClassId)) activeClassId = catalogClasses[0].id;
             selector.value = activeClassId;
             window.handleClassChange();
         }
 
-        function getActiveClass() {
-            return catalogClasses.find(c => c.id === activeClassId);
-        }
+        function getActiveClass() { return catalogClasses.find(c => c.id === activeClassId); }
 
         function updateGuidePermissionsUI(cls) {
-            const canEditRoster = isCurrentUserGuide(cls);
-            const editorCard = document.getElementById('guideEditorCard');
-            const readOnlyNotice = document.getElementById('readOnlyGuideNotice');
-            const listCol = document.getElementById('studentsListColumn');
-            const deleteClassBtn = document.getElementById('btnDeleteClass');
-            const guideInfo = document.getElementById('classGuideInfo');
-
             if (!cls) return;
-
-            guideInfo.textContent = canEditRoster
-                ? `${cls.guideName} (Tú eres el guía)`
-                : cls.guideName;
-
+            const canEditRoster = isCurrentUserGuide(cls);
+            document.getElementById('classGuideInfo').textContent = canEditRoster ? `${cls.guideName} (Tú eres el guía)` : cls.guideName;
             if (canEditRoster) {
-                editorCard.classList.remove('hidden');
-                readOnlyNotice.classList.add('hidden');
-                listCol.className = 'lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col min-w-0';
-                deleteClassBtn.classList.remove('hidden');
+                document.getElementById('guideEditorCard').classList.remove('hidden');
+                document.getElementById('readOnlyGuideNotice').classList.add('hidden');
+                document.getElementById('btnDeleteClass').classList.remove('hidden');
             } else {
                 stopRegCamera();
                 document.getElementById('regMediaContainer').classList.add('hidden');
-                editorCard.classList.add('hidden');
-                readOnlyNotice.classList.remove('hidden');
+                document.getElementById('guideEditorCard').classList.add('hidden');
+                document.getElementById('readOnlyGuideNotice').classList.remove('hidden');
                 document.getElementById('otherGuideName').textContent = cls.guideName;
-                listCol.className = 'lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col min-w-0';
-                deleteClassBtn.classList.add('hidden');
+                document.getElementById('btnDeleteClass').classList.add('hidden');
             }
         }
 
         window.handleClassChange = () => {
-            stopAttendanceCamera();
-            window.stopVoiceAttendance();
+            stopAttendanceCamera(); window.stopVoiceAttendance();
             activeClassId = document.getElementById('activeClassSelector').value;
             const cls = getActiveClass();
             if (!cls) return;
-
             const title = `${cls.grade} (${cls.section})`;
             document.getElementById('scannerClassTitle').textContent = title;
             document.getElementById('regClassLabel').textContent = title;
             document.getElementById('reportClassTitle').textContent = title;
             document.getElementById('reportDateBadge').textContent = `${getTodayStr()} • ${currentUser?.displayName || currentUser?.email || 'Docente'}`;
-
             updateGuidePermissionsUI(cls);
             rebuildFaceMatcher();
             renderAllUI();
@@ -988,89 +776,46 @@
 
         window.deleteCurrentClass = async () => {
             const cls = getActiveClass();
-            if (!cls || !isCurrentUserGuide(cls)) {
-                showToast('Solo el maestro guía puede eliminar este grado.', 'error');
-                return;
-            }
-            if (!confirm(`¿Seguro que deseas eliminar el aula ${cls.grade} - ${cls.section} del catálogo?`)) return;
-
+            if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede eliminar este grado.', 'error'); return; }
+            if (!confirm(`¿Seguro que deseas eliminar el aula ${cls.grade} - ${cls.section}?`)) return;
             const deletedId = cls.id;
             catalogClasses = catalogClasses.filter(c => c.id !== deletedId);
             activeClassId = null;
             renderClassSelector();
-
-            try {
-                await deleteDoc(doc(db, "aulas_catalogo", deletedId));
-                if (currentUser) {
-                    await setDoc(doc(db, "docentes", currentUser.uid), {
-                        classesMigrated: true
-                    }, { merge: true });
-                }
-                showToast('Aula eliminada del catálogo.', 'success');
-            } catch (err) {
-                console.error(err);
-                showToast('No se pudo eliminar el aula en Firestore.', 'error');
-            }
+            try { await deleteDoc(doc(db, "aulas_catalogo", deletedId)); showToast('Aula eliminada.', 'success'); }
+            catch (_) { showToast('No se pudo eliminar el aula.', 'error'); }
         };
 
         async function loadFaceApiModels() {
             const dot = document.getElementById('aiStatusDot');
             const text = document.getElementById('aiStatusText');
             try {
-                await faceapi.tf.setBackend('webgl');
-                await faceapi.tf.ready();
+                await faceapi.tf.setBackend('webgl'); await faceapi.tf.ready();
                 await Promise.all([
                     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
                     faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
                     faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
                 ]);
-                modelsLoaded = true;
-                rebuildFaceMatcher();
-                dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-                text.textContent = 'IA Lista';
+                modelsLoaded = true; rebuildFaceMatcher();
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-400'; text.textContent = 'IA Lista';
                 document.getElementById('btnToggleCamera').disabled = false;
-            } catch (err) {
-                console.error(err);
-                text.textContent = 'Error IA';
-            }
+            } catch (_) { text.textContent = 'Error IA'; }
         }
 
         function rebuildFaceMatcher() {
             const cls = getActiveClass();
-            if (!cls || cls.students.length === 0 || !modelsLoaded) {
-                faceMatcher = null;
-                return;
-            }
-            const labeled = cls.students.map(s => new faceapi.LabeledFaceDescriptors(s.id, [s.descriptor]));
-            faceMatcher = new faceapi.FaceMatcher(labeled, 0.58);
+            if (!cls || cls.students.length === 0 || !modelsLoaded) { faceMatcher = null; return; }
+            faceMatcher = new faceapi.FaceMatcher(cls.students.map(s => new faceapi.LabeledFaceDescriptors(s.id, [s.descriptor])), 0.58);
         }
 
         function compressImageToDataUrl(imgElement, maxSize = 220) {
             const canvas = document.createElement('canvas');
-            let width = imgElement.naturalWidth || imgElement.videoWidth || imgElement.width;
-            let height = imgElement.naturalHeight || imgElement.videoHeight || imgElement.height;
-
-            if (!width || !height) {
-                width = maxSize;
-                height = maxSize;
-            }
-
-            if (width > height) {
-                if (width > maxSize) {
-                    height = Math.round((height * maxSize) / width);
-                    width = maxSize;
-                }
-            } else {
-                if (height > maxSize) {
-                    width = Math.round((width * maxSize) / height);
-                    height = maxSize;
-                }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(imgElement, 0, 0, width, height);
+            let width = imgElement.naturalWidth || imgElement.videoWidth || imgElement.width || maxSize;
+            let height = imgElement.naturalHeight || imgElement.videoHeight || imgElement.height || maxSize;
+            if (width > height && width > maxSize) { height = Math.round((height * maxSize) / width); width = maxSize; }
+            else if (height > maxSize) { width = Math.round((width * maxSize) / height); height = maxSize; }
+            canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(imgElement, 0, 0, width, height);
             return canvas.toDataURL('image/jpeg', 0.7);
         }
 
@@ -1080,12 +825,8 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = document.getElementById('regPreviewImg');
-                img.onload = async () => {
-                    currentRegPhotoDataUrl = compressImageToDataUrl(img);
-                    await processAndExtractFace(img);
-                };
-                img.src = e.target.result;
-                img.classList.remove('hidden');
+                img.onload = async () => { currentRegPhotoDataUrl = compressImageToDataUrl(img); await processAndExtractFace(img); };
+                img.src = e.target.result; img.classList.remove('hidden');
                 document.getElementById('regVideo').classList.add('hidden');
                 document.getElementById('regMediaContainer').classList.remove('hidden');
                 document.getElementById('regCameraControls').classList.add('hidden');
@@ -1095,38 +836,24 @@
 
         window.startRegCamera = async () => {
             stopRegCamera();
-            const container = document.getElementById('regMediaContainer');
+            document.getElementById('regMediaContainer').classList.remove('hidden');
             const video = document.getElementById('regVideo');
-            container.classList.remove('hidden');
             video.classList.remove('hidden');
             document.getElementById('regPreviewImg').classList.add('hidden');
             document.getElementById('regCameraControls').classList.remove('hidden');
-
-            try {
-                regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-                video.srcObject = regStream;
-            } catch (err) {
-                showToast('No se pudo abrir la cámara.', 'error');
-            }
+            try { regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }); video.srcObject = regStream; }
+            catch (_) { showToast('No se pudo abrir la cámara.', 'error'); }
         };
 
-        function stopRegCamera() {
-            if (regStream) {
-                regStream.getTracks().forEach(t => t.stop());
-                regStream = null;
-            }
-        }
+        function stopRegCamera() { if (regStream) { regStream.getTracks().forEach(t => t.stop()); regStream = null; } }
 
         window.captureRegSnapshot = async () => {
             const video = document.getElementById('regVideo');
             currentRegPhotoDataUrl = compressImageToDataUrl(video);
-
             const img = document.getElementById('regPreviewImg');
             img.onload = async () => await processAndExtractFace(img);
-            img.src = currentRegPhotoDataUrl;
-            img.classList.remove('hidden');
-            video.classList.add('hidden');
-            document.getElementById('regCameraControls').classList.add('hidden');
+            img.src = currentRegPhotoDataUrl; img.classList.remove('hidden');
+            video.classList.add('hidden'); document.getElementById('regCameraControls').classList.add('hidden');
             stopRegCamera();
         };
 
@@ -1134,184 +861,105 @@
             const fb = document.getElementById('regFaceFeedback');
             fb.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'bg-red-50', 'text-crimson-700');
             fb.textContent = 'Analizando rostro con IA...';
-
-            const detection = await faceapi.detectSingleFace(mediaElement, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
-                .withFaceLandmarks(true)
-                .withFaceDescriptor();
-
+            const detection = await faceapi.detectSingleFace(mediaElement, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })).withFaceLandmarks(true).withFaceDescriptor();
             if (detection) {
                 currentRegDescriptor = detection.descriptor;
-                fb.classList.add('bg-emerald-50', 'text-emerald-700');
-                fb.textContent = '¡Rostro detectado y listo para guardar!';
+                fb.classList.add('bg-emerald-50', 'text-emerald-700'); fb.textContent = '¡Rostro detectado y listo para guardar!';
                 document.getElementById('btnSaveStudent').disabled = false;
             } else {
                 currentRegDescriptor = null;
-                fb.classList.add('bg-red-50', 'text-crimson-700');
-                fb.textContent = 'No se detectó un rostro claro. Intenta otra foto.';
+                fb.classList.add('bg-red-50', 'text-crimson-700'); fb.textContent = 'No se detectó un rostro claro.';
                 document.getElementById('btnSaveStudent').disabled = true;
             }
         }
 
         window.saveNewStudent = async () => {
             const cls = getActiveClass();
-            if (!cls || !isCurrentUserGuide(cls)) {
-                showToast('Solo el maestro guía puede registrar alumnos en este grado.', 'error');
-                return;
-            }
-
+            if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede registrar alumnos.', 'error'); return; }
             const id = document.getElementById('regStudentId').value.trim();
             const name = document.getElementById('regStudentName').value.trim();
+            const guardianName = document.getElementById('regGuardianName').value.trim();
+            const guardianPhone = document.getElementById('regGuardianPhone').value.trim();
             const btn = document.getElementById('btnSaveStudent');
-
-            if (!id || !name || !currentRegDescriptor) {
-                showToast('Completa clave, nombre y foto con rostro detectado.', 'error');
-                return;
-            }
-            if (cls.students.some(s => s.id === id)) {
-                showToast('Ya existe un alumno con esa clave en esta aula.', 'error');
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = 'Subiendo a la nube...';
-
-            const newStudent = {
-                id,
-                name,
-                photo: currentRegPhotoDataUrl,
-                descriptor: currentRegDescriptor
-            };
-
-            cls.students.push(newStudent);
-
+            if (!id || !name || !currentRegDescriptor) { showToast('Completa clave, nombre y foto.', 'error'); return; }
+            if (cls.students.some(s => s.id === id)) { showToast('Ya existe un alumno con esa clave.', 'error'); return; }
+            btn.disabled = true; btn.textContent = 'Subiendo a la nube...';
+            cls.students.push({ id, name, guardianName, guardianPhone, photo: currentRegPhotoDataUrl, descriptor: currentRegDescriptor });
             try {
-                const saved = await saveClassCatalogToCloud(cls);
-                if (!saved) {
-                    cls.students.pop();
-                    return;
-                }
-
-                rebuildFaceMatcher();
-                renderClassSelector();
-
+                if (!(await saveClassCatalogToCloud(cls))) { cls.students.pop(); return; }
+                rebuildFaceMatcher(); renderClassSelector();
                 document.getElementById('regStudentId').value = '';
                 document.getElementById('regStudentName').value = '';
+                document.getElementById('regGuardianName').value = '';
+                document.getElementById('regGuardianPhone').value = '';
                 document.getElementById('regPhotoInput').value = '';
                 document.getElementById('regMediaContainer').classList.add('hidden');
                 document.getElementById('regFaceFeedback').classList.add('hidden');
-                currentRegDescriptor = null;
-                currentRegPhotoDataUrl = null;
-
-                showToast(`${name} guardado en el catálogo del grado.`, 'success');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Guardar Alumno en Catálogo';
-            }
+                currentRegDescriptor = null; currentRegPhotoDataUrl = null;
+                showToast(`${name} guardado.`, 'success');
+            } finally { btn.disabled = false; btn.textContent = 'Guardar Alumno en Catálogo'; }
         };
 
         window.moveStudentOrder = async (index, direction) => {
             const cls = getActiveClass();
-            if (!cls || !isCurrentUserGuide(cls)) {
-                showToast('Solo el maestro guía puede reordenar alumnos.', 'error');
-                return;
-            }
+            if (!cls || !isCurrentUserGuide(cls)) return;
             const targetIndex = index + direction;
             if (targetIndex < 0 || targetIndex >= cls.students.length) return;
-
-            const previousStudents = [...cls.students];
-            const temp = cls.students[index];
-            cls.students[index] = cls.students[targetIndex];
-            cls.students[targetIndex] = temp;
-
+            const prev = [...cls.students];
+            [cls.students[index], cls.students[targetIndex]] = [cls.students[targetIndex], cls.students[index]];
             renderAllUI();
-            const saved = await saveClassCatalogToCloud(cls);
-            if (!saved) {
-                cls.students = previousStudents;
-                renderAllUI();
-            } else {
-                showToast('Orden actualizado.', 'success');
-            }
+            if (!(await saveClassCatalogToCloud(cls))) { cls.students = prev; renderAllUI(); }
         };
 
         window.openEditStudentModal = (studentId) => {
             const cls = getActiveClass();
-            if (!cls || !isCurrentUserGuide(cls)) {
-                showToast('Solo el maestro guía puede editar alumnos.', 'error');
-                return;
-            }
-            const student = cls.students.find(s => s.id === studentId);
-            if (!student) return;
-
-            document.getElementById('editStudentOriginalId').value = student.id;
-            document.getElementById('editStudentId').value = student.id;
-            document.getElementById('editStudentName').value = student.name;
+            if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede editar los datos del alumno.', 'error'); return; }
+            const s = cls.students.find(st => st.id === studentId);
+            if (!s) return;
+            document.getElementById('editStudentOriginalId').value = s.id;
+            document.getElementById('editStudentId').value = s.id;
+            document.getElementById('editStudentName').value = s.name;
+            document.getElementById('editGuardianName').value = s.guardianName || '';
+            document.getElementById('editGuardianPhone').value = s.guardianPhone || '';
             document.getElementById('editStudentModal').classList.remove('hidden');
         };
 
-        window.closeEditStudentModal = () => {
-            document.getElementById('editStudentModal').classList.add('hidden');
-            document.getElementById('editStudentOriginalId').value = '';
-            document.getElementById('editStudentId').value = '';
-            document.getElementById('editStudentName').value = '';
-        };
+        window.closeEditStudentModal = () => document.getElementById('editStudentModal').classList.add('hidden');
 
         window.saveEditedStudent = async (e) => {
             e.preventDefault();
             const cls = getActiveClass();
-            if (!cls || !isCurrentUserGuide(cls)) return;
-
+            if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede guardar cambios en este grado.', 'error'); return; }
             const originalId = document.getElementById('editStudentOriginalId').value;
             const newId = document.getElementById('editStudentId').value.trim();
             const newName = document.getElementById('editStudentName').value.trim();
-            const btn = document.getElementById('btnSaveEditedStudent');
-
-            if (!newId || !newName) {
-                showToast('Clave y nombre son obligatorios.', 'error');
-                return;
-            }
-            if (newId !== originalId && cls.students.some(s => s.id === newId)) {
-                showToast('Ya existe otro alumno con esa clave en esta aula.', 'error');
-                return;
-            }
-
+            const newGuardianName = document.getElementById('editGuardianName').value.trim();
+            const newGuardianPhone = document.getElementById('editGuardianPhone').value.trim();
             const student = cls.students.find(s => s.id === originalId);
             if (!student) return;
-
             const prevId = student.id;
             const prevName = student.name;
-
-            btn.disabled = true;
-            btn.textContent = 'Guardando...';
-
+            const prevGuardianName = student.guardianName || '';
+            const prevGuardianPhone = student.guardianPhone || '';
             student.id = newId;
             student.name = newName;
-
+            student.guardianName = newGuardianName;
+            student.guardianPhone = newGuardianPhone;
             if (newId !== prevId) {
                 const classAtt = getClassAttendance(cls.id);
-                Object.keys(classAtt).forEach((dateKey) => {
-                    if (classAtt[dateKey] && classAtt[dateKey][prevId]) {
-                        classAtt[dateKey][newId] = classAtt[dateKey][prevId];
-                        delete classAtt[dateKey][prevId];
-                    }
+                Object.keys(classAtt).forEach((dKey) => {
+                    if (classAtt[dKey]?.[prevId]) { classAtt[dKey][newId] = classAtt[dKey][prevId]; delete classAtt[dKey][prevId]; }
                 });
                 await saveMyPrivateAttendanceToCloud();
             }
-
-            try {
-                const saved = await saveClassCatalogToCloud(cls);
-                if (!saved) {
-                    student.id = prevId;
-                    student.name = prevName;
-                    return;
-                }
-                rebuildFaceMatcher();
-                renderAllUI();
-                closeEditStudentModal();
-                showToast('Datos del alumno actualizados.', 'success');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Guardar Cambios';
+            if (!(await saveClassCatalogToCloud(cls))) {
+                student.id = prevId;
+                student.name = prevName;
+                student.guardianName = prevGuardianName;
+                student.guardianPhone = prevGuardianPhone;
+                return;
             }
+            rebuildFaceMatcher(); renderAllUI(); closeEditStudentModal(); showToast('Datos actualizados.', 'success');
         };
 
         function getTodayStr() {
@@ -1319,29 +967,19 @@
             return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         }
 
-        window.toggleAttendanceCamera = async () => {
-            if (isScanning) stopAttendanceCamera();
-            else await startAttendanceCamera();
-        };
+        window.toggleAttendanceCamera = async () => { if (isScanning) stopAttendanceCamera(); else await startAttendanceCamera(); };
 
         async function startAttendanceCamera() {
             window.stopVoiceAttendance();
             const cls = getActiveClass();
-            if (!cls || cls.students.length === 0) {
-                showToast('Este grado aún no tiene alumnos registrados.', 'error');
-                return;
-            }
-            const video = document.getElementById('attendanceVideo');
+            if (!cls || cls.students.length === 0) { showToast('Este grado no tiene alumnos registrados.', 'error'); return; }
             try {
                 attendanceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: attendanceFacingMode } });
-                video.srcObject = attendanceStream;
+                document.getElementById('attendanceVideo').srcObject = attendanceStream;
                 document.getElementById('videoPlaceholder').classList.add('hidden');
                 document.getElementById('btnToggleCameraText').textContent = 'Detener Cámara';
-                isScanning = true;
-                runScannerLoop();
-            } catch (err) {
-                showToast('Error al acceder a la cámara.', 'error');
-            }
+                isScanning = true; runScannerLoop();
+            } catch (_) { showToast('Error al acceder a la cámara.', 'error'); }
         }
 
         function stopAttendanceCamera() {
@@ -1363,32 +1001,17 @@
             const canvas = document.getElementById('attendanceCanvas');
             const cls = getActiveClass();
             if (!isScanning || !cls) return;
-
             if (!video.paused && !video.ended && video.readyState >= 2) {
-                const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
-                const detections = await faceapi.detectAllFaces(video, detectorOptions)
-                    .withFaceLandmarks(true)
-                    .withFaceDescriptors();
-
-                canvas.width = video.videoWidth || 640;
-                canvas.height = video.videoHeight || 480;
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })).withFaceLandmarks(true).withFaceDescriptors();
+                canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (detections.length > 0 && faceMatcher) {
-                    const resized = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
-                    resized.forEach(det => {
+                    faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height }).forEach(det => {
                         const match = faceMatcher.findBestMatch(det.descriptor);
-                        let color = '#C8102E';
-                        let label = 'Desconocido';
-
+                        let color = '#C8102E'; let label = 'Desconocido';
                         if (match.label !== 'unknown') {
                             const student = cls.students.find(s => s.id === match.label);
-                            if (student) {
-                                label = student.name;
-                                color = '#10B981';
-                                markPresent(student.id, student.name);
-                            }
+                            if (student) { label = student.name; color = '#10B981'; markPresent(student.id, student.name); }
                         }
                         new faceapi.draw.DrawBox(det.detection.box, { label, boxColor: color }).draw(canvas);
                     });
@@ -1401,20 +1024,14 @@
             const now = Date.now();
             if (lastDetectedCooldown[studentId] && now - lastDetectedCooldown[studentId] < 10000) return;
             lastDetectedCooldown[studentId] = now;
-
             const cls = getActiveClass();
             if (!cls) return;
-
             const classAttendance = getClassAttendance(cls.id);
             const today = getTodayStr();
             if (!classAttendance[today]) classAttendance[today] = {};
-
             const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
             classAttendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
-
-            renderAllUI();
-            await saveMyPrivateAttendanceToCloud();
-
+            renderAllUI(); await saveMyPrivateAttendanceToCloud();
             const banner = document.getElementById('lastDetectedBanner');
             document.getElementById('lastDetectedName').textContent = studentName;
             document.getElementById('lastDetectedTime').textContent = timeStr;
@@ -1429,64 +1046,44 @@
             });
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80 min-w-0';
-            if (tabId !== 'scanner') {
-                stopAttendanceCamera();
-                window.stopVoiceAttendance();
-            }
+            if (tabId !== 'scanner') { stopAttendanceCamera(); window.stopVoiceAttendance(); }
         };
 
         function updateExportMonthSelector() {
             const selector = document.getElementById('exportMonthSelector');
             const cls = getActiveClass();
             if (!selector || !cls) return;
-
-            const monthNames = [
-                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-            ];
-
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
             const now = new Date();
             const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             const classAttendance = getClassAttendance(cls.id);
-
             const monthsSet = new Set([currentMonthKey]);
             Object.keys(classAttendance).forEach((dateKey) => {
-                if (/^\d{4}-\d{2}-\d{2}$/.test(dateKey) && Object.keys(classAttendance[dateKey] || {}).length > 0) {
-                    monthsSet.add(dateKey.slice(0, 7));
-                }
+                if (/^\d{4}-\d{2}-\d{2}$/.test(dateKey) && Object.keys(classAttendance[dateKey] || {}).length > 0) monthsSet.add(dateKey.slice(0, 7));
             });
-
             const sortedMonths = Array.from(monthsSet).sort().reverse();
             const prevValue = selector.value;
-
             selector.innerHTML = sortedMonths.map((ym) => {
                 const [y, m] = ym.split('-');
-                const label = `${monthNames[parseInt(m, 10) - 1]} ${y}`;
-                return `<option value="${ym}">${label}</option>`;
+                return `<option value="${ym}">${monthNames[parseInt(m, 10) - 1]} ${y}</option>`;
             }).join('');
-
             selector.value = sortedMonths.includes(prevValue) ? prevValue : currentMonthKey;
         }
 
         function renderAllUI() {
             const cls = getActiveClass();
             if (!cls) return;
-
             const canEditRoster = isCurrentUserGuide(cls);
             const today = getTodayStr();
-            const classAttendance = getClassAttendance(cls.id);
-            const todayRecords = classAttendance[today] || {};
-
+            const todayRecords = getClassAttendance(cls.id)[today] || {};
             document.getElementById('badgeStudentCount').textContent = cls.students.length;
-
             let present = 0;
             cls.students.forEach(s => { if (todayRecords[s.id]?.status === 'ASISTENTE') present++; });
             document.getElementById('statTotal').textContent = cls.students.length;
             document.getElementById('statPresent').textContent = present;
             document.getElementById('statAbsent').textContent = cls.students.length - present;
 
-            const listEl = document.getElementById('registeredStudentsList');
-            listEl.innerHTML = cls.students.length === 0
+            document.getElementById('registeredStudentsList').innerHTML = cls.students.length === 0
                 ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos registrados en este grado.</p>'
                 : cls.students.map((s, idx) => `
                     <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 min-w-0">
@@ -1495,50 +1092,30 @@
                             <div class="min-w-0">
                                 <p class="font-bold text-navy-900 text-xs sm:text-sm truncate">${s.name}</p>
                                 <p class="text-[11px] text-slate-500">Clave: ${s.id}</p>
+                                ${(s.guardianName || s.guardianPhone)
+                                    ? `<p class="text-[11px] text-slate-500 truncate">Encargado: ${s.guardianName || '—'}${s.guardianPhone ? ` • ${s.guardianPhone}` : ''}</p>`
+                                    : ''}
                             </div>
                         </div>
-                        ${canEditRoster
-                            ? `<div class="flex items-center gap-1 shrink-0">
-                                <button type="button" onclick="moveStudentOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30 hover:bg-slate-100" title="Subir en orden">
-                                    <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
-                                </button>
-                                <button type="button" onclick="moveStudentOrder(${idx}, 1)" ${idx === cls.students.length - 1 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30 hover:bg-slate-100" title="Bajar en orden">
-                                    <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
-                                </button>
-                                <button type="button" onclick="openEditStudentModal('${s.id}')" class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 hover:bg-slate-100" title="Editar clave y nombre">
-                                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-                                </button>
-                                <button type="button" onclick="deleteStudent('${s.id}')" class="text-slate-400 hover:text-crimson-600 p-1.5" title="Eliminar alumno">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </div>`
-                            : `<span class="text-[10px] font-semibold text-slate-400 px-2 shrink-0">Solo lectura</span>`
-                        }
+                        ${canEditRoster ? `<div class="flex items-center gap-1 shrink-0">
+                            <button type="button" onclick="moveStudentOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
+                            <button type="button" onclick="moveStudentOrder(${idx}, 1)" ${idx === cls.students.length - 1 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
+                            <button type="button" onclick="openEditStudentModal('${s.id}')" class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                            <button type="button" onclick="deleteStudent('${s.id}')" class="text-slate-400 hover:text-crimson-600 p-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>` : `<span class="text-[10px] font-semibold text-slate-400 px-2 shrink-0">Solo lectura</span>`}
                     </div>
                 `).join('');
 
-            const tbody = document.getElementById('attendanceTableBody');
-            tbody.innerHTML = cls.students.map(s => {
+            document.getElementById('attendanceTableBody').innerHTML = cls.students.map(s => {
                 const rec = todayRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
                 const isPresent = rec.status === 'ASISTENTE';
-                return `
-                    <tr>
-                        <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap">${s.id}</td>
-                        <td class="py-2.5 px-2 sm:px-4">
-                            <div class="flex items-center gap-2 min-w-[100px]">
-                                <img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0">
-                                <span class="leading-tight">${s.name}</span>
-                            </div>
-                        </td>
-                        <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap">${rec.time}</td>
-                        <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap">
-                            <span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">${rec.status}</span>
-                        </td>
-                        <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap">
-                            <button type="button" onclick="toggleManualStatus('${s.id}')" class="px-2 py-1 rounded-lg bg-navy-900 text-white text-[11px] sm:text-xs font-bold hover:bg-navy-800">Cambiar</button>
-                        </td>
-                    </tr>
-                `;
+                return `<tr>
+                    <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap">${s.id}</td>
+                    <td class="py-2.5 px-2 sm:px-4"><div class="flex items-center gap-2 min-w-[100px]"><img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0"><span class="leading-tight">${s.name}</span></div></td>
+                    <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap">${rec.time}</td>
+                    <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">${rec.status}</span></td>
+                    <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap"><button type="button" onclick="toggleManualStatus('${s.id}')" class="px-2 py-1 rounded-lg bg-navy-900 text-white text-[11px] sm:text-xs font-bold">Cambiar</button></td>
+                </tr>`;
             }).join('');
             updateExportMonthSelector();
             lucide.createIcons();
@@ -1546,62 +1123,35 @@
 
         window.deleteStudent = async (studentId) => {
             const cls = getActiveClass();
-            if (!cls || !isCurrentUserGuide(cls)) {
-                showToast('Solo el maestro guía puede eliminar alumnos de este grado.', 'error');
-                return;
-            }
-
-            const previousStudents = [...cls.students];
+            if (!cls || !isCurrentUserGuide(cls)) return;
+            const prev = [...cls.students];
             cls.students = cls.students.filter(s => s.id !== studentId);
-            rebuildFaceMatcher();
-            renderClassSelector();
-
-            const saved = await saveClassCatalogToCloud(cls);
-            if (!saved) {
-                cls.students = previousStudents;
-                rebuildFaceMatcher();
-                renderClassSelector();
-            } else {
-                showToast('Alumno eliminado del catálogo.', 'success');
-            }
+            rebuildFaceMatcher(); renderClassSelector();
+            if (!(await saveClassCatalogToCloud(cls))) { cls.students = prev; rebuildFaceMatcher(); renderClassSelector(); }
         };
 
         window.toggleManualStatus = async (studentId) => {
             const cls = getActiveClass();
             if (!cls) return;
-
             const classAttendance = getClassAttendance(cls.id);
             const today = getTodayStr();
             if (!classAttendance[today]) classAttendance[today] = {};
-
-            if (classAttendance[today][studentId]?.status === 'ASISTENTE') {
-                classAttendance[today][studentId] = { status: 'INASISTENTE', time: '--:--' };
-            } else {
-                const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
-                classAttendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
-            }
-            renderAllUI();
-            await saveMyPrivateAttendanceToCloud();
+            if (classAttendance[today][studentId]?.status === 'ASISTENTE') classAttendance[today][studentId] = { status: 'INASISTENTE', time: '--:--' };
+            else classAttendance[today][studentId] = { status: 'ASISTENTE', time: new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }) };
+            renderAllUI(); await saveMyPrivateAttendanceToCloud();
         };
 
         window.resetTodayAttendance = async () => {
             const cls = getActiveClass();
             if (!cls) return;
-
-            const classAttendance = getClassAttendance(cls.id);
-            classAttendance[getTodayStr()] = {};
-            renderAllUI();
-            await saveMyPrivateAttendanceToCloud();
-            showToast('Tu asistencia del día se reinició.', 'success');
+            getClassAttendance(cls.id)[getTodayStr()] = {};
+            renderAllUI(); await saveMyPrivateAttendanceToCloud(); showToast('Asistencia del día reiniciada.', 'success');
         };
 
         function getDayAttendanceTime(dayRecords) {
             if (!dayRecords || typeof dayRecords !== 'object') return '';
             for (const studentId of Object.keys(dayRecords)) {
-                const rec = dayRecords[studentId];
-                if (rec && rec.time && rec.time !== '--:--') {
-                    return rec.time;
-                }
+                if (dayRecords[studentId]?.time && dayRecords[studentId].time !== '--:--') return dayRecords[studentId].time;
             }
             return '';
         }
@@ -1609,17 +1159,12 @@
         window.exportToExcel = async () => {
             const cls = getActiveClass();
             if (!cls) return;
-
             const now = new Date();
-            const selectedMonthVal = document.getElementById('exportMonthSelector')?.value
-                || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const selectedMonthVal = document.getElementById('exportMonthSelector')?.value || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             const [yearStr, monthStr] = selectedMonthVal.split('-');
             const year = parseInt(yearStr, 10);
             const monthIndex = parseInt(monthStr, 10) - 1;
-            const monthNames = [
-                'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-                'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
-            ];
+            const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
             const monthName = monthNames[monthIndex];
             const monthPrefix = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
             const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
@@ -1628,22 +1173,10 @@
 
             const workbook = new ExcelJS.Workbook();
             const sheet = workbook.addWorksheet(`Asistencia_${monthName}`);
+            sheet.pageSetup = { orientation: 'landscape', paperSize: 1, fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
 
-            sheet.pageSetup = {
-                orientation: 'landscape',
-                paperSize: 1,
-                fitToPage: true,
-                fitToWidth: 1,
-                fitToHeight: 0
-            };
-
-            const columns = [
-                { width: 10 },
-                { width: 32 }
-            ];
-            for (let d = 1; d <= daysInMonth; d++) {
-                columns.push({ width: 6.2 });
-            }
+            const columns = [{ width: 10 }, { width: 32 }];
+            for (let d = 1; d <= daysInMonth; d++) columns.push({ width: 6.2 });
             sheet.columns = columns;
 
             const totalCols = 2 + daysInMonth;
@@ -1656,7 +1189,6 @@
                         const buffer = await response.arrayBuffer();
                         const ext = fileName.endsWith('.jpg') ? 'jpeg' : 'png';
                         const imageId = workbook.addImage({ buffer, extension: ext });
-
                         const blob = new Blob([buffer], { type: `image/${ext}` });
                         const imgUrl = URL.createObjectURL(blob);
                         const dims = await new Promise((resolve) => {
@@ -1666,25 +1198,15 @@
                             img.src = imgUrl;
                         });
                         URL.revokeObjectURL(imgUrl);
-
                         const totalSheetWidthPx = sheet.columns.reduce((sum, col) => sum + ((col.width || 10) * 7.2), 0);
                         const targetWidth = Math.round(totalSheetWidthPx);
                         const targetHeight = Math.round((dims.height / dims.width) * targetWidth);
-
-                        sheet.addImage(imageId, {
-                            tl: { col: 0, row: 0 },
-                            ext: { width: targetWidth, height: targetHeight }
-                        });
-
+                        sheet.addImage(imageId, { tl: { col: 0, row: 0 }, ext: { width: targetWidth, height: targetHeight } });
                         const perRowHeight = Math.max(16, Math.round((targetHeight / 4) * 0.75));
-                        for (let r = 1; r <= 4; r++) {
-                            sheet.getRow(r).height = perRowHeight;
-                        }
+                        for (let r = 1; r <= 4; r++) sheet.getRow(r).height = perRowHeight;
                         break;
                     }
-                } catch (err) {
-                    console.warn('No se pudo cargar ' + fileName, err);
-                }
+                } catch (_) {}
             }
 
             sheet.mergeCells(`A5:${lastColLetter}5`);
@@ -1696,139 +1218,82 @@
             sheet.getRow(5).height = 26;
 
             const c1End = Math.max(2, Math.floor(totalCols * 0.28));
-            const c2Start = c1End + 1;
-            const c2End = Math.max(c2Start, Math.floor(totalCols * 0.50));
-            const c3Start = c2End + 1;
-            const c3End = Math.max(c3Start, Math.floor(totalCols * 0.68));
-            const c4Start = c3End + 1;
-            const c4End = Math.max(c4Start, Math.floor(totalCols * 0.85));
+            const c2Start = c1End + 1; const c2End = Math.max(c2Start, Math.floor(totalCols * 0.50));
+            const c3Start = c2End + 1; const c3End = Math.max(c3Start, Math.floor(totalCols * 0.68));
+            const c4Start = c3End + 1; const c4End = Math.max(c4Start, Math.floor(totalCols * 0.85));
             const c5Start = Math.min(totalCols, c4End + 1);
-
             const colLetter = (idx) => sheet.getColumn(idx).letter;
 
             if (c1End > 1) sheet.mergeCells(`A6:${colLetter(c1End)}6`);
             sheet.getCell('A6').value = `DOCENTE: ${teacherName}`;
-
             if (c2End > c2Start) sheet.mergeCells(`${colLetter(c2Start)}6:${colLetter(c2End)}6`);
             sheet.getCell(6, c2Start).value = `GRADO: ${cls.grade}`;
-
             if (c3End > c3Start) sheet.mergeCells(`${colLetter(c3Start)}6:${colLetter(c3End)}6`);
             sheet.getCell(6, c3Start).value = `SECCIÓN: ${cls.section}`;
-
             if (c4End > c4Start) sheet.mergeCells(`${colLetter(c4Start)}6:${colLetter(c4End)}6`);
             sheet.getCell(6, c4Start).value = `MES: ${monthName} ${year}`;
-
             if (totalCols > c5Start) sheet.mergeCells(`${colLetter(c5Start)}6:${lastColLetter}6`);
             sheet.getCell(6, c5Start).value = `HORA: ${currentTimeStr}`;
 
             sheet.getRow(6).height = 22;
             for (let c = 1; c <= totalCols; c++) {
                 const cell = sheet.getCell(6, c);
-                cell.font = { bold: true, size: 9 };
-                cell.alignment = { vertical: 'middle' };
+                cell.font = { bold: true, size: 9 }; cell.alignment = { vertical: 'middle' };
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
             }
 
             const attendanceByDate = getClassAttendance(cls.id);
             const todayStr = getTodayStr();
-
             const dayTimes = [];
-            for (let d = 1; d <= daysInMonth; d++) {
-                const dayStr = String(d).padStart(2, '0');
-                const fullDate = `${monthPrefix}-${dayStr}`;
-                dayTimes.push(getDayAttendanceTime(attendanceByDate[fullDate]));
-            }
+            for (let d = 1; d <= daysInMonth; d++) dayTimes.push(getDayAttendanceTime(attendanceByDate[`${monthPrefix}-${String(d).padStart(2, '0')}`]));
+
             const timeRow = sheet.getRow(7);
             timeRow.values = ['', 'Hora', ...dayTimes];
             timeRow.height = 16;
             timeRow.eachCell((cell, colNumber) => {
                 cell.font = { bold: true, size: colNumber <= 2 ? 8 : 6.5, color: { argb: 'FF0A1E40' } };
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
-                cell.alignment = {
-                    horizontal: colNumber === 2 ? 'left' : 'center',
-                    vertical: 'middle'
-                };
-                cell.border = {
-                    top: { style: 'thin', color: { argb: 'FF94A3B8' } },
-                    left: { style: 'thin', color: { argb: 'FF94A3B8' } },
-                    bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
-                    right: { style: 'thin', color: { argb: 'FF94A3B8' } }
-                };
+                cell.alignment = { horizontal: colNumber === 2 ? 'left' : 'center', vertical: 'middle' };
+                cell.border = { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } };
             });
 
             const dayLabels = [];
-            for (let d = 1; d <= daysInMonth; d++) {
-                dayLabels.push(String(d).padStart(2, '0'));
-            }
+            for (let d = 1; d <= daysInMonth; d++) dayLabels.push(String(d).padStart(2, '0'));
             const headerRow = sheet.getRow(8);
             headerRow.values = ['Clave', 'Estudiante', ...dayLabels];
             headerRow.font = { bold: true, size: 9, color: { argb: 'FFFFFFFF' } };
             headerRow.height = 22;
             headerRow.eachCell((cell, colNumber) => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC8102E' } };
-                cell.alignment = {
-                    horizontal: colNumber === 2 ? 'left' : 'center',
-                    vertical: 'middle'
-                };
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                };
+                cell.alignment = { horizontal: colNumber === 2 ? 'left' : 'center', vertical: 'middle' };
+                cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
             });
 
             cls.students.forEach((s) => {
                 const rowValues = [s.id, s.name];
-
                 for (let d = 1; d <= daysInMonth; d++) {
-                    const dayStr = String(d).padStart(2, '0');
-                    const fullDate = `${monthPrefix}-${dayStr}`;
-                    const dayRecord = attendanceByDate[fullDate] && attendanceByDate[fullDate][s.id];
-
-                    if (dayRecord && dayRecord.status === 'ASISTENTE') {
-                        rowValues.push('A');
-                    } else if (fullDate <= todayStr && attendanceByDate[fullDate]) {
-                        rowValues.push('I');
-                    } else {
-                        rowValues.push('');
-                    }
+                    const fullDate = `${monthPrefix}-${String(d).padStart(2, '0')}`;
+                    const dayRecord = attendanceByDate[fullDate]?.[s.id];
+                    if (dayRecord?.status === 'ASISTENTE') rowValues.push('A');
+                    else if (fullDate <= todayStr && attendanceByDate[fullDate]) rowValues.push('I');
+                    else rowValues.push('');
                 }
-
                 const row = sheet.addRow(rowValues);
                 row.height = 20;
                 row.eachCell((cell, colNumber) => {
                     cell.font = { size: 9 };
-                    cell.alignment = {
-                        horizontal: colNumber === 2 ? 'left' : 'center',
-                        vertical: 'middle'
-                    };
-                    if (cell.value === 'A') {
-                        cell.font = { size: 9, bold: true, color: { argb: 'FF065F46' } };
-                    } else if (cell.value === 'I') {
-                        cell.font = { size: 9, bold: true, color: { argb: 'FF991B1B' } };
-                    }
-                    cell.border = {
-                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
-                    };
+                    cell.alignment = { horizontal: colNumber === 2 ? 'left' : 'center', vertical: 'middle' };
+                    if (cell.value === 'A') cell.font = { size: 9, bold: true, color: { argb: 'FF065F46' } };
+                    else if (cell.value === 'I') cell.font = { size: 9, bold: true, color: { argb: 'FF991B1B' } };
+                    cell.border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
                 });
             });
 
             const outBuffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([outBuffer], {
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            });
-            const url = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(new Blob([outBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `Asistencia_${cls.grade}_${cls.section}_${monthName}_${year}.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
+            a.href = url; a.download = `Asistencia_${cls.grade}_${cls.section}_${monthName}_${year}.xlsx`;
+            document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
         };
 
         function showToast(msg, type = 'success') {
