@@ -212,7 +212,7 @@
                             <div class="flex items-center justify-between text-xs gap-2">
                                 <span id="voiceStatusLabel" class="font-bold text-navy-900 flex items-center gap-1.5">
                                     <span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span>
-                                    Escuchando... di por ejemplo: "Todos asistieron excepto Juan y Luisa"
+                                    Escuchando... di por ejemplo: "Todos están aquí menos clave 03" o "Nadie asistió hoy"
                                 </span>
                                 <div class="flex items-center gap-2 shrink-0">
                                     <button type="button" onclick="applyVoiceNow()" class="text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg">Aplicar</button>
@@ -312,7 +312,7 @@
         <footer class="bg-navy-950 text-slate-300 border-t-2 border-navy-800 py-3 px-4 text-center text-xs mt-auto">
             <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
                 <span>INEB Centro Cajolá • Aula Virtual</span>
-                <span class="font-semibold text-white">Desarrollador Web: <span id="developerCeoName" class="text-emerald-400">[Nelson Danilo Pérez Díaz]</span></span>
+                <span class="font-semibold text-white">Desarrollador Web / CEO: <span id="developerCeoName" class="text-emerald-400">[Tu Nombre Aquí]</span></span>
             </div>
         </footer>
     </div>
@@ -345,7 +345,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Encargado</label>
-                        <input type="text" id="regGuardianName" placeholder="Ej. Marta Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                        <input type="text" id="regGuardianName" placeholder="Ej. Doña Marta Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono del Encargado</label>
@@ -716,16 +716,22 @@
             if (!classAttendance[today]) classAttendance[today] = {};
             const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
 
-            const hasAllKeyword = /\b(todos|todas|todo el mundo|la clase completa|presentes todos)\b/.test(norm);
+            const hasNoneKeyword = /\b(nadie|ninguno|ninguna|ningun|cero|nadie asistio|ninguno asistio|nadie bino|nadie vino|no asistio nadie|no vino nadie)\b/.test(norm);
+            const hasAllKeyword = !hasNoneKeyword && /\b(todos|todas|todo el mundo|la clase completa|presentes todos|todos vinieron|todos binieron|todos asistieron|todos estan aqui|todos estan presentes)\b/.test(norm);
             const splitExceptMatch = norm.match(/\b(excepto|menos|salvo|fuera de|sin)\b([\s\S]*)/);
-            const splitAbsentOnlyMatch = !hasAllKeyword && /\b(falta|faltan|falto|faltaron|ausente|ausentes|no vino|no vinieron)\b([\s\S]*)/.test(norm)
-                ? norm.match(/\b(falta|faltan|falto|faltaron|ausente|ausentes|no vino|no vinieron)\b([\s\S]*)/)
+            const splitAbsentOnlyMatch = !hasAllKeyword && !hasNoneKeyword && /\b(falta|faltan|falto|faltaron|ausente|ausentes|no vino|no vinieron|no bino|no binieron|no asistio|no asistieron)\b([\s\S]*)/.test(norm)
+                ? norm.match(/\b(falta|faltan|falto|faltaron|ausente|ausentes|no vino|no vinieron|no bino|no binieron|no asistio|no asistieron)\b([\s\S]*)/)
                 : null;
 
             let absentIds = [];
             let presentIds = [];
 
-            if (hasAllKeyword && splitExceptMatch) {
+            if (hasNoneKeyword) {
+                cls.students.forEach((s) => {
+                    classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
+                    absentIds.push(s.id);
+                });
+            } else if (hasAllKeyword && splitExceptMatch) {
                 absentIds = matchStudentsFromPhrase(splitExceptMatch[2] || '', cls.students);
                 cls.students.forEach((s) => {
                     if (absentIds.includes(s.id)) {
@@ -759,7 +765,9 @@
             const presentNames = cls.students.filter(s => presentIds.includes(s.id)).map(s => s.name);
             const summaryEl = document.getElementById('voiceResultSummary');
 
-            if (hasAllKeyword && splitExceptMatch) {
+            if (hasNoneKeyword) {
+                summaryEl.textContent = `Guardado: nadie asistió (${absentIds.length} marcados como inasistentes).`;
+            } else if (hasAllKeyword && splitExceptMatch) {
                 summaryEl.textContent = absentNames.length > 0
                     ? `Guardado: ${presentIds.length} asistentes. Faltas: ${absentNames.join(', ')}.`
                     : `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
@@ -810,7 +818,7 @@
             panel.classList.remove('hidden');
             transcriptEl.textContent = 'Escuchando...';
             summaryEl.textContent = '';
-            statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span> Escuchando... di por ejemplo: "Todos asistieron excepto Juan y Luisa"';
+            statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span> Escuchando... di por ejemplo: "Todos están aquí menos clave 03" o "Nadie asistió hoy"';
             btnText.textContent = 'Detener';
 
             voiceFinalBuffer = '';
@@ -1633,7 +1641,7 @@
             const totalCols = 2 + daysInMonth;
             const lastColLetter = sheet.getColumn(totalCols).letter;
 
-            for (const fileName of ['encabezado1.png', 'encabezado1.jpg']) {
+            for (const fileName of ['encabezado_asistencia.png', 'encabezado_asistencia.jpg']) {
                 try {
                     const response = await fetch(fileName);
                     if (response.ok) {
