@@ -247,13 +247,7 @@
 
                 <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4 min-w-0">
                     <div id="guideEditorCard" class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3 h-fit min-w-0">
-                        <div class="border-b border-slate-100 pb-2">
-                            <h2 class="font-bold text-navy-900 text-base">Catálogo del Grado Guía</h2>
-                            <p class="text-xs text-slate-500 truncate">Aula: <strong id="regClassLabel" class="text-navy-900"></strong></p>
-                        </div>
-                        <p class="text-xs text-slate-500 leading-relaxed">
-                            Abre el formulario para registrar clave, nombre, encargado, teléfono, salud, medicamentos y fotografía facial.
-                        </p>
+                        <p class="text-xs text-slate-500 truncate">Aula: <strong id="regClassLabel" class="text-navy-900"></strong></p>
                         <button type="button" onclick="openRegisterStudentModal()" class="w-full py-3 px-4 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-colors">
                             <i data-lucide="user-plus" class="w-4 h-4"></i>
                             <span>Registrar Alumno</span>
@@ -329,7 +323,7 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <div>
                     <h3 class="font-bold text-navy-900 text-base">Registrar Nuevo Alumno</h3>
-                    <p class="text-[11px] text-slate-500">Completa los datos personales, de encargado y salud.</p>
+                    <p class="text-[11px] text-slate-500">Registra clave, nombre, encargado y salud.</p>
                 </div>
                 <button type="button" onclick="closeRegisterStudentModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100" title="Cerrar">
                     <i data-lucide="x" class="w-4 h-4"></i>
@@ -369,10 +363,7 @@
                         <label class="block text-xs font-bold text-navy-900 mb-1">Medicamentos que usa para tratarla</label>
                         <input type="text" id="regHealthMedication" placeholder="Ej. Ninguno / Inhalador de salbutamol" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono de Bomberos o Puesto de Salud</label>
-                        <input type="tel" id="regEmergencyPhone" placeholder="Ej. 122 o 7767-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
-                    </div>
+
                 </div>
             </div>
 
@@ -525,10 +516,7 @@
                     <label class="block text-xs font-bold text-navy-900 mb-1">Medicamentos para tratarla</label>
                     <input type="text" id="editHealthMedication" placeholder="Ej. Ninguno / Inhalador" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono de Bomberos o Puesto de Salud</label>
-                    <input type="tel" id="editEmergencyPhone" placeholder="Ej. 122 o 7767-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
-                </div>
+
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="closeEditStudentModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
@@ -624,7 +612,8 @@
             document.getElementById('guardianModalPhone').textContent = (s.guardianPhone || '').trim() || 'No registrado';
             document.getElementById('guardianModalHealthCondition').textContent = (s.healthCondition || '').trim() || 'No registrado';
             document.getElementById('guardianModalHealthMedication').textContent = (s.healthMedication || '').trim() || 'No registrado';
-            document.getElementById('guardianModalEmergencyPhone').textContent = (s.emergencyPhone || '').trim() || 'No registrado';
+            const fixedEmergencyPhone = '46113714';
+            document.getElementById('guardianModalEmergencyPhone').textContent = fixedEmergencyPhone;
 
             const { telHref, waHref } = formatPhoneForLinks(s.guardianPhone);
             const buttonsWrap = document.getElementById('guardianContactButtons');
@@ -645,17 +634,11 @@
                 noPhoneHint.classList.remove('hidden');
             }
 
-            const emergencyDigits = (s.emergencyPhone || '').replace(/\D+/g, '');
             const btnEmerg = document.getElementById('btnEmergencyCall');
             const emergLabel = document.getElementById('btnEmergencyCallLabel');
-            if (emergencyDigits) {
-                btnEmerg.href = `tel:${emergencyDigits}`;
-                emergLabel.textContent = `Llamar a Emergencia (${s.emergencyPhone.trim()})`;
-                btnEmerg.classList.remove('hidden');
-            } else {
-                btnEmerg.href = '#';
-                btnEmerg.classList.add('hidden');
-            }
+            btnEmerg.href = `tel:${fixedEmergencyPhone}`;
+            emergLabel.textContent = `Emergencia (${fixedEmergencyPhone})`;
+            btnEmerg.classList.remove('hidden');
 
             document.getElementById('guardianInfoModal').classList.remove('hidden');
             lucide.createIcons();
@@ -971,23 +954,31 @@
         }
 
         async function loadSharedCatalogAndPrivateAttendance() {
+            const loadedClasses = [];
+            let debugErrors = [];
+
+            // 1. Cargar catálogo compartido (aulas_catalogo + subcolección alumnos)
             try {
                 const catalogSnap = await getDocs(collection(db, "aulas_catalogo"));
-                const loadedClasses = [];
                 for (const docSnap of catalogSnap.docs) {
                     const data = docSnap.data();
                     const classId = data.id || docSnap.id;
                     const studentsMap = new Map();
 
                     (data.students || []).forEach((s, idx) => {
-                        if (s && s.id) studentsMap.set(s.id, mapStudentRecord(s, idx));
+                        if (s && s.id) studentsMap.set(String(s.id), mapStudentRecord(s, idx));
                     });
 
-                    const alunosSnap = await getDocs(collection(db, "aulas_catalogo", classId, "alumnos"));
-                    alunosSnap.forEach((aDoc) => {
-                        const s = aDoc.data();
-                        if (s && s.id) studentsMap.set(s.id, mapStudentRecord(s, 999999));
-                    });
+                    try {
+                        const alunosSnap = await getDocs(collection(db, "aulas_catalogo", docSnap.id, "alumnos"));
+                        alunosSnap.forEach((aDoc) => {
+                            const s = aDoc.data();
+                            const sid = String(s.id || aDoc.id);
+                            if (s && sid) studentsMap.set(sid, mapStudentRecord({ ...s, id: sid }, 999999));
+                        });
+                    } catch (subErr) {
+                        debugErrors.push(`Subcolección alumnos (${docSnap.id}): ${subErr.code || subErr.message}`);
+                    }
 
                     const orderedStudents = Array.from(studentsMap.values())
                         .sort((a, b) => (a._order ?? 0) - (b._order ?? 0))
@@ -1002,23 +993,47 @@
                         students: orderedStudents
                     });
                 }
+            } catch (catErr) {
+                debugErrors.push(`aulas_catalogo: ${catErr.code || catErr.message}`);
+            }
+
+            // 2. Cargar documento del docente y recuperar aulas/alumnos antiguos si existen
+            try {
                 const teacherRef = doc(db, "docentes", currentUser.uid);
                 const teacherSnap = await getDoc(teacherRef);
                 if (teacherSnap.exists()) {
                     const tData = teacherSnap.data();
                     myAttendanceByClass = tData.attendanceByClass || {};
-                    if (!tData.classesMigrated && Array.isArray(tData.classes) && tData.classes.length > 0) {
+
+                    if (Array.isArray(tData.classes) && tData.classes.length > 0) {
+                        let recoveredAny = false;
                         for (const legacyCls of tData.classes) {
-                            if (!loadedClasses.some(c => c.id === legacyCls.id)) {
+                            const existing = loadedClasses.find(c => c.id === legacyCls.id || (c.grade === legacyCls.grade && c.section === legacyCls.section));
+                            const legacyStudents = (legacyCls.students || []).map((s, idx) => mapStudentRecord(s, idx));
+
+                            if (!existing) {
                                 const migratedClass = {
-                                    id: legacyCls.id, grade: legacyCls.grade, section: legacyCls.section,
-                                    guideUid: currentUser.uid, guideName: currentUser.displayName || currentUser.email || 'Docente Guía',
-                                    students: (legacyCls.students || []).map((s, idx) => mapStudentRecord(s, idx))
+                                    id: legacyCls.id,
+                                    grade: legacyCls.grade,
+                                    section: legacyCls.section,
+                                    guideUid: currentUser.uid,
+                                    guideName: currentUser.displayName || currentUser.email || 'Docente Guía',
+                                    students: legacyStudents
                                 };
                                 await saveClassCatalogToCloud(migratedClass);
                                 loadedClasses.push(migratedClass);
+                                recoveredAny = true;
+                            } else if (existing.students.length === 0 && legacyStudents.length > 0) {
+                                existing.students = legacyStudents;
+                                await saveClassCatalogToCloud(existing);
+                                recoveredAny = true;
                             }
-                            if (legacyCls.attendance && !myAttendanceByClass[legacyCls.id]) myAttendanceByClass[legacyCls.id] = legacyCls.attendance;
+                            if (legacyCls.attendance && !myAttendanceByClass[legacyCls.id]) {
+                                myAttendanceByClass[legacyCls.id] = legacyCls.attendance;
+                            }
+                        }
+                        if (recoveredAny) {
+                            showToast('Se recuperaron tus alumnos guardados anteriormente.', 'success');
                         }
                         await setDoc(teacherRef, { name: currentUser.displayName || '', email: currentUser.email || '', attendanceByClass: myAttendanceByClass, classesMigrated: true }, { merge: true });
                     }
@@ -1026,10 +1041,18 @@
                     myAttendanceByClass = {};
                     await setDoc(teacherRef, { name: currentUser.displayName || '', email: currentUser.email || '', attendanceByClass: {}, classesMigrated: true }, { merge: true });
                 }
-                loadedClasses.sort((a, b) => `${a.grade} ${a.section}`.localeCompare(`${b.grade} ${b.section}`));
-                catalogClasses = loadedClasses;
-                renderClassSelector();
-            } catch (_) { showToast('Error al cargar aulas o asistencia de la nube.', 'error'); }
+            } catch (docErr) {
+                debugErrors.push(`docentes: ${docErr.code || docErr.message}`);
+            }
+
+            if (debugErrors.length > 0) {
+                console.error("Errores Firestore:", debugErrors);
+                showToast('Aviso nube: ' + debugErrors[0], 'error');
+            }
+
+            loadedClasses.sort((a, b) => `${a.grade} ${a.section}`.localeCompare(`${b.grade} ${b.section}`));
+            catalogClasses = loadedClasses;
+            renderClassSelector();
         }
 
         function serializeStudentDoc(s, orderIndex = 0) {
@@ -1286,7 +1309,7 @@
             const guardianPhone = document.getElementById('regGuardianPhone').value.trim();
             const healthCondition = document.getElementById('regHealthCondition').value.trim();
             const healthMedication = document.getElementById('regHealthMedication').value.trim();
-            const emergencyPhone = document.getElementById('regEmergencyPhone').value.trim();
+            const emergencyPhone = '46113714';
             const btn = document.getElementById('btnSaveStudent');
 
             if (!id || !name || !currentRegDescriptor) { showToast('Completa clave, nombre y foto.', 'error'); return; }
@@ -1305,7 +1328,6 @@
                 document.getElementById('regGuardianPhone').value = '';
                 document.getElementById('regHealthCondition').value = '';
                 document.getElementById('regHealthMedication').value = '';
-                document.getElementById('regEmergencyPhone').value = '';
                 document.getElementById('regPhotoInput').value = '';
                 document.getElementById('regMediaContainer').classList.add('hidden');
                 document.getElementById('regFaceFeedback').classList.add('hidden');
@@ -1338,7 +1360,6 @@
             document.getElementById('editGuardianPhone').value = s.guardianPhone || '';
             document.getElementById('editHealthCondition').value = s.healthCondition || '';
             document.getElementById('editHealthMedication').value = s.healthMedication || '';
-            document.getElementById('editEmergencyPhone').value = s.emergencyPhone || '';
             document.getElementById('editStudentModal').classList.remove('hidden');
         };
 
@@ -1355,7 +1376,7 @@
             const newGuardianPhone = document.getElementById('editGuardianPhone').value.trim();
             const newHealthCondition = document.getElementById('editHealthCondition').value.trim();
             const newHealthMedication = document.getElementById('editHealthMedication').value.trim();
-            const newEmergencyPhone = document.getElementById('editEmergencyPhone').value.trim();
+            const newEmergencyPhone = '46113714';
 
             const student = cls.students.find(s => s.id === originalId);
             if (!student) return;
