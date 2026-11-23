@@ -700,8 +700,9 @@
 
         async function applyVoiceAttendanceCommand(transcript) {
             const cls = getActiveClass();
-            if (!cls || cls.students.length === 0) {
-                showToast('Selecciona un aula con alumnos registrados.', 'error');
+            const activeStudents = cls ? cls.students.filter(s => s.active !== false) : [];
+            if (!cls || activeStudents.length === 0) {
+                showToast('No hay alumnos activos registrados en esta aula.', 'error');
                 return;
             }
             const rawClean = (transcript || '').trim();
@@ -716,6 +717,11 @@
             if (!classAttendance[today]) classAttendance[today] = {};
             const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
 
+            // Asegurar que los desactivados no queden marcados como asistentes
+            cls.students.filter(s => s.active === false).forEach((s) => {
+                delete classAttendance[today][s.id];
+            });
+
             const hasNoneKeyword = /\b(nadie|ninguno|ninguna|ningun|cero|nadie asistio|ninguno asistio|nadie bino|nadie vino|no asistio nadie|no vino nadie)\b/.test(norm);
             const hasAllKeyword = !hasNoneKeyword && /\b(todos|todas|todo el mundo|la clase completa|presentes todos|todos vinieron|todos binieron|todos asistieron|todos estan aqui|todos estan presentes)\b/.test(norm);
             const splitExceptMatch = norm.match(/\b(excepto|menos|salvo|fuera de|sin)\b([\s\S]*)/);
@@ -727,13 +733,13 @@
             let presentIds = [];
 
             if (hasNoneKeyword) {
-                cls.students.forEach((s) => {
+                activeStudents.forEach((s) => {
                     classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
                     absentIds.push(s.id);
                 });
             } else if (hasAllKeyword && splitExceptMatch) {
-                absentIds = matchStudentsFromPhrase(splitExceptMatch[2] || '', cls.students);
-                cls.students.forEach((s) => {
+                absentIds = matchStudentsFromPhrase(splitExceptMatch[2] || '', activeStudents);
+                activeStudents.forEach((s) => {
                     if (absentIds.includes(s.id)) {
                         classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
                     } else {
@@ -742,17 +748,17 @@
                     }
                 });
             } else if (hasAllKeyword) {
-                cls.students.forEach((s) => {
+                activeStudents.forEach((s) => {
                     classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr };
                     presentIds.push(s.id);
                 });
             } else if (splitAbsentOnlyMatch) {
-                absentIds = matchStudentsFromPhrase(splitAbsentOnlyMatch[2] || norm, cls.students);
+                absentIds = matchStudentsFromPhrase(splitAbsentOnlyMatch[2] || norm, activeStudents);
                 absentIds.forEach((id) => {
                     classAttendance[today][id] = { status: 'INASISTENTE', time: '--:--' };
                 });
             } else {
-                presentIds = matchStudentsFromPhrase(norm, cls.students);
+                presentIds = matchStudentsFromPhrase(norm, activeStudents);
                 presentIds.forEach((id) => {
                     classAttendance[today][id] = { status: 'ASISTENTE', time: timeStr };
                 });
@@ -761,26 +767,26 @@
             renderAllUI();
             await saveMyPrivateAttendanceToCloud();
 
-            const absentNames = cls.students.filter(s => absentIds.includes(s.id)).map(s => s.name);
-            const presentNames = cls.students.filter(s => presentIds.includes(s.id)).map(s => s.name);
+            const absentNames = activeStudents.filter(s => absentIds.includes(s.id)).map(s => s.name);
+            const presentNames = activeStudents.filter(s => presentIds.includes(s.id)).map(s => s.name);
             const summaryEl = document.getElementById('voiceResultSummary');
 
             if (hasNoneKeyword) {
-                summaryEl.textContent = `Guardado: nadie asistió (${absentIds.length} marcados como inasistentes).`;
+                summaryEl.textContent = `Guardado: nadie asistió (${absentIds.length} activos marcados como inasistentes).`;
             } else if (hasAllKeyword && splitExceptMatch) {
                 summaryEl.textContent = absentNames.length > 0
                     ? `Guardado: ${presentIds.length} asistentes. Faltas: ${absentNames.join(', ')}.`
-                    : `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
+                    : `Guardado: todos los activos (${presentIds.length}) marcados como asistentes.`;
             } else if (hasAllKeyword) {
-                summaryEl.textContent = `Guardado: todos (${presentIds.length}) marcados como asistentes.`;
+                summaryEl.textContent = `Guardado: todos los activos (${presentIds.length}) marcados como asistentes.`;
             } else if (splitAbsentOnlyMatch) {
                 summaryEl.textContent = absentNames.length > 0
                     ? `Marcados como falta: ${absentNames.join(', ')}.`
-                    : 'No se reconoció ningún alumno para marcar falta en la frase.';
+                    : 'No se reconoció ningún alumno activo para marcar falta en la frase.';
             } else {
                 summaryEl.textContent = presentNames.length > 0
                     ? `Guardado como asistentes: ${presentNames.join(', ')}.`
-                    : 'No se reconoció ningún alumno de esta aula en la frase.';
+                    : 'No se reconoció ningún alumno activo de esta aula en la frase.';
             }
             showToast('Asistencia por voz actualizada.', 'success');
         }
@@ -803,8 +809,8 @@
                 return;
             }
             const cls = getActiveClass();
-            if (!cls || cls.students.length === 0) {
-                showToast('Este grado no tiene alumnos registrados.', 'error');
+            if (!cls || cls.students.filter(s => s.active !== false).length === 0) {
+                showToast('Este grado no tiene alumnos activos registrados.', 'error');
                 return;
             }
             stopAttendanceCamera();
@@ -957,6 +963,7 @@
                 healthCondition: s.healthCondition || '',
                 healthMedication: s.healthMedication || '',
                 emergencyPhone: s.emergencyPhone || '',
+                active: s.active !== false,
                 descriptor: new Float32Array(s.descriptor || [])
             };
         }
@@ -1072,6 +1079,7 @@
                 healthCondition: s.healthCondition || '',
                 healthMedication: s.healthMedication || '',
                 emergencyPhone: s.emergencyPhone || '',
+                active: s.active !== false,
                 photo: s.photo,
                 descriptor: Array.from(s.descriptor || []),
                 _order: orderIndex
@@ -1239,8 +1247,9 @@
 
         function rebuildFaceMatcher() {
             const cls = getActiveClass();
-            if (!cls || cls.students.length === 0 || !modelsLoaded) { faceMatcher = null; return; }
-            faceMatcher = new faceapi.FaceMatcher(cls.students.map(s => new faceapi.LabeledFaceDescriptors(s.id, [s.descriptor])), 0.58);
+            const activeStudents = cls ? cls.students.filter(s => s.active !== false) : [];
+            if (!cls || activeStudents.length === 0 || !modelsLoaded) { faceMatcher = null; return; }
+            faceMatcher = new faceapi.FaceMatcher(activeStudents.map(s => new faceapi.LabeledFaceDescriptors(s.id, [s.descriptor])), 0.58);
         }
 
         function compressImageToDataUrl(imgElement, maxSize = 220) {
@@ -1324,7 +1333,7 @@
             if (cls.students.some(s => s.id === id)) { showToast('Ya existe un alumno con esa clave.', 'error'); return; }
 
             btn.disabled = true; btn.textContent = 'Subiendo a la nube...';
-            const newStudent = { id, name, guardianName, guardianPhone, healthCondition, healthMedication, emergencyPhone, photo: currentRegPhotoDataUrl, descriptor: currentRegDescriptor };
+            const newStudent = { id, name, guardianName, guardianPhone, healthCondition, healthMedication, emergencyPhone, active: true, photo: currentRegPhotoDataUrl, descriptor: currentRegDescriptor };
             const newIndex = cls.students.length;
             cls.students.push(newStudent);
             try {
@@ -1343,6 +1352,28 @@
                 closeRegisterStudentModal();
                 showToast(`${name} guardado.`, 'success');
             } finally { btn.disabled = false; btn.textContent = 'Guardar Alumno'; }
+        };
+
+        window.toggleStudentActive = async (studentId) => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede activar o desactivar alumnos.', 'error');
+                return;
+            }
+            const s = cls.students.find(st => st.id === studentId);
+            if (!s) return;
+            const prevActive = s.active !== false;
+            s.active = !prevActive;
+            rebuildFaceMatcher();
+            renderAllUI();
+            const idx = cls.students.findIndex(st => st.id === studentId);
+            if (!(await saveSingleStudentToCloud(cls, s, idx >= 0 ? idx : 0))) {
+                s.active = prevActive;
+                rebuildFaceMatcher();
+                renderAllUI();
+                return;
+            }
+            showToast(s.active ? `${s.name} reactivado.` : `${s.name} desactivado (retirado).`, 'success');
         };
 
         window.moveStudentOrder = async (index, direction) => {
@@ -1434,7 +1465,7 @@
         async function startAttendanceCamera() {
             window.stopVoiceAttendance();
             const cls = getActiveClass();
-            if (!cls || cls.students.length === 0) { showToast('Este grado no tiene alumnos registrados.', 'error'); return; }
+            if (!cls || cls.students.filter(s => s.active !== false).length === 0) { showToast('Este grado no tiene alumnos activos registrados.', 'error'); return; }
             try {
                 attendanceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: attendanceFacingMode } });
                 document.getElementById('attendanceVideo').srcObject = attendanceStream;
@@ -1472,7 +1503,7 @@
                         const match = faceMatcher.findBestMatch(det.descriptor);
                         let color = '#C8102E'; let label = 'Desconocido';
                         if (match.label !== 'unknown') {
-                            const student = cls.students.find(s => s.id === match.label);
+                            const student = cls.students.find(s => s.id === match.label && s.active !== false);
                             if (student) { label = student.name; color = '#10B981'; markPresent(student.id, student.name); }
                         }
                         new faceapi.draw.DrawBox(det.detection.box, { label, boxColor: color }).draw(canvas);
@@ -1538,34 +1569,52 @@
             const canEditRoster = isCurrentUserGuide(cls);
             const today = getTodayStr();
             const todayRecords = getClassAttendance(cls.id)[today] || {};
-            document.getElementById('badgeStudentCount').textContent = cls.students.length;
+            const activeStudents = cls.students.filter(s => s.active !== false);
+            document.getElementById('badgeStudentCount').textContent = `${activeStudents.length}/${cls.students.length}`;
             let present = 0;
-            cls.students.forEach(s => { if (todayRecords[s.id]?.status === 'ASISTENTE') present++; });
-            document.getElementById('statTotal').textContent = cls.students.length;
+            activeStudents.forEach(s => { if (todayRecords[s.id]?.status === 'ASISTENTE') present++; });
+            document.getElementById('statTotal').textContent = activeStudents.length;
             document.getElementById('statPresent').textContent = present;
-            document.getElementById('statAbsent').textContent = cls.students.length - present;
+            document.getElementById('statAbsent').textContent = activeStudents.length - present;
 
             document.getElementById('registeredStudentsList').innerHTML = cls.students.length === 0
                 ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos registrados en este grado.</p>'
-                : cls.students.map((s, idx) => `
-                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 min-w-0">
+                : cls.students.map((s, idx) => {
+                    const isActive = s.active !== false;
+                    return `
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border ${isActive ? 'border-slate-200 bg-slate-50' : 'border-amber-200 bg-amber-50/50 opacity-75'} min-w-0">
                         <button type="button" onclick="openGuardianInfoModal('${s.id}')" class="flex items-center gap-2 min-w-0 flex-1 text-left rounded-lg hover:bg-slate-100/90 p-1 -m-1 transition-colors cursor-pointer">
-                            <img src="${s.photo}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border shrink-0">
+                            <img src="${s.photo}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border shrink-0 ${isActive ? '' : 'grayscale'}">
                             <div class="min-w-0">
-                                <p class="font-bold text-navy-900 text-xs sm:text-sm truncate underline decoration-slate-300 underline-offset-2">${s.name}</p>
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <p class="font-bold text-navy-900 text-xs sm:text-sm truncate underline decoration-slate-300 underline-offset-2 ${isActive ? '' : 'line-through text-slate-500'}">${s.name}</p>
+                                    ${isActive ? '' : '<span class="px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 text-[9px] font-extrabold uppercase shrink-0">Desactivado</span>'}
+                                </div>
                                 <p class="text-[11px] text-slate-500">Clave: ${s.id}</p>
                             </div>
                         </button>
                         ${canEditRoster ? `<div class="flex items-center gap-1 shrink-0">
+                            <button type="button" onclick="toggleStudentActive('${s.id}')" title="${isActive ? 'Desactivar estudiante (retirado)' : 'Reactivar estudiante'}" class="p-1.5 rounded-lg border ${isActive ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}"><i data-lucide="${isActive ? 'user-x' : 'user-check'}" class="w-3.5 h-3.5"></i></button>
                             <button type="button" onclick="moveStudentOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
                             <button type="button" onclick="moveStudentOrder(${idx}, 1)" ${idx === cls.students.length - 1 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
                             <button type="button" onclick="openEditStudentModal('${s.id}')" class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                             <button type="button" onclick="deleteStudent('${s.id}')" class="text-slate-400 hover:text-crimson-600 p-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>` : `<span class="text-[10px] font-semibold text-slate-400 px-2 shrink-0">Solo lectura</span>`}
+                        </div>` : `<span class="text-[10px] font-semibold text-slate-400 px-2 shrink-0">${isActive ? 'Solo lectura' : 'Desactivado'}</span>`}
                     </div>
-                `).join('');
+                `;
+                }).join('');
 
             document.getElementById('attendanceTableBody').innerHTML = cls.students.map(s => {
+                const isActive = s.active !== false;
+                if (!isActive) {
+                    return `<tr class="bg-slate-50/80 text-slate-400">
+                        <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap">${s.id}</td>
+                        <td class="py-2.5 px-2 sm:px-4"><button type="button" onclick="openGuardianInfoModal('${s.id}')" class="flex items-center gap-2 min-w-[100px] text-left hover:underline cursor-pointer"><img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0 grayscale"><span class="leading-tight line-through">${s.name}</span></button></td>
+                        <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap">--:--</td>
+                        <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-amber-100 text-amber-800">DESACTIVADO</span></td>
+                        <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap"><span class="text-[10px] font-semibold text-slate-400">Retirado</span></td>
+                    </tr>`;
+                }
                 const rec = todayRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
                 const isPresent = rec.status === 'ASISTENTE';
                 return `<tr>
@@ -1729,11 +1778,13 @@
             });
 
             cls.students.forEach((s) => {
-                const rowValues = [s.id, s.name];
+                const isActive = s.active !== false;
+                const rowValues = [s.id, isActive ? s.name : `${s.name} (Retirado)`];
                 for (let d = 1; d <= daysInMonth; d++) {
                     const fullDate = `${monthPrefix}-${String(d).padStart(2, '0')}`;
                     const dayRecord = attendanceByDate[fullDate]?.[s.id];
                     if (dayRecord?.status === 'ASISTENTE') rowValues.push('A');
+                    else if (!isActive) rowValues.push('-');
                     else if (fullDate <= todayStr && attendanceByDate[fullDate]) rowValues.push('I');
                     else rowValues.push('');
                 }
