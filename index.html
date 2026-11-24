@@ -137,7 +137,13 @@
 
                 <div id="guideInfoBox" class="hidden max-w-5xl mx-auto mt-2 bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-xs text-slate-200 flex items-center justify-between gap-2">
                     <span class="truncate">Maestro Guía: <strong id="classGuideInfo" class="text-white"></strong></span>
-                    <button type="button" onclick="toggleGuideInfoPopover()" class="text-[11px] text-slate-400 hover:text-white shrink-0">Cerrar</button>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" id="btnEditGuideName" onclick="openEditGuideModal()" class="hidden inline-flex items-center gap-1 bg-crimson-600 hover:bg-crimson-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg">
+                            <i data-lucide="pencil" class="w-3 h-3"></i>
+                            <span>Editar</span>
+                        </button>
+                        <button type="button" onclick="toggleGuideInfoPopover()" class="text-[11px] text-slate-400 hover:text-white">Cerrar</button>
+                    </div>
                 </div>
             </div>
 
@@ -485,6 +491,35 @@
         </form>
     </div>
 
+    <div id="editGuideModal" onclick="if(event.target === this) closeEditGuideModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4">
+        <form onsubmit="saveEditedGuide(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-3.5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 class="font-bold text-navy-900 text-base">Editar Maestro Guía</h3>
+                <button type="button" onclick="closeEditGuideModal()" class="p-1 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Maestro Guía *</label>
+                <input type="text" id="editGuideNameInput" required placeholder="Ej. Prof. Nelson Pérez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Grado *</label>
+                    <input type="text" id="editGuideGradeInput" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Sección *</label>
+                    <input type="text" id="editGuideSectionInput" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-1">
+                <button type="button" onclick="closeEditGuideModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
+                <button type="submit" id="btnSaveEditedGuide" class="px-4 py-2 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white text-xs font-bold">Guardar</button>
+            </div>
+        </form>
+    </div>
+
     <div id="editStudentModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4 overflow-y-auto">
         <form onsubmit="saveEditedStudent(event)" class="bg-white rounded-2xl max-w-md w-full p-5 shadow-xl border-t-4 border-navy-900 space-y-3 my-auto max-h-[90vh] overflow-y-auto">
             <h3 class="font-bold text-navy-900 text-base">Editar Datos del Alumno</h3>
@@ -572,6 +607,60 @@
         let isListeningVoice = false;
         let voiceFinalBuffer = '';
         let voiceLatestHeard = '';
+
+        window.openEditGuideModal = () => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede editar los datos de este grado.', 'error');
+                return;
+            }
+            document.getElementById('editGuideNameInput').value = cls.guideName || '';
+            document.getElementById('editGuideGradeInput').value = cls.grade || '';
+            document.getElementById('editGuideSectionInput').value = cls.section || '';
+            document.getElementById('editGuideModal').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.closeEditGuideModal = () => {
+            document.getElementById('editGuideModal').classList.add('hidden');
+        };
+
+        window.saveEditedGuide = async (e) => {
+            e.preventDefault();
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede guardar estos cambios.', 'error');
+                return;
+            }
+            const nextGuideName = document.getElementById('editGuideNameInput').value.trim();
+            const nextGrade = document.getElementById('editGuideGradeInput').value.trim();
+            const nextSection = document.getElementById('editGuideSectionInput').value.trim();
+            if (!nextGuideName || !nextGrade || !nextSection) return;
+
+            const btn = document.getElementById('btnSaveEditedGuide');
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+            try {
+                cls.guideName = nextGuideName;
+                cls.grade = nextGrade;
+                cls.section = nextSection;
+                await setDoc(doc(db, "aulas_catalogo", cls._docId || cls.id), {
+                    id: cls.id,
+                    grade: cls.grade,
+                    section: cls.section,
+                    guideUid: cls.guideUid,
+                    guideName: cls.guideName
+                }, { merge: true });
+                renderClassSelector();
+                window.closeEditGuideModal();
+                showToast('Nombre del maestro guía actualizado.', 'success');
+            } catch (err) {
+                showToast('No se pudo actualizar: ' + (err.code || err.message), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar';
+            }
+        };
 
         window.toggleGuideInfoPopover = () => {
             document.getElementById('guideInfoBox').classList.toggle('hidden');
@@ -1283,6 +1372,8 @@
         function updateGuidePermissionsUI(cls) {
             if (!cls) return;
             const canEditRoster = isCurrentUserGuide(cls);
+            const editBtn = document.getElementById('btnEditGuideName');
+            if (editBtn) editBtn.classList.toggle('hidden', !canEditRoster);
             document.getElementById('classGuideInfo').textContent = canEditRoster ? `${cls.guideName} (Tú eres el guía)` : cls.guideName;
             if (canEditRoster) {
                 document.getElementById('guideEditorCard').classList.remove('hidden');
