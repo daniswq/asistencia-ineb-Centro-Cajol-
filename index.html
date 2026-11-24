@@ -973,22 +973,47 @@
             return [];
         }
 
-        function mapStudentRecord(s, fallbackOrder = 0) {
-            const descArr = parseDescriptorArray(s && s.descriptor);
+        function extractStudentName(s) {
+            if (!s) return '';
+            const raw = s.name || s.nombre || s.fullName || s.studentName || s.estudiante || '';
+            const clean = String(raw).trim();
+            return clean.toLowerCase() === 'sin nombre' ? '' : clean;
+        }
+
+        function mergeStudentSources(baseStudent, incomingStudent, fallbackOrder = 0) {
+            const base = baseStudent || {};
+            const inc = incomingStudent || {};
+            const resolvedId = String(inc.id || base.id || '').trim();
+            const resolvedName = extractStudentName(inc) || extractStudentName(base) || 'Sin nombre';
+            const incDesc = parseDescriptorArray(inc.descriptor);
+            const baseDesc = parseDescriptorArray(base.descriptor);
+            const resolvedDesc = incDesc.length > 0 ? incDesc : baseDesc;
+            const incPhoto = (inc.photo && inc.photo !== 'logoineb.png') ? inc.photo : '';
+            const basePhoto = (base.photo && base.photo !== 'logoineb.png') ? base.photo : '';
+            const resolvedPhoto = incPhoto || basePhoto || 'logoineb.png';
+            const resolvedOrder = typeof inc._order === 'number'
+                ? inc._order
+                : (typeof base._order === 'number' ? base._order : fallbackOrder);
+
             return {
-                ...(s || {}),
-                id: String((s && s.id) || '').trim(),
-                name: String((s && s.name) || 'Sin nombre').trim(),
-                _order: typeof (s && s._order) === 'number' ? s._order : fallbackOrder,
-                guardianName: (s && s.guardianName) || '',
-                guardianPhone: (s && s.guardianPhone) || '',
-                healthCondition: (s && s.healthCondition) || '',
-                healthMedication: (s && s.healthMedication) || '',
-                emergencyPhone: (s && s.emergencyPhone) || '',
-                active: (s && s.active) !== false,
-                photo: (s && s.photo) || 'logoineb.png',
-                descriptor: new Float32Array(descArr)
+                ...base,
+                ...inc,
+                id: resolvedId,
+                name: resolvedName,
+                _order: resolvedOrder,
+                guardianName: (inc.guardianName || base.guardianName || '').trim(),
+                guardianPhone: (inc.guardianPhone || base.guardianPhone || '').trim(),
+                healthCondition: (inc.healthCondition || base.healthCondition || '').trim(),
+                healthMedication: (inc.healthMedication || base.healthMedication || '').trim(),
+                emergencyPhone: (inc.emergencyPhone || base.emergencyPhone || '').trim(),
+                active: inc.active !== undefined ? inc.active !== false : (base.active !== false),
+                photo: resolvedPhoto,
+                descriptor: new Float32Array(resolvedDesc)
             };
+        }
+
+        function mapStudentRecord(s, fallbackOrder = 0) {
+            return mergeStudentSources(null, s, fallbackOrder);
         }
 
         async function loadSharedCatalogAndPrivateAttendance() {
@@ -1004,7 +1029,10 @@
                     const studentsMap = new Map();
 
                     (data.students || []).forEach((s, idx) => {
-                        if (s && s.id) studentsMap.set(String(s.id), mapStudentRecord(s, idx));
+                        if (s && s.id) {
+                            const sid = String(s.id).trim();
+                            studentsMap.set(sid, mergeStudentSources(studentsMap.get(sid), { ...s, id: sid }, idx));
+                        }
                     });
 
                     try {
@@ -1015,8 +1043,8 @@
                                 const sid = String((s && s.id) || aDoc.id).trim();
                                 if (s && sid) {
                                     const prevEntry = studentsMap.get(sid);
-                                    const mapped = mapStudentRecord({ ...s, id: sid }, typeof s._order === 'number' ? s._order : (prevEntry ? prevEntry._order : 999999));
-                                    studentsMap.set(sid, mapped);
+                                    const merged = mergeStudentSources(prevEntry, { ...s, id: sid }, prevEntry ? prevEntry._order : 999999);
+                                    studentsMap.set(sid, merged);
                                 }
                             } catch (oneErr) {
                                 debugErrors.push(`Alumno ${aDoc.id}: ${oneErr.message}`);
@@ -1044,7 +1072,7 @@
                 debugErrors.push(`aulas_catalogo: ${catErr.code || catErr.message}`);
             }
 
-            // 2. Cargar documento del docente y recuperar aulas/alumnos antiguos si existen
+            // 2. Cargar documento del docente y recuperar/completar alumnos antiguos si existen
             try {
                 const teacherRef = doc(db, "docentes", currentUser.uid);
                 const teacherSnap = await getDoc(teacherRef);
@@ -1070,17 +1098,35 @@
                                 await saveClassCatalogToCloud(migratedClass);
                                 loadedClasses.push(migratedClass);
                                 recoveredAny = true;
-                            } else if (existing.students.length === 0 && legacyStudents.length > 0) {
-                                existing.students = legacyStudents;
-                                await saveClassCatalogToCloud(existing);
-                                recoveredAny = true;
+                            } else if (legacyStudents.length > 0) {
+                                let classUpdated = false;
+                                legacyStudents.forEach((legSt, idx) => {
+                                    const curIdx = existing.students.findIndex(st => String(st.id).trim() === String(legSt.id).trim());
+                                    if (curIdx === -1) {
+                                        existing.students.push(legSt);
+                                        classUpdated = true;
+                                    } else {
+                                        const before = existing.students[curIdx];
+                                        const merged = mergeStudentSources(before, legSt, idx);
+                                        if ((!extractStudentName(before) && extractStudentName(merged)) ||
+                                            ((!before.photo || before.photo === 'logoineb.png') && merged.photo !== 'logoineb.png') ||
+                                            ((!before.descriptor || before.descriptor.length === 0) && merged.descriptor.length > 0)) {
+                                            existing.students[curIdx] = merged;
+                                            classUpdated = true;
+                                        }
+                                    }
+                                });
+                                if (classUpdated) {
+                                    await saveClassCatalogToCloud(existing);
+                                    recoveredAny = true;
+                                }
                             }
                             if (legacyCls.attendance && !myAttendanceByClass[legacyCls.id]) {
                                 myAttendanceByClass[legacyCls.id] = legacyCls.attendance;
                             }
                         }
                         if (recoveredAny) {
-                            showToast('Se recuperaron tus alumnos guardados anteriormente.', 'success');
+                            showToast('Se recuperaron los nombres y fotos de tus alumnos.', 'success');
                         }
                         await setDoc(teacherRef, { name: currentUser.displayName || '', email: currentUser.email || '', attendanceByClass: myAttendanceByClass, classesMigrated: true }, { merge: true });
                     }
