@@ -958,17 +958,36 @@
             }
         });
 
+        function sanitizeFirestoreDocId(rawId) {
+            return String(rawId || '').trim().replace(/[\/\\]+/g, '_');
+        }
+
+        function parseDescriptorArray(rawDesc) {
+            if (!rawDesc) return [];
+            if (Array.isArray(rawDesc)) return rawDesc.map(n => Number(n) || 0);
+            if (rawDesc instanceof Float32Array) return Array.from(rawDesc);
+            if (typeof rawDesc === 'object') {
+                const keys = Object.keys(rawDesc).filter(k => /^\d+$/.test(k)).sort((a, b) => Number(a) - Number(b));
+                return keys.map(k => Number(rawDesc[k]) || 0);
+            }
+            return [];
+        }
+
         function mapStudentRecord(s, fallbackOrder = 0) {
+            const descArr = parseDescriptorArray(s && s.descriptor);
             return {
-                ...s,
-                _order: typeof s._order === 'number' ? s._order : fallbackOrder,
-                guardianName: s.guardianName || '',
-                guardianPhone: s.guardianPhone || '',
-                healthCondition: s.healthCondition || '',
-                healthMedication: s.healthMedication || '',
-                emergencyPhone: s.emergencyPhone || '',
-                active: s.active !== false,
-                descriptor: new Float32Array(s.descriptor || [])
+                ...(s || {}),
+                id: String((s && s.id) || '').trim(),
+                name: String((s && s.name) || 'Sin nombre').trim(),
+                _order: typeof (s && s._order) === 'number' ? s._order : fallbackOrder,
+                guardianName: (s && s.guardianName) || '',
+                guardianPhone: (s && s.guardianPhone) || '',
+                healthCondition: (s && s.healthCondition) || '',
+                healthMedication: (s && s.healthMedication) || '',
+                emergencyPhone: (s && s.emergencyPhone) || '',
+                active: (s && s.active) !== false,
+                photo: (s && s.photo) || 'logoineb.png',
+                descriptor: new Float32Array(descArr)
             };
         }
 
@@ -991,9 +1010,17 @@
                     try {
                         const alunosSnap = await getDocs(collection(db, "aulas_catalogo", docSnap.id, "alumnos"));
                         alunosSnap.forEach((aDoc) => {
-                            const s = aDoc.data();
-                            const sid = String(s.id || aDoc.id);
-                            if (s && sid) studentsMap.set(sid, mapStudentRecord({ ...s, id: sid }, 999999));
+                            try {
+                                const s = aDoc.data();
+                                const sid = String((s && s.id) || aDoc.id).trim();
+                                if (s && sid) {
+                                    const prevEntry = studentsMap.get(sid);
+                                    const mapped = mapStudentRecord({ ...s, id: sid }, typeof s._order === 'number' ? s._order : (prevEntry ? prevEntry._order : 999999));
+                                    studentsMap.set(sid, mapped);
+                                }
+                            } catch (oneErr) {
+                                debugErrors.push(`Alumno ${aDoc.id}: ${oneErr.message}`);
+                            }
                         });
                     } catch (subErr) {
                         debugErrors.push(`Subcolección alumnos (${docSnap.id}): ${subErr.code || subErr.message}`);
@@ -1107,26 +1134,40 @@
 
         async function saveSingleStudentToCloud(cls, student, orderIndex = 0) {
             if (!currentUser || !cls || !student) return false;
+            const targetClassDocId = cls._docId || cls.id;
+            const safeStudentDocId = sanitizeFirestoreDocId(student.id);
+            if (!safeStudentDocId) return false;
             try {
-                await setDoc(doc(db, "aulas_catalogo", cls.id, "alumnos", student.id), serializeStudentDoc(student, orderIndex));
+                await setDoc(doc(db, "aulas_catalogo", targetClassDocId, "alumnos", safeStudentDocId), serializeStudentDoc(student, orderIndex));
                 return true;
             } catch (err) { showToast('Error al guardar alumno en Firestore: ' + (err.code || err.message), 'error'); return false; }
         }
 
         async function deleteSingleStudentFromCloud(classId, studentId) {
             if (!currentUser || !classId || !studentId) return false;
+            const clsObj = catalogClasses.find(c => c.id === classId || c._docId === classId);
+            const targetClassDocId = (clsObj && (clsObj._docId || clsObj.id)) || classId;
+            const safeStudentDocId = sanitizeFirestoreDocId(studentId);
+            if (!safeStudentDocId) return false;
             try {
-                await deleteDoc(doc(db, "aulas_catalogo", classId, "alumnos", studentId));
+                await deleteDoc(doc(db, "aulas_catalogo", targetClassDocId, "alumnos", safeStudentDocId));
+                if (safeStudentDocId !== studentId) {
+                    await deleteDoc(doc(db, "aulas_catalogo", targetClassDocId, "alumnos", studentId)).catch(() => {});
+                }
                 return true;
             } catch (err) { showToast('Error al eliminar alumno en Firestore: ' + (err.code || err.message), 'error'); return false; }
         }
 
         async function saveStudentsOrderToCloud(cls) {
             if (!currentUser || !cls) return false;
+            const targetClassDocId = cls._docId || cls.id;
             try {
                 const batch = writeBatch(db);
                 (cls.students || []).forEach((s, idx) => {
-                    batch.set(doc(db, "aulas_catalogo", cls.id, "alumnos", s.id), { _order: idx }, { merge: true });
+                    const safeStudentDocId = sanitizeFirestoreDocId(s.id);
+                    if (safeStudentDocId) {
+                        batch.set(doc(db, "aulas_catalogo", targetClassDocId, "alumnos", safeStudentDocId), { _order: idx }, { merge: true });
+                    }
                 });
                 await batch.commit();
                 return true;
@@ -1138,9 +1179,13 @@
             try {
                 const metaOk = await saveClassMetaToCloud(cls);
                 if (!metaOk) return false;
+                const targetClassDocId = cls._docId || cls.id;
                 const batch = writeBatch(db);
                 (cls.students || []).forEach((s, idx) => {
-                    batch.set(doc(db, "aulas_catalogo", cls.id, "alumnos", s.id), serializeStudentDoc(s, idx));
+                    const safeStudentDocId = sanitizeFirestoreDocId(s.id);
+                    if (safeStudentDocId) {
+                        batch.set(doc(db, "aulas_catalogo", targetClassDocId, "alumnos", safeStudentDocId), serializeStudentDoc(s, idx));
+                    }
                 });
                 await batch.commit();
                 return true;
@@ -1288,7 +1333,9 @@
 
         function rebuildFaceMatcher() {
             const cls = getActiveClass();
-            const activeStudents = cls ? cls.students.filter(s => s.active !== false) : [];
+            const activeStudents = cls
+                ? cls.students.filter(s => s.active !== false && s.descriptor && s.descriptor.length === 128)
+                : [];
             if (!cls || activeStudents.length === 0 || !modelsLoaded) { faceMatcher = null; return; }
             faceMatcher = new faceapi.FaceMatcher(activeStudents.map(s => new faceapi.LabeledFaceDescriptors(s.id, [s.descriptor])), 0.58);
         }
