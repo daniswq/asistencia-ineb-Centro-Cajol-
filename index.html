@@ -272,7 +272,7 @@
                             </div>
                             <button id="btnDeleteClass" onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline shrink-0">Eliminar Aula</button>
                         </div>
-                        <div id="registeredStudentsList" class="mt-3 space-y-2 max-h-[450px] overflow-y-auto"></div>
+                        <div id="registeredStudentsList" class="mt-3 space-y-2 max-h-[480px] overflow-y-auto pb-24"></div>
                     </div>
                 </section>
 
@@ -312,7 +312,7 @@
         <footer class="bg-navy-950 text-slate-300 border-t-2 border-navy-800 py-3 px-4 text-center text-xs mt-auto">
             <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
                 <span>INEB Centro Cajolá • Aula Virtual</span>
-                <span class="font-semibold text-white">Desarrollador Web / CEO: <span id="developerCeoName" class="text-emerald-400">[Tu Nombre Aquí]</span></span>
+                <span class="font-semibold text-white">Desarrollador Web / CEO: <span id="developerCeoName" class="text-emerald-400">Nelson Danilo Pérez Díaz</span></span>
             </div>
         </footer>
     </div>
@@ -371,7 +371,7 @@
                 <label class="block text-xs font-bold text-navy-900">Fotografía Facial *</label>
                 <div class="grid grid-cols-2 gap-2">
                     <button type="button" onclick="startRegCamera()" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-navy-900 text-white text-xs font-bold">
-                        <i data-lucide="camera" class="w-4 h-4"></i> Cámara
+                        <i data-lucide="camera" class="w-4 h-4"></i> Cámara (<span id="regFacingLabel">Trasera</span>)
                     </button>
                     <button type="button" onclick="document.getElementById('regPhotoInput').click()" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-300 text-navy-900 text-xs font-bold">
                         <i data-lucide="upload" class="w-4 h-4 text-crimson-600"></i> Subir Foto
@@ -384,6 +384,9 @@
                 <video id="regVideo" autoplay muted playsinline class="hidden w-full h-full object-cover"></video>
                 <img id="regPreviewImg" alt="Vista previa" class="hidden w-full h-full object-cover">
                 <div id="regCameraControls" class="hidden absolute bottom-2 flex gap-2">
+                    <button type="button" onclick="switchRegCameraFacing()" class="bg-navy-900/95 border border-white/20 text-white px-3 py-2 rounded-xl text-xs font-bold shadow flex items-center gap-1">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cambiar Cámara
+                    </button>
                     <button type="button" onclick="captureRegSnapshot()" class="bg-crimson-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow">Capturar Rostro</button>
                 </div>
             </div>
@@ -561,6 +564,7 @@
         let lastDetectedCooldown = {};
 
         let regStream = null;
+        let regFacingMode = 'environment';
         let currentRegDescriptor = null;
         let currentRegPhotoDataUrl = null;
 
@@ -1001,6 +1005,7 @@
 
                     loadedClasses.push({
                         id: classId,
+                        _docId: docSnap.id,
                         grade: data.grade || '',
                         section: data.section || '',
                         guideUid: data.guideUid || '',
@@ -1222,11 +1227,47 @@
             if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede eliminar este grado.', 'error'); return; }
             if (!confirm(`¿Seguro que deseas eliminar el aula ${cls.grade} - ${cls.section}?`)) return;
             const deletedId = cls.id;
-            catalogClasses = catalogClasses.filter(c => c.id !== deletedId);
-            activeClassId = null;
-            renderClassSelector();
-            try { await deleteDoc(doc(db, "aulas_catalogo", deletedId)); showToast('Aula eliminada.', 'success'); }
-            catch (_) { showToast('No se pudo eliminar el aula.', 'error'); }
+            const docId = cls._docId || cls.id;
+            try {
+                // 1. Eliminar todos los documentos de la subcolección "alumnos"
+                const alumnosSnap = await getDocs(collection(db, "aulas_catalogo", docId, "alumnos"));
+                if (!alumnosSnap.empty) {
+                    const batch = writeBatch(db);
+                    alumnosSnap.forEach((aDoc) => batch.delete(aDoc.ref));
+                    await batch.commit();
+                }
+                // 2. Eliminar documento principal en "aulas_catalogo"
+                await deleteDoc(doc(db, "aulas_catalogo", docId));
+                if (docId !== deletedId) {
+                    await deleteDoc(doc(db, "aulas_catalogo", deletedId));
+                }
+                // 3. Limpiar cualquier rastro en el documento del docente (classes antiguas y asistencia)
+                if (myAttendanceByClass[deletedId]) {
+                    delete myAttendanceByClass[deletedId];
+                }
+                if (currentUser) {
+                    const teacherRef = doc(db, "docentes", currentUser.uid);
+                    const teacherSnap = await getDoc(teacherRef);
+                    if (teacherSnap.exists()) {
+                        const tData = teacherSnap.data();
+                        const cleanedLegacy = Array.isArray(tData.classes)
+                            ? tData.classes.filter(c => c.id !== deletedId && !(c.grade === cls.grade && c.section === cls.section))
+                            : [];
+                        await setDoc(teacherRef, {
+                            classes: cleanedLegacy,
+                            attendanceByClass: myAttendanceByClass,
+                            classesMigrated: true
+                        }, { merge: true });
+                    }
+                }
+                catalogClasses = catalogClasses.filter(c => c.id !== deletedId);
+                activeClassId = null;
+                renderClassSelector();
+                showToast('Aula eliminada permanentemente de la nube.', 'success');
+            } catch (err) {
+                console.error('Error al eliminar aula:', err);
+                showToast('No se pudo eliminar el aula: ' + (err.code || err.message), 'error');
+            }
         };
 
         async function loadFaceApiModels() {
@@ -1285,8 +1326,19 @@
             video.classList.remove('hidden');
             document.getElementById('regPreviewImg').classList.add('hidden');
             document.getElementById('regCameraControls').classList.remove('hidden');
-            try { regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }); video.srcObject = regStream; }
+            try {
+                regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: regFacingMode } });
+                video.srcObject = regStream;
+                lucide.createIcons();
+            }
             catch (_) { showToast('No se pudo abrir la cámara.', 'error'); }
+        };
+
+        window.switchRegCameraFacing = async () => {
+            regFacingMode = regFacingMode === 'environment' ? 'user' : 'environment';
+            const lbl = document.getElementById('regFacingLabel');
+            if (lbl) lbl.textContent = regFacingMode === 'environment' ? 'Trasera' : 'Frontal';
+            await window.startRegCamera();
         };
 
         function stopRegCamera() { if (regStream) { regStream.getTracks().forEach(t => t.stop()); regStream = null; } }
@@ -1353,6 +1405,21 @@
                 showToast(`${name} guardado.`, 'success');
             } finally { btn.disabled = false; btn.textContent = 'Guardar Alumno'; }
         };
+
+        window.closeAllStudentMenus = () => {
+            document.querySelectorAll('.student-action-menu').forEach(el => el.classList.add('hidden'));
+        };
+
+        window.toggleStudentMenu = (studentId, event) => {
+            if (event) event.stopPropagation();
+            const target = document.getElementById(`studentMenu_${studentId}`);
+            if (!target) return;
+            const isHidden = target.classList.contains('hidden');
+            window.closeAllStudentMenus();
+            if (isHidden) target.classList.remove('hidden');
+        };
+
+        document.addEventListener('click', () => window.closeAllStudentMenus());
 
         window.toggleStudentActive = async (studentId) => {
             const cls = getActiveClass();
@@ -1593,12 +1660,28 @@
                                 <p class="text-[11px] text-slate-500">Clave: ${s.id}</p>
                             </div>
                         </button>
-                        ${canEditRoster ? `<div class="flex items-center gap-1 shrink-0">
-                            <button type="button" onclick="toggleStudentActive('${s.id}')" title="${isActive ? 'Desactivar estudiante (retirado)' : 'Reactivar estudiante'}" class="p-1.5 rounded-lg border ${isActive ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}"><i data-lucide="${isActive ? 'user-x' : 'user-check'}" class="w-3.5 h-3.5"></i></button>
-                            <button type="button" onclick="moveStudentOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
-                            <button type="button" onclick="moveStudentOrder(${idx}, 1)" ${idx === cls.students.length - 1 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900 disabled:opacity-30"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
-                            <button type="button" onclick="openEditStudentModal('${s.id}')" class="p-1.5 rounded-lg border border-slate-300 bg-white text-navy-900"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                            <button type="button" onclick="deleteStudent('${s.id}')" class="text-slate-400 hover:text-crimson-600 p-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        ${canEditRoster ? `<div class="relative shrink-0">
+                            <button type="button" onclick="toggleStudentMenu('${s.id}', event)" class="p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-navy-900 flex items-center gap-1 text-xs font-bold" title="Opciones del alumno">
+                                <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                            </button>
+                            <div id="studentMenu_${s.id}" class="student-action-menu hidden absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-30 text-xs font-semibold">
+                                <button type="button" onclick="closeAllStudentMenus(); openEditStudentModal('${s.id}')" class="w-full px-3 py-2 text-left hover:bg-slate-50 text-navy-900 flex items-center gap-2">
+                                    <i data-lucide="pencil" class="w-3.5 h-3.5 text-navy-800"></i> Editar datos
+                                </button>
+                                <button type="button" onclick="closeAllStudentMenus(); moveStudentOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="w-full px-3 py-2 text-left hover:bg-slate-50 text-navy-900 disabled:opacity-35 flex items-center gap-2">
+                                    <i data-lucide="arrow-up" class="w-3.5 h-3.5 text-slate-600"></i> Subir de lugar
+                                </button>
+                                <button type="button" onclick="closeAllStudentMenus(); moveStudentOrder(${idx}, 1)" ${idx === cls.students.length - 1 ? 'disabled' : ''} class="w-full px-3 py-2 text-left hover:bg-slate-50 text-navy-900 disabled:opacity-35 flex items-center gap-2">
+                                    <i data-lucide="arrow-down" class="w-3.5 h-3.5 text-slate-600"></i> Bajar de lugar
+                                </button>
+                                <button type="button" onclick="closeAllStudentMenus(); toggleStudentActive('${s.id}')" class="w-full px-3 py-2 text-left hover:bg-slate-50 ${isActive ? 'text-amber-700' : 'text-emerald-700'} flex items-center gap-2">
+                                    <i data-lucide="${isActive ? 'user-x' : 'user-check'}" class="w-3.5 h-3.5"></i> ${isActive ? 'Desactivar alumno' : 'Reactivar alumno'}
+                                </button>
+                                <div class="my-1 border-t border-slate-100"></div>
+                                <button type="button" onclick="closeAllStudentMenus(); deleteStudent('${s.id}')" class="w-full px-3 py-2 text-left hover:bg-red-50 text-crimson-600 flex items-center gap-2">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar alumno
+                                </button>
+                            </div>
                         </div>` : `<span class="text-[10px] font-semibold text-slate-400 px-2 shrink-0">${isActive ? 'Solo lectura' : 'Desactivado'}</span>`}
                     </div>
                 `;
