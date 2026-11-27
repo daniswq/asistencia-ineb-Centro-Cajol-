@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aula Virtual</title>
+    <meta name="theme-color" content="#0A1E40">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aula Virtual">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="logoineb-icon.png">
+    <link rel="apple-touch-icon" href="logoineb-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: { 800: '#112A56', 900: '#0A1E40', 950: '#061329' },
+                        crimson: { 600: '#C8102E', 700: '#A50D26' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+    <style>
+        html, body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: clip;
+            max-width: 100%;
+        }
+        .video-wrapper { position: relative; width: 100%; overflow: hidden; border-radius: 1rem; background-color: #061329; }
+        .video-wrapper video { width: 100%; height: auto; display: block; object-fit: cover; }
+        .video-wrapper canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .toast-enter { animation: slideInUp 0.25s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-50 text-navy-900 min-h-screen flex flex-col">
+
+    <div id="loadingOverlay" class="fixed inset-0 z-50 bg-navy-950 flex flex-col items-center justify-center text-white gap-3">
+        <div class="w-12 h-12 border-4 border-crimson-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm font-bold tracking-wide">Conectando con la Nube INEB...</p>
+    </div>
+
+    <div id="authScreen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-t-8 border-crimson-600 space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 mx-auto rounded-xl bg-white border-2 border-crimson-600 p-2 flex items-center justify-center shadow-md">
+                    <img src="logoineb.png" alt="Logo INEB Centro Cajolá" class="w-full h-full object-contain mx-auto my-auto block">
+                </div>
+                <h1 class="font-extrabold text-navy-900 text-xl tracking-wide">INEB CENTRO CAJOLÁ</h1>
+                <p class="text-xs text-slate-500 font-medium">Aula Virtual • Control de Asistencia Facial</p>
+            </div>
+
+            <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                <button type="button" id="btnShowLogin" onclick="toggleAuthMode('login')" class="py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all">Iniciar Sesión</button>
+                <button type="button" id="btnShowRegister" onclick="toggleAuthMode('register')" class="py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all">Crear Cuenta</button>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Correo Electrónico</label>
+                    <input type="email" id="loginEmail" required placeholder="docente@ineb.edu.gt" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Contraseña</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
+                </div>
+                <button type="submit" id="btnLoginSubmit" class="w-full py-3 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white font-bold text-sm shadow-md transition-all">
+                    Ingresar a mis Aulas
+                </button>
+            </form>
+
+            <form id="registerForm" onsubmit="handleRegisterTeacher(event)" class="hidden space-y-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Docente</label>
+                    <input type="text" id="regTeacherName" required placeholder="Ej. Prof. Carlos López" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Correo Electrónico</label>
+                    <input type="email" id="regTeacherEmail" required placeholder="docente@ineb.edu.gt" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Crear Contraseña (Mín. 6 caracteres)</label>
+                    <input type="password" id="regTeacherPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy-800">
+                </div>
+                <button type="submit" id="btnRegSubmit" class="w-full py-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-sm shadow-md transition-all">
+                    Crear Cuenta en la Nube
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="appContainer" class="hidden flex-1 flex flex-col w-full max-w-full overflow-x-clip">
+        <header class="bg-navy-900 text-white sticky top-0 z-30 shadow-md border-b-4 border-crimson-600 w-full">
+            <div class="max-w-5xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white p-1 border-2 border-crimson-600 flex items-center justify-center shrink-0 overflow-hidden">
+                        <img src="logoineb.png" alt="Logo INEB Centro Cajolá" class="w-full h-full object-contain">
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="font-extrabold text-white text-xs sm:text-lg tracking-wide truncate">INEB CENTRO CAJOLÁ</h1>
+                        <p class="text-[11px] text-slate-300 truncate flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                            <span id="currentTeacherName" class="font-bold text-white truncate"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <button id="btnInstallApp" type="button" onclick="triggerPwaInstall()" class="hidden items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-xs font-bold px-2.5 py-1.5 rounded-xl shadow transition-all" title="Instalar aplicación en el dispositivo">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Instalar App</span>
+                    </button>
+                    <div id="aiStatusBadge" class="flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-navy-800 text-amber-300 border border-amber-400/40">
+                        <span id="aiStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                        <span id="aiStatusText">IA...</span>
+                    </div>
+                    <button onclick="logoutTeacher()" class="p-2 rounded-xl bg-navy-800 hover:bg-crimson-600 text-slate-200 hover:text-white transition-colors" title="Cerrar Sesión">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-navy-950 border-t border-navy-800 px-3 sm:px-4 py-2 w-full">
+                <div class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
+                    <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                        <i data-lucide="layers" class="w-4 h-4 text-crimson-600 shrink-0"></i>
+                        <select id="activeClassSelector" onchange="handleClassChange()" class="bg-navy-800 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-crimson-600 min-w-0 flex-1 sm:max-w-xs truncate">
+                        </select>
+                        <button type="button" onclick="toggleGuideInfoPopover()" class="shrink-0 inline-flex items-center gap-1 bg-navy-800 hover:bg-navy-700 text-slate-200 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-700" title="Ver información del maestro guía">
+                            <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>Guía</span>
+                        </button>
+                    </div>
+                    <button onclick="openNewClassModal()" class="text-xs font-bold bg-crimson-600 hover:bg-crimson-700 text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0 w-full sm:w-auto">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Nuevo Grado / Sección (Guía)
+                    </button>
+                </div>
+
+                <div id="guideInfoBox" class="hidden max-w-5xl mx-auto mt-2 bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-xs text-slate-200 flex items-center justify-between gap-2">
+                    <span class="truncate">Maestro Guía: <strong id="classGuideInfo" class="text-white"></strong></span>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" id="btnEditGuideName" onclick="openEditGuideModal()" class="hidden inline-flex items-center gap-1 bg-crimson-600 hover:bg-crimson-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg">
+                            <i data-lucide="pencil" class="w-3 h-3"></i>
+                            <span>Editar</span>
+                        </button>
+                        <button type="button" onclick="toggleGuideInfoPopover()" class="text-[11px] text-slate-400 hover:text-white">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="bg-white border-b border-slate-200 w-full">
+                <div class="max-w-5xl mx-auto px-1.5 sm:px-4 grid grid-cols-3 gap-1">
+                    <button onclick="switchTab('scanner')" id="tab-scanner" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80 min-w-0">
+                        <i data-lucide="camera" class="w-4 h-4 text-crimson-600 shrink-0"></i>
+                        <span class="truncate">1. Escáner</span>
+                    </button>
+                    <button onclick="switchTab('register')" id="tab-register" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900 min-w-0">
+                        <i data-lucide="user-plus" class="w-4 h-4 shrink-0"></i>
+                        <span class="truncate">2. Alumnos (<span id="badgeStudentCount">0</span>)</span>
+                    </button>
+                    <button onclick="switchTab('report')" id="tab-report" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 hover:text-navy-900 min-w-0">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4 shrink-0"></i>
+                        <span class="truncate">3. Lista/Excel</span>
+                    </button>
+                </div>
+            </nav>
+        </header>
+
+        <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 pb-10 min-w-0">
+            <div id="noClassesAlert" class="hidden bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-2xl text-navy-900 shadow-sm text-center space-y-3">
+                <i data-lucide="folder-plus" class="w-10 h-10 text-amber-600 mx-auto"></i>
+                <h2 class="font-bold text-base">Aún no hay ningún Grado o Sección registrado</h2>
+                <p class="text-xs text-slate-600 max-w-md mx-auto">Crea tu grado guía para registrar a tus alumnos; una vez guardados, aparecerán automáticamente para todos los maestros autenticados.</p>
+                <button onclick="openNewClassModal()" class="px-4 py-2.5 rounded-xl bg-navy-900 text-white text-xs font-bold hover:bg-navy-800">
+                    + Crear Mi Grado Guía
+                </button>
+            </div>
+
+            <div id="workspaceViews" class="space-y-4 min-w-0">
+                <section id="view-scanner" class="space-y-4 min-w-0">
+                    <div class="grid grid-cols-3 gap-2 sm:gap-4">
+                        <div class="bg-navy-900 text-white p-2.5 sm:p-3 rounded-2xl text-center">
+                            <p class="text-[10px] sm:text-[11px] text-slate-300 font-semibold uppercase">Alumnos</p>
+                            <p id="statTotal" class="text-lg sm:text-xl font-extrabold mt-0.5">0</p>
+                        </div>
+                        <div class="bg-white p-2.5 sm:p-3 rounded-2xl border-2 border-navy-800/20 text-center">
+                            <p class="text-[10px] sm:text-[11px] text-navy-800 font-bold uppercase">Asistentes</p>
+                            <p id="statPresent" class="text-lg sm:text-xl font-extrabold text-emerald-600 mt-0.5">0</p>
+                        </div>
+                        <div class="bg-white p-2.5 sm:p-3 rounded-2xl border-2 border-crimson-600/25 text-center">
+                            <p class="text-[10px] sm:text-[11px] text-crimson-600 font-bold uppercase">Faltas</p>
+                            <p id="statAbsent" class="text-lg sm:text-xl font-extrabold text-crimson-600 mt-0.5">0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sm:p-4 space-y-4 min-w-0">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div class="min-w-0">
+                                <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Escáner Facial y Voz: <span id="scannerClassTitle" class="text-crimson-600"></span></h2>
+                                <p class="text-xs text-slate-500">Guarda tu asistencia privada en la nube en tiempo real.</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                <button id="btnVoiceAttendance" type="button" onclick="toggleVoiceAttendance()" class="flex items-center gap-1.5 bg-navy-800 hover:bg-navy-900 text-white font-bold px-3 py-2 rounded-xl text-xs transition-all">
+                                    <i data-lucide="mic" id="voiceIcon" class="w-4 h-4 text-emerald-400"></i>
+                                    <span id="btnVoiceText">Voz</span>
+                                </button>
+                                <button id="btnToggleCamera" onclick="toggleAttendanceCamera()" disabled class="flex items-center gap-1.5 bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold px-3 py-2 rounded-xl text-xs">
+                                    <i data-lucide="video" class="w-4 h-4"></i>
+                                    <span id="btnToggleCameraText">Iniciar Cámara</span>
+                                </button>
+                                <button onclick="switchCameraFacing()" class="flex items-center gap-1 bg-navy-900 hover:bg-navy-800 text-white font-semibold px-2.5 py-2 rounded-xl text-xs">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                    <span id="facingLabel">Trasera</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="voicePanel" class="hidden rounded-xl border border-navy-800/20 bg-slate-50 p-3 space-y-2">
+                            <div class="flex items-center justify-between text-xs gap-2">
+                                <span id="voiceStatusLabel" class="font-bold text-navy-900 flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span>
+                                    Escuchando... di por ejemplo: "Todos están aquí menos clave 03" o "Nadie asistió hoy"
+                                </span>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <button type="button" onclick="applyVoiceNow()" class="text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg">Aplicar</button>
+                                    <button type="button" onclick="stopVoiceAttendance()" class="text-[11px] font-bold text-crimson-600 hover:underline">Cerrar</button>
+                                </div>
+                            </div>
+                            <p id="voiceTranscriptText" class="text-xs italic text-slate-600">Esperando tu voz...</p>
+                            <p id="voiceResultSummary" class="text-xs font-semibold text-emerald-700"></p>
+                        </div>
+
+                        <div class="video-wrapper aspect-[4/3] sm:aspect-video max-h-[58vh] flex items-center justify-center border-2 border-navy-900">
+                            <video id="attendanceVideo" autoplay muted playsinline></video>
+                            <canvas id="attendanceCanvas"></canvas>
+
+                            <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-navy-950/95 text-slate-200">
+                                <i data-lucide="scan-face" class="w-12 h-12 text-crimson-600 mb-2"></i>
+                                <p class="font-bold text-white text-sm">Cámara o Micrófono Listos</p>
+                                <p class="text-xs text-slate-400 mt-1">Usa "Iniciar Cámara" para escanear rostros o "Voz" para dictar tu lista.</p>
+                            </div>
+
+                            <div id="lastDetectedBanner" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-navy-900/95 border-l-4 border-emerald-400 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0"></i>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[10px] uppercase text-emerald-300 font-bold">Tu Asistencia Guardada</p>
+                                    <p id="lastDetectedName" class="font-bold text-sm truncate"></p>
+                                </div>
+                                <span id="lastDetectedTime" class="text-xs font-mono bg-navy-800 px-2 py-1 rounded"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4 min-w-0">
+                    <div id="guideEditorCard" class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3 h-fit min-w-0">
+                        <p class="text-xs text-slate-500 truncate">Aula: <strong id="regClassLabel" class="text-navy-900"></strong></p>
+                        <button type="button" onclick="openRegisterStudentModal()" class="w-full py-3 px-4 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-colors">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                            <span>Registrar Alumno</span>
+                        </button>
+                    </div>
+
+                    <div id="readOnlyGuideNotice" class="hidden lg:col-span-4 bg-slate-100 rounded-2xl border border-slate-200 p-5 space-y-2 h-fit min-w-0">
+                        <div class="flex items-center gap-2 text-navy-900 font-bold text-sm">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-navy-800 shrink-0"></i>
+                            <span>Lista Administrada por Maestro Guía</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Este grado pertenece a <strong id="otherGuideName" class="text-navy-900"></strong>. Puedes ver la lista de alumnos y pasar tu propia asistencia privada, pero solo el maestro guía puede agregar, editar o eliminar alumnos de este grado.
+                        </p>
+                    </div>
+
+                    <div id="studentsListColumn" class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col min-w-0">
+                        <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                            <div class="min-w-0">
+                                <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Alumnos en esta Aula</h2>
+                                <p class="text-[11px] text-slate-500">Toca el nombre o la foto para ver encargado, salud, llamar o enviar WhatsApp.</p>
+                            </div>
+                            <button id="btnDeleteClass" onclick="deleteCurrentClass()" class="text-xs font-semibold text-crimson-600 hover:underline shrink-0">Eliminar Aula</button>
+                        </div>
+                        <div id="registeredStudentsList" class="mt-3 space-y-2 max-h-[480px] overflow-y-auto pb-24"></div>
+                    </div>
+                </section>
+
+                <section id="view-report" class="hidden space-y-4 min-w-0">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+                        <div class="min-w-0">
+                            <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Reporte • <span id="reportClassTitle" class="text-crimson-600"></span></h2>
+                            <p id="reportDateBadge" class="text-[11px] sm:text-xs text-slate-500 truncate"></p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            <button onclick="resetTodayAttendance()" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold">Reiniciar Día</button>
+                            <select id="exportMonthSelector" class="px-2.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-navy-900 text-xs font-bold focus:outline-none focus:border-navy-900"></select>
+                            <button onclick="exportToExcel()" class="px-3.5 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold flex items-center gap-1.5">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto max-w-full">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead class="bg-navy-900 text-white text-[10px] sm:text-[11px] uppercase">
+                                <tr>
+                                    <th class="py-2.5 px-2 sm:px-4">Clave</th>
+                                    <th class="py-2.5 px-2 sm:px-4">Estudiante</th>
+                                    <th class="py-2.5 px-2 sm:px-4">Hora</th>
+                                    <th class="py-2.5 px-2 sm:px-4">Estado</th>
+                                    <th class="py-2.5 px-2 sm:px-4 text-right">Manual</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="bg-navy-950 text-slate-300 border-t-2 border-navy-800 py-3 px-4 text-center text-xs mt-auto">
+            <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
+                <span>INEB Centro Cajolá • Aula Virtual</span>
+                <span class="font-semibold text-white">Desarrollador Web / CEO: <span id="developerCeoName" class="text-emerald-400">Nelson Danilo Pérez Díaz</span></span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Recuadro emergente para registrar un nuevo alumno -->
+    <div id="registerStudentModal" onclick="if(event.target === this) closeRegisterStudentModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-3.5 my-auto max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <div>
+                    <h3 class="font-bold text-navy-900 text-base">Registrar Nuevo Alumno</h3>
+                    <p class="text-[11px] text-slate-500">Registra clave, nombre, encargados y salud.</p>
+                </div>
+                <button type="button" onclick="closeRegisterStudentModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100" title="Cerrar">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2.5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Clave *</label>
+                        <input type="text" id="regStudentId" placeholder="Ej. 01" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Estudiante *</label>
+                        <input type="text" id="regStudentName" placeholder="Ej. María Fernanda Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Encargado Principal</label>
+                        <input type="text" id="regGuardianName" placeholder="Ej. Doña Marta Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono Encargado Principal</label>
+                        <input type="tel" id="regGuardianPhone" placeholder="Ej. 5555-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Encargado Secundario</label>
+                        <input type="text" id="regGuardian2Name" placeholder="Ej. Don Pedro Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono Encargado Secundario</label>
+                        <input type="tel" id="regGuardian2Phone" placeholder="Ej. 4444-5678" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
+                    <p class="text-[11px] font-extrabold uppercase tracking-wider text-crimson-600">Registro de Salud y Emergencias</p>
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">¿Padece alguna enfermedad o discapacidad?</label>
+                        <input type="text" id="regHealthCondition" placeholder="Ej. Ninguna / Asma / Discapacidad visual" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-navy-900 mb-1">Medicamentos que usa para tratarla</label>
+                        <input type="text" id="regHealthMedication" placeholder="Ej. Ninguno / Inhalador de salbutamol" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-navy-900">Fotografía Facial *</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="startRegCamera()" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-navy-900 text-white text-xs font-bold">
+                        <i data-lucide="camera" class="w-4 h-4"></i> Cámara
+                    </button>
+                    <button type="button" onclick="document.getElementById('regPhotoInput').click()" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-300 text-navy-900 text-xs font-bold">
+                        <i data-lucide="upload" class="w-4 h-4 text-crimson-600"></i> Subir Foto
+                    </button>
+                    <input type="file" id="regPhotoInput" accept="image/*" onchange="handlePhotoUpload(event)" class="hidden">
+                </div>
+            </div>
+
+            <div id="regMediaContainer" class="hidden relative rounded-xl overflow-hidden bg-navy-950 aspect-[4/3] flex items-center justify-center">
+                <video id="regVideo" autoplay muted playsinline class="hidden w-full h-full object-cover"></video>
+                <img id="regPreviewImg" alt="Vista previa" class="hidden w-full h-full object-cover">
+                <div id="regCameraControls" class="hidden absolute bottom-2 flex gap-2">
+                    <button type="button" onclick="switchRegCameraFacing()" class="bg-navy-900/95 border border-white/20 text-white px-3 py-2 rounded-xl text-xs font-bold shadow flex items-center gap-1">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cambiar Cámara
+                    </button>
+                    <button type="button" onclick="captureRegSnapshot()" class="bg-crimson-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow">Capturar Rostro</button>
+                </div>
+            </div>
+
+            <div id="regFaceFeedback" class="hidden text-xs px-3 py-2 rounded-xl font-semibold"></div>
+
+            <div class="flex justify-end gap-2 pt-1">
+                <button type="button" onclick="closeRegisterStudentModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
+                <button type="button" id="btnSaveStudent" onclick="saveNewStudent()" disabled class="flex-1 py-2.5 rounded-xl bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold text-sm">
+                    Guardar Alumno
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recuadro de información del alumno, encargados, salud y contacto -->
+    <div id="guardianInfoModal" onclick="if(event.target === this) closeGuardianInfoModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-3.5 my-auto max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-3 min-w-0">
+                    <img id="guardianModalPhoto" src="" alt="Foto del alumno" class="w-14 h-14 rounded-2xl object-cover border-2 border-navy-900 shrink-0">
+                    <div class="min-w-0">
+                        <span id="guardianModalCode" class="inline-block text-[11px] font-extrabold bg-navy-900 text-white px-2 py-0.5 rounded-md">Clave: —</span>
+                        <h3 id="guardianModalStudentName" class="font-extrabold text-navy-900 text-base leading-tight mt-1 break-words"></h3>
+                    </div>
+                </div>
+                <button type="button" onclick="closeGuardianInfoModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100 shrink-0" title="Cerrar">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Encargado Principal</p>
+                        <p id="guardianModalName" class="font-bold text-navy-900 text-sm mt-0.5 break-words">—</p>
+                        <p id="guardianModalPhone" class="font-mono font-bold text-slate-600 text-xs mt-0.5">—</p>
+                    </div>
+                    <div id="guardianContactButtons" class="flex items-center gap-1.5 shrink-0">
+                        <a id="btnDirectCall" href="#" class="inline-flex items-center gap-1 py-2 px-2.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-white font-bold text-[11px] shadow-sm transition-colors" title="Llamar Encargado Principal">
+                            <i data-lucide="phone-call" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                            <span>Llamar</span>
+                        </a>
+                        <a id="btnWhatsAppContact" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 py-2 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-sm transition-colors" title="WhatsApp Encargado Principal">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-white shrink-0"></i>
+                            <span>WA</span>
+                        </a>
+                    </div>
+                </div>
+                <p id="guardianNoPhoneHint" class="hidden text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg py-1.5 px-2.5 font-medium">
+                    Sin teléfono de encargado principal registrado.
+                </p>
+
+                <div class="border-t border-slate-200 pt-2 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Encargado Secundario</p>
+                        <p id="guardianModal2Name" class="font-bold text-navy-900 text-sm mt-0.5 break-words">—</p>
+                        <p id="guardianModal2Phone" class="font-mono font-bold text-slate-600 text-xs mt-0.5">—</p>
+                    </div>
+                    <div id="guardian2ContactButtons" class="flex items-center gap-1.5 shrink-0">
+                        <a id="btnDirectCall2" href="#" class="inline-flex items-center gap-1 py-2 px-2.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-white font-bold text-[11px] shadow-sm transition-colors" title="Llamar Encargado Secundario">
+                            <i data-lucide="phone-call" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                            <span>Llamar</span>
+                        </a>
+                        <a id="btnWhatsAppContact2" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 py-2 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-sm transition-colors" title="WhatsApp Encargado Secundario">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-white shrink-0"></i>
+                            <span>WA</span>
+                        </a>
+                    </div>
+                </div>
+                <p id="guardian2NoPhoneHint" class="hidden text-[11px] text-slate-500 bg-slate-100 border border-slate-200 rounded-lg py-1.5 px-2.5 font-medium">
+                    Sin teléfono de encargado secundario registrado.
+                </p>
+            </div>
+
+            <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 space-y-2 text-xs">
+                <p class="text-[10px] font-extrabold uppercase tracking-wider text-crimson-600">Ficha de Salud y Emergencia</p>
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Enfermedad o Discapacidad</p>
+                    <p id="guardianModalHealthCondition" class="font-bold text-navy-900 text-xs mt-0.5 break-words">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Medicamentos para la Enfermedad</p>
+                    <p id="guardianModalHealthMedication" class="font-semibold text-navy-900 text-xs mt-0.5 break-words">—</p>
+                </div>
+                <div class="flex items-center justify-between gap-2 pt-1 border-t border-amber-200/60">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Bomberos / Puesto de Salud</p>
+                        <p id="guardianModalEmergencyPhone" class="font-mono font-bold text-navy-900 text-xs mt-0.5">—</p>
+                    </div>
+                    <a id="btnEmergencyCall" href="#" class="hidden inline-flex items-center gap-1 py-1.5 px-2.5 rounded-lg bg-crimson-600 hover:bg-crimson-700 text-white font-bold text-[11px] shadow-sm transition-colors shrink-0">
+                        <i data-lucide="siren" class="w-3.5 h-3.5 text-white shrink-0"></i>
+                        <span id="btnEmergencyCallLabel">Emergencia</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="newClassModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4">
+        <form onsubmit="createNewClass(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border-t-4 border-crimson-600 space-y-4">
+            <h3 class="font-bold text-navy-900 text-base">Crear Grado Guía</h3>
+            <p class="text-xs text-slate-500">Quedarás asignado automáticamente como maestro guía de este grado.</p>
+            <div>
+                <label class="block text-xs font-bold text-navy-900 mb-1">Grado *</label>
+                <input type="text" id="newClassGrade" required placeholder="Ej. 1ro Básico" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-navy-900 mb-1">Sección *</label>
+                <input type="text" id="newClassSection" required placeholder="Ej. Sección A" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeNewClassModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-crimson-600 text-white text-xs font-bold">Guardar en Nube</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="editGuideModal" onclick="if(event.target === this) closeEditGuideModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4">
+        <form onsubmit="saveEditedGuide(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-3.5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 class="font-bold text-navy-900 text-base">Editar Maestro Guía</h3>
+                <button type="button" onclick="closeEditGuideModal()" class="p-1 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Maestro Guía *</label>
+                <input type="text" id="editGuideNameInput" required placeholder="Ej. Prof. Nelson Pérez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Grado *</label>
+                    <input type="text" id="editGuideGradeInput" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Sección *</label>
+                    <input type="text" id="editGuideSectionInput" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-1">
+                <button type="button" onclick="closeEditGuideModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
+                <button type="submit" id="btnSaveEditedGuide" class="px-4 py-2 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white text-xs font-bold">Guardar</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="editStudentModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4 overflow-y-auto">
+        <form onsubmit="saveEditedStudent(event)" class="bg-white rounded-2xl max-w-md w-full p-5 shadow-xl border-t-4 border-navy-900 space-y-3 my-auto max-h-[90vh] overflow-y-auto">
+            <h3 class="font-bold text-navy-900 text-base">Editar Datos del Alumno</h3>
+            <input type="hidden" id="editStudentOriginalId">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Clave *</label>
+                    <input type="text" id="editStudentId" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Completo *</label>
+                    <input type="text" id="editStudentName" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Encargado Principal</label>
+                    <input type="text" id="editGuardianName" placeholder="Ej. Doña Marta Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono Encargado Principal</label>
+                    <input type="tel" id="editGuardianPhone" placeholder="Ej. 5555-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Encargado Secundario</label>
+                    <input type="text" id="editGuardian2Name" placeholder="Ej. Don Pedro Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Teléfono Encargado Secundario</label>
+                    <input type="tel" id="editGuardian2Phone" placeholder="Ej. 4444-5678" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                </div>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
+                <p class="text-[11px] font-extrabold uppercase tracking-wider text-crimson-600">Salud y Emergencias</p>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">¿Padece alguna enfermedad o discapacidad?</label>
+                    <input type="text" id="editHealthCondition" placeholder="Ej. Ninguna / Asma" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-navy-900 mb-1">Medicamentos para tratarla</label>
+                    <input type="text" id="editHealthMedication" placeholder="Ej. Ninguno / Inhalador" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
+                </div>
+
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeEditStudentModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
+                <button type="submit" id="btnSaveEditedStudent" class="px-4 py-2 rounded-xl bg-navy-900 text-white text-xs font-bold">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyArBHe7SW2j45TOF2D1716Nw1FW-PaX20g",
+            authDomain: "ineb-cajola-asistencia.firebaseapp.com",
+            projectId: "ineb-cajola-asistencia",
+            storageBucket: "ineb-cajola-asistencia.firebasestorage.app",
+            messagingSenderId: "325897112815",
+            appId: "1:325897112815:web:986e224de175b230b85f1a",
+            measurementId: "G-0PWY2RY9EP"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const MODEL_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model/';
+
+        let currentUser = null;
+        let catalogClasses = [];
+        let myAttendanceByClass = {};
+        let activeClassId = null;
+
+        let modelsLoaded = false;
+        let faceMatcher = null;
+        let isScanning = false;
+        let attendanceStream = null;
+        let scanAnimationFrame = null;
+        let attendanceFacingMode = 'environment';
+        let lastDetectedCooldown = {};
+
+        let regStream = null;
+        let regFacingMode = 'environment';
+        let currentRegDescriptor = null;
+        let currentRegPhotoDataUrl = null;
+
+        let speechRecognition = null;
+        let isListeningVoice = false;
+        let voiceFinalBuffer = '';
+        let voiceLatestHeard = '';
+
+        window.openEditGuideModal = () => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede editar los datos de este grado.', 'error');
+                return;
+            }
+            document.getElementById('editGuideNameInput').value = cls.guideName || '';
+            document.getElementById('editGuideGradeInput').value = cls.grade || '';
+            document.getElementById('editGuideSectionInput').value = cls.section || '';
+            document.getElementById('editGuideModal').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.closeEditGuideModal = () => {
+            document.getElementById('editGuideModal').classList.add('hidden');
+        };
+
+        window.saveEditedGuide = async (e) => {
+            e.preventDefault();
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede guardar estos cambios.', 'error');
+                return;
+            }
+            const nextGuideName = document.getElementById('editGuideNameInput').value.trim();
+            const nextGrade = document.getElementById('editGuideGradeInput').value.trim();
+            const nextSection = document.getElementById('editGuideSectionInput').value.trim();
+            if (!nextGuideName || !nextGrade || !nextSection) return;
+
+            const btn = document.getElementById('btnSaveEditedGuide');
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+            try {
+                cls.guideName = nextGuideName;
+                cls.grade = nextGrade;
+                cls.section = nextSection;
+                await setDoc(doc(db, "aulas_catalogo", cls._docId || cls.id), {
+                    id: cls.id,
+                    grade: cls.grade,
+                    section: cls.section,
+                    guideUid: cls.guideUid,
+                    guideName: cls.guideName
+                }, { merge: true });
+
+                // Actualizar también el nombre registrado del docente en Firebase y debajo de INEB CENTRO CAJOLÁ
+                if (currentUser && cls.guideUid === currentUser.uid) {
+                    const headerTeacherEl = document.getElementById('currentTeacherName');
+                    if (headerTeacherEl) headerTeacherEl.textContent = nextGuideName;
+                    await updateProfile(currentUser, { displayName: nextGuideName }).catch(() => {});
+                    await setDoc(doc(db, "docentes", currentUser.uid), {
+                        name: nextGuideName,
+                        email: currentUser.email || ''
+                    }, { merge: true }).catch(() => {});
+                }
+
+                renderClassSelector();
+                window.closeEditGuideModal();
+                showToast('Nombre del maestro guía y docente actualizado.', 'success');
+            } catch (err) {
+                showToast('No se pudo actualizar: ' + (err.code || err.message), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar';
+            }
+        };
+
+        window.toggleGuideInfoPopover = () => {
+            document.getElementById('guideInfoBox').classList.toggle('hidden');
+        };
+
+        window.openRegisterStudentModal = () => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede registrar alumnos en este grado.', 'error');
+                return;
+            }
+            document.getElementById('registerStudentModal').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.closeRegisterStudentModal = () => {
+            stopRegCamera();
+            document.getElementById('regCameraControls').classList.add('hidden');
+            document.getElementById('registerStudentModal').classList.add('hidden');
+        };
+
+        function formatPhoneForLinks(rawPhone) {
+            const digits = (rawPhone || '').replace(/\D+/g, '');
+            if (!digits) return { telHref: '', waHref: '' };
+            const waNumber = digits.length === 8 ? `502${digits}` : digits;
+            return {
+                telHref: `tel:${digits}`,
+                waHref: `https://wa.me/${waNumber}`
+            };
+        }
+
+        window.openGuardianInfoModal = (studentId) => {
+            const cls = getActiveClass();
+            if (!cls) return;
+            const s = cls.students.find(st => st.id === studentId);
+            if (!s) return;
+
+            document.getElementById('guardianModalPhoto').src = s.photo || 'logoineb.png';
+            document.getElementById('guardianModalCode').textContent = `Clave: ${s.id}`;
+            document.getElementById('guardianModalStudentName').textContent = s.name;
+            document.getElementById('guardianModalName').textContent = (s.guardianName || '').trim() || 'No registrado';
+            document.getElementById('guardianModalPhone').textContent = (s.guardianPhone || '').trim() || 'No registrado';
+            document.getElementById('guardianModal2Name').textContent = (s.guardian2Name || '').trim() || 'No registrado';
+            document.getElementById('guardianModal2Phone').textContent = (s.guardian2Phone || '').trim() || 'No registrado';
+            document.getElementById('guardianModalHealthCondition').textContent = (s.healthCondition || '').trim() || 'No registrado';
+            document.getElementById('guardianModalHealthMedication').textContent = (s.healthMedication || '').trim() || 'No registrado';
+            const fixedEmergencyPhone = '46113714';
+            document.getElementById('guardianModalEmergencyPhone').textContent = fixedEmergencyPhone;
+
+            const defaultMsg = encodeURIComponent(`Buen día, le saludamos de INEB Centro Cajolá respecto al estudiante ${s.name} (Clave ${s.id}).`);
+
+            const { telHref, waHref } = formatPhoneForLinks(s.guardianPhone);
+            const buttonsWrap = document.getElementById('guardianContactButtons');
+            const noPhoneHint = document.getElementById('guardianNoPhoneHint');
+            const btnCall = document.getElementById('btnDirectCall');
+            const btnWa = document.getElementById('btnWhatsAppContact');
+
+            if (telHref && waHref) {
+                btnCall.href = telHref;
+                btnWa.href = `${waHref}?text=${defaultMsg}`;
+                buttonsWrap.classList.remove('hidden');
+                noPhoneHint.classList.add('hidden');
+            } else {
+                btnCall.href = '#';
+                btnWa.href = '#';
+                buttonsWrap.classList.add('hidden');
+                noPhoneHint.classList.remove('hidden');
+            }
+
+            const { telHref: telHref2, waHref: waHref2 } = formatPhoneForLinks(s.guardian2Phone);
+            const buttonsWrap2 = document.getElementById('guardian2ContactButtons');
+            const noPhoneHint2 = document.getElementById('guardian2NoPhoneHint');
+            const btnCall2 = document.getElementById('btnDirectCall2');
+            const btnWa2 = document.getElementById('btnWhatsAppContact2');
+
+            if (telHref2 && waHref2) {
+                btnCall2.href = telHref2;
+                btnWa2.href = `${waHref2}?text=${defaultMsg}`;
+                buttonsWrap2.classList.remove('hidden');
+                noPhoneHint2.classList.add('hidden');
+            } else {
+                btnCall2.href = '#';
+                btnWa2.href = '#';
+                buttonsWrap2.classList.add('hidden');
+                noPhoneHint2.classList.remove('hidden');
+            }
+
+            const btnEmerg = document.getElementById('btnEmergencyCall');
+            const emergLabel = document.getElementById('btnEmergencyCallLabel');
+            btnEmerg.href = `tel:${fixedEmergencyPhone}`;
+            emergLabel.textContent = `Emergencia (${fixedEmergencyPhone})`;
+            btnEmerg.classList.remove('hidden');
+
+            document.getElementById('guardianInfoModal').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.closeGuardianInfoModal = () => {
+            document.getElementById('guardianInfoModal').classList.add('hidden');
+        };
+
+        function isCurrentUserGuide(cls) {
+            return Boolean(cls && currentUser && cls.guideUid === currentUser.uid);
+        }
+
+        function getClassAttendance(classId) {
+            if (!myAttendanceByClass[classId]) myAttendanceByClass[classId] = {};
+            return myAttendanceByClass[classId];
+        }
+
+        function normalizeText(str) {
+            return (str || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function matchStudentsFromPhrase(phrase, students) {
+            const normPhrase = normalizeText(phrase);
+            if (!normPhrase) return [];
+            const tokens = normPhrase.split(' ');
+            const normalizedTokens = tokens.map(t => (/^\d+$/.test(t) ? String(parseInt(t, 10)) : t));
+            const matchedIds = new Set();
+
+            students.forEach((student) => {
+                const normName = normalizeText(student.name);
+                const normId = normalizeText(student.id);
+                const normIdNum = /^\d+$/.test(normId) ? String(parseInt(normId, 10)) : normId;
+                const nameParts = normName.split(' ').filter(p => p.length >= 2);
+
+                if (normId && (tokens.includes(normId) || (normIdNum && normalizedTokens.includes(normIdNum)))) {
+                    matchedIds.add(student.id);
+                    return;
+                }
+                if (normName && normPhrase.includes(normName)) {
+                    matchedIds.add(student.id);
+                    return;
+                }
+                for (const part of nameParts) {
+                    if (part.length >= 3 && tokens.includes(part)) {
+                        matchedIds.add(student.id);
+                        break;
+                    }
+                }
+            });
+            return Array.from(matchedIds);
+        }
+
+        async function applyVoiceAttendanceCommand(transcript) {
+            const cls = getActiveClass();
+            const activeStudents = cls ? cls.students.filter(s => s.active !== false) : [];
+            if (!cls || activeStudents.length === 0) {
+                showToast('No hay alumnos activos registrados en esta aula.', 'error');
+                return;
+            }
+            const rawClean = (transcript || '').trim();
+            if (!rawClean) {
+                showToast('No se detectó ninguna frase para aplicar.', 'error');
+                return;
+            }
+
+            const norm = normalizeText(rawClean);
+            const classAttendance = getClassAttendance(cls.id);
+            const today = getTodayStr();
+            if (!classAttendance[today]) classAttendance[today] = {};
+            const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+
+            cls.students.filter(s => s.active === false).forEach((s) => {
+                delete classAttendance[today][s.id];
+            });
+
+            const hasNoneKeyword = /\b(nadie|ninguno|ninguna|ningun|cero|nadie asistio|ninguno asistio|nadie bino|nadie vino|no asistio nadie|no vino nadie)\b/.test(norm);
+            const hasAllKeyword = !hasNoneKeyword && /\b(todos|todas|todo el mundo|la clase completa|presentes todos|todos vinieron|todos binieron|todos asistieron|todos estan aqui|todos estan presentes)\b/.test(norm);
+            const splitExceptMatch = norm.match(/\b(excepto|menos|salvo|fuera de|sin)\b([\s\S]*)/);
+            const splitAbsentOnlyMatch = !hasAllKeyword && !hasNoneKeyword && /\b(falta|faltan|falto|faltaron|ausente|ausentes|no vino|no vinieron|no bino|no binieron|no asistio|no asistieron)\b([\s\S]*)/.test(norm)
+                ? norm.match(/\b(falta|faltan|falto|faltaron|ausente|ausentes|no vino|no vinieron|no bino|no binieron|no asistio|no asistieron)\b([\s\S]*)/)
+                : null;
+
+            let absentIds = [];
+            let presentIds = [];
+
+            if (hasNoneKeyword) {
+                activeStudents.forEach((s) => {
+                    classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
+                    absentIds.push(s.id);
+                });
+            } else if (hasAllKeyword && splitExceptMatch) {
+                absentIds = matchStudentsFromPhrase(splitExceptMatch[2] || '', activeStudents);
+                activeStudents.forEach((s) => {
+                    if (absentIds.includes(s.id)) {
+                        classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
+                    } else {
+                        classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr };
+                        presentIds.push(s.id);
+                    }
+                });
+            } else if (hasAllKeyword) {
+                activeStudents.forEach((s) => {
+                    classAttendance[today][s.id] = { status: 'ASISTENTE', time: timeStr };
+                    presentIds.push(s.id);
+                });
+            } else if (splitAbsentOnlyMatch) {
+                absentIds = matchStudentsFromPhrase(splitAbsentOnlyMatch[2] || norm, activeStudents);
+                absentIds.forEach((id) => {
+                    classAttendance[today][id] = { status: 'INASISTENTE', time: '--:--' };
+                });
+            } else {
+                presentIds = matchStudentsFromPhrase(norm, activeStudents);
+                presentIds.forEach((id) => {
+                    classAttendance[today][id] = { status: 'ASISTENTE', time: timeStr };
+                });
+            }
+
+            renderAllUI();
+            await saveMyPrivateAttendanceToCloud();
+
+            const absentNames = activeStudents.filter(s => absentIds.includes(s.id)).map(s => s.name);
+            const presentNames = activeStudents.filter(s => presentIds.includes(s.id)).map(s => s.name);
+            const summaryEl = document.getElementById('voiceResultSummary');
+
+            if (hasNoneKeyword) {
+                summaryEl.textContent = `Guardado: nadie asistió (${absentIds.length} activos marcados como inasistentes).`;
+            } else if (hasAllKeyword && splitExceptMatch) {
+                summaryEl.textContent = absentNames.length > 0
+                    ? `Guardado: ${presentIds.length} asistentes. Faltas: ${absentNames.join(', ')}.`
+                    : `Guardado: todos los activos (${presentIds.length}) marcados como asistentes.`;
+            } else if (hasAllKeyword) {
+                summaryEl.textContent = `Guardado: todos los activos (${presentIds.length}) marcados como asistentes.`;
+            } else if (splitAbsentOnlyMatch) {
+                summaryEl.textContent = absentNames.length > 0
+                    ? `Marcados como falta: ${absentNames.join(', ')}.`
+                    : 'No se reconoció ningún alumno activo para marcar falta en la frase.';
+            } else {
+                summaryEl.textContent = presentNames.length > 0
+                    ? `Guardado como asistentes: ${presentNames.join(', ')}.`
+                    : 'No se reconoció ningún alumno activo de esta aula en la frase.';
+            }
+            showToast('Asistencia por voz actualizada.', 'success');
+        }
+
+        window.applyVoiceNow = async () => {
+            const spoken = (voiceFinalBuffer || voiceLatestHeard || '').trim();
+            window.stopVoiceAttendance();
+            await applyVoiceAttendanceCommand(spoken);
+        };
+
+        window.toggleVoiceAttendance = () => {
+            if (isListeningVoice) window.stopVoiceAttendance();
+            else startVoiceAttendance();
+        };
+
+        function startVoiceAttendance() {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRec) {
+                showToast('Tu navegador no soporta reconocimiento de voz.', 'error');
+                return;
+            }
+            const cls = getActiveClass();
+            if (!cls || cls.students.filter(s => s.active !== false).length === 0) {
+                showToast('Este grado no tiene alumnos activos registrados.', 'error');
+                return;
+            }
+            stopAttendanceCamera();
+
+            const panel = document.getElementById('voicePanel');
+            const transcriptEl = document.getElementById('voiceTranscriptText');
+            const summaryEl = document.getElementById('voiceResultSummary');
+            const statusLabel = document.getElementById('voiceStatusLabel');
+            const btnText = document.getElementById('btnVoiceText');
+
+            panel.classList.remove('hidden');
+            transcriptEl.textContent = 'Escuchando...';
+            summaryEl.textContent = '';
+            statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span> Escuchando... di por ejemplo: "Todos están aquí menos clave 03" o "Nadie asistió hoy"';
+            btnText.textContent = 'Detener';
+
+            voiceFinalBuffer = '';
+            voiceLatestHeard = '';
+            isListeningVoice = true;
+
+            speechRecognition = new SpeechRec();
+            speechRecognition.lang = 'es-GT';
+            speechRecognition.interimResults = true;
+            speechRecognition.maxAlternatives = 1;
+
+            speechRecognition.onresult = (event) => {
+                let interim = '';
+                let builtFinal = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    const res = event.results[i];
+                    const txt = (res[0] && res[0].transcript) ? res[0].transcript : '';
+                    if (res.isFinal) builtFinal += txt + ' ';
+                    else interim += txt + ' ';
+                }
+                if (builtFinal.trim()) {
+                    voiceFinalBuffer = builtFinal.trim();
+                }
+                voiceLatestHeard = (voiceFinalBuffer + ' ' + interim).trim();
+                transcriptEl.textContent = `"${voiceLatestHeard || 'Escuchando...'}"`;
+            };
+
+            speechRecognition.onerror = (event) => {
+                showToast('Error de micrófono: ' + event.error, 'error');
+                window.stopVoiceAttendance();
+            };
+
+            speechRecognition.onend = async () => {
+                const hadSession = isListeningVoice;
+                isListeningVoice = false;
+                btnText.textContent = 'Voz';
+                speechRecognition = null;
+                if (!hadSession) return;
+                const spoken = (voiceFinalBuffer || voiceLatestHeard || '').trim();
+                if (spoken) {
+                    await applyVoiceAttendanceCommand(spoken);
+                    statusLabel.textContent = 'Comando aplicado. Puedes pulsar "Voz" para otro dictado.';
+                } else {
+                    statusLabel.textContent = 'No se detectó voz. Intenta de nuevo.';
+                }
+            };
+
+            try {
+                speechRecognition.start();
+            } catch (_) {
+                isListeningVoice = false;
+                btnText.textContent = 'Voz';
+                showToast('No se pudo iniciar el micrófono.', 'error');
+            }
+        }
+
+        window.stopVoiceAttendance = () => {
+            const wasListening = isListeningVoice;
+            isListeningVoice = false;
+            document.getElementById('btnVoiceText').textContent = 'Voz';
+            if (speechRecognition) {
+                try {
+                    if (wasListening) speechRecognition.stop();
+                } catch (_) {}
+                speechRecognition = null;
+            }
+        };
+
+        window.toggleAuthMode = (mode) => {
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('registerForm');
+            const btnLogin = document.getElementById('btnShowLogin');
+            const btnReg = document.getElementById('btnShowRegister');
+            if (mode === 'login') {
+                loginForm.classList.remove('hidden'); regForm.classList.add('hidden');
+                btnLogin.className = 'py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all';
+                btnReg.className = 'py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all';
+            } else {
+                loginForm.classList.add('hidden'); regForm.classList.remove('hidden');
+                btnReg.className = 'py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all';
+                btnLogin.className = 'py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all';
+            }
+        };
+
+        window.handleRegisterTeacher = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regTeacherName').value.trim();
+            const email = document.getElementById('regTeacherEmail').value.trim();
+            const password = document.getElementById('regTeacherPassword').value;
+            const btn = document.getElementById('btnRegSubmit');
+            btn.disabled = true; btn.textContent = 'Creando cuenta en Firebase...';
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCredential.user, { displayName: name });
+                await setDoc(doc(db, "docentes", userCredential.user.uid), { name, email, attendanceByClass: {}, classesMigrated: true }, { merge: true });
+                showToast('¡Cuenta creada!', 'success');
+            } catch (error) { showToast('Error al registrar: ' + error.message, 'error'); }
+            finally { btn.disabled = false; btn.textContent = 'Crear Cuenta en la Nube'; }
+        };
+
+        window.handleLogin = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('btnLoginSubmit');
+            btn.disabled = true; btn.textContent = 'Verificando credenciales...';
+            try { await signInWithEmailAndPassword(auth, email, password); showToast('Sesión iniciada correctamente.', 'success'); }
+            catch (_) { showToast('Correo o contraseña incorrectos.', 'error'); }
+            finally { btn.disabled = false; btn.textContent = 'Ingresar a mis Aulas'; }
+        };
+
+        window.logoutTeacher = async () => { stopAttendanceCamera(); stopRegCamera(); window.stopVoiceAttendance(); await signOut(auth); };
+
+        onAuthStateChanged(auth, async (user) => {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            if (user) {
+                currentUser = user;
+                document.getElementById('currentTeacherName').textContent = user.displayName || user.email;
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                await loadSharedCatalogAndPrivateAttendance();
+                await loadFaceApiModels();
+            } else {
+                currentUser = null; catalogClasses = []; myAttendanceByClass = {}; activeClassId = null;
+                document.getElementById('appContainer').classList.add('hidden');
+                document.getElementById('authScreen').classList.remove('hidden');
+            }
+        });
+
+        function sanitizeFirestoreDocId(rawId) {
+            return String(rawId || '').trim().replace(/[\/\\]+/g, '_');
+        }
+
+        function parseDescriptorArray(rawDesc) {
+            if (!rawDesc) return [];
+            if (Array.isArray(rawDesc)) return rawDesc.map(n => Number(n) || 0);
+            if (rawDesc instanceof Float32Array) return Array.from(rawDesc);
+            if (typeof rawDesc === 'object') {
+                const keys = Object.keys(rawDesc).filter(k => /^\d+$/.test(k)).sort((a, b) => Number(a) - Number(b));
+                return keys.map(k => Number(rawDesc[k]) || 0);
+            }
+            return [];
+        }
+
+        function extractStudentName(s) {
+            if (!s) return '';
+            const raw = s.name || s.nombre || s.fullName || s.studentName || s.estudiante || '';
+            const clean = String(raw).trim();
+            return clean.toLowerCase() === 'sin nombre' ? '' : clean;
+        }
+
+        function mergeStudentSources(baseStudent, incomingStudent, fallbackOrder = 0) {
+            const base = baseStudent || {};
+            const inc = incomingStudent || {};
+            const resolvedId = String(inc.id || base.id || '').trim();
+            const resolvedName = extractStudentName(inc) || extractStudentName(base) || 'Sin nombre';
+            const incDesc = parseDescriptorArray(inc.descriptor);
+            const baseDesc = parseDescriptorArray(base.descriptor);
+            const resolvedDesc = incDesc.length > 0 ? incDesc : baseDesc;
+            const incPhoto = (inc.photo && inc.photo !== 'logoineb.png') ? inc.photo : '';
+            const basePhoto = (base.photo && base.photo !== 'logoineb.png') ? base.photo : '';
+            const resolvedPhoto = incPhoto || basePhoto || 'logoineb.png';
+            const resolvedOrder = typeof inc._order === 'number'
+                ? inc._order
+                : (typeof base._order === 'number' ? base._order : fallbackOrder);
+
+            return {
+                ...base,
+                ...inc,
+                id: resolvedId,
+                name: resolvedName,
+                _order: resolvedOrder,
+                guardianName: (inc.guardianName || base.guardianName || '').trim(),
+                guardianPhone: (inc.guardianPhone || base.guardianPhone || '').trim(),
+                guardian2Name: (inc.guardian2Name || base.guardian2Name || '').trim(),
+                guardian2Phone: (inc.guardian2Phone || base.guardian2Phone || '').trim(),
+                healthCondition: (inc.healthCondition || base.healthCondition || '').trim(),
+                healthMedication: (inc.healthMedication || base.healthMedication || '').trim(),
+                emergencyPhone: (inc.emergencyPhone || base.emergencyPhone || '').trim(),
+                active: inc.active !== undefined ? inc.active !== false : (base.active !== false),
+                photo: resolvedPhoto,
+                descriptor: new Float32Array(resolvedDesc)
+            };
+        }
+
+        function mapStudentRecord(s, fallbackOrder = 0) {
+            return mergeStudentSources(null, s, fallbackOrder);
+        }
+
+        async function loadSharedCatalogAndPrivateAttendance() {
+            const loadedClasses = [];
+            let debugErrors = [];
+
+            try {
+                const catalogSnap = await getDocs(collection(db, "aulas_catalogo"));
+                for (const docSnap of catalogSnap.docs) {
+                    const data = docSnap.data();
+                    const classId = data.id || docSnap.id;
+                    const studentsMap = new Map();
+
+                    (data.students || []).forEach((s, idx) => {
+                        if (s && s.id) {
+                            const sid = String(s.id).trim();
+                            studentsMap.set(sid, mergeStudentSources(studentsMap.get(sid), { ...s, id: sid }, idx));
+                        }
+                    });
+
+                    try {
+                        const alunosSnap = await getDocs(collection(db, "aulas_catalogo", docSnap.id, "alumnos"));
+                        alunosSnap.forEach((aDoc) => {
+                            try {
+                                const s = aDoc.data();
+                                const sid = String((s && s.id) || aDoc.id).trim();
+                                if (s && sid) {
+                                    const prevEntry = studentsMap.get(sid);
+                                    const merged = mergeStudentSources(prevEntry, { ...s, id: sid }, prevEntry ? prevEntry._order : 999999);
+                                    studentsMap.set(sid, merged);
+                                }
+                            } catch (oneErr) {
+                                debugErrors.push(`Alumno ${aDoc.id}: ${oneErr.message}`);
+                            }
+                        });
+                    } catch (subErr) {
+                        debugErrors.push(`Subcolección alumnos (${docSnap.id}): ${subErr.code || subErr.message}`);
+                    }
+
+                    const orderedStudents = Array.from(studentsMap.values())
+                        .sort((a, b) => (a._order ?? 0) - (b._order ?? 0))
+                        .map(({ _order, ...rest }) => rest);
+
+                    loadedClasses.push({
+                        id: classId,
+                        _docId: docSnap.id,
+                        grade: data.grade || '',
+                        section: data.section || '',
+                        guideUid: data.guideUid || '',
+                        guideName: data.guideName || 'Docente Guía',
+                        students: orderedStudents
+                    });
+                }
+            } catch (catErr) {
+                debugErrors.push(`aulas_catalogo: ${catErr.code || catErr.message}`);
+            }
+
+            try {
+                const teacherRef = doc(db, "docentes", currentUser.uid);
+                const teacherSnap = await getDoc(teacherRef);
+                if (teacherSnap.exists()) {
+                    const tData = teacherSnap.data();
+                    if (tData.name && document.getElementById('currentTeacherName')) {
+                        document.getElementById('currentTeacherName').textContent = tData.name;
+                    }
+                    myAttendanceByClass = tData.attendanceByClass || {};
+
+                    if (Array.isArray(tData.classes) && tData.classes.length > 0) {
+                        let recoveredAny = false;
+                        for (const legacyCls of tData.classes) {
+                            const existing = loadedClasses.find(c => c.id === legacyCls.id || (c.grade === legacyCls.grade && c.section === legacyCls.section));
+                            const legacyStudents = (legacyCls.students || []).map((s, idx) => mapStudentRecord(s, idx));
+
+                            if (!existing) {
+                                const migratedClass = {
+                                    id: legacyCls.id,
+                                    grade: legacyCls.grade,
+                                    section: legacyCls.section,
+                                    guideUid: currentUser.uid,
+                                    guideName: currentUser.displayName || currentUser.email || 'Docente Guía',
+                                    students: legacyStudents
+                                };
+                                await saveClassCatalogToCloud(migratedClass);
+                                loadedClasses.push(migratedClass);
+                                recoveredAny = true;
+                            } else if (legacyStudents.length > 0) {
+                                let classUpdated = false;
+                                legacyStudents.forEach((legSt, idx) => {
+                                    const curIdx = existing.students.findIndex(st => String(st.id).trim() === String(legSt.id).trim());
+                                    if (curIdx === -1) {
+                                        existing.students.push(legSt);
+                                        classUpdated = true;
+                                    } else {
+                                        const before = existing.students[curIdx];
+                                        const merged = mergeStudentSources(before, legSt, idx);
+                                        if ((!extractStudentName(before) && extractStudentName(merged)) ||
+                                            ((!before.photo || before.photo === 'logoineb.png') && merged.photo !== 'logoineb.png') ||
+                                            ((!before.descriptor || before.descriptor.length === 0) && merged.descriptor.length > 0)) {
+                                            existing.students[curIdx] = merged;
+                                            classUpdated = true;
+                                        }
+                                    }
+                                });
+                                if (classUpdated) {
+                                    await saveClassCatalogToCloud(existing);
+                                    recoveredAny = true;
+                                }
+                            }
+                            if (legacyCls.attendance && !myAttendanceByClass[legacyCls.id]) {
+                                myAttendanceByClass[legacyCls.id] = legacyCls.attendance;
+                            }
+                        }
+                        if (recoveredAny) {
+                            showToast('Se recuperaron los nombres y fotos de tus alumnos.', 'success');
+                        }
+                        await setDoc(teacherRef, { name: tData.name || currentUser.displayName || '', email: currentUser.email || '', attendanceByClass: myAttendanceByClass, classesMigrated: true }, { merge: true });
+                    }
+                } else {
+                    myAttendanceByClass = {};
+                    await setDoc(teacherRef, { name: currentUser.displayName || '', email: currentUser.email || '', attendanceByClass: {}, classesMigrated: true }, { merge: true });
+                }
+            } catch (docErr) {
+                debugErrors.push(`docentes: ${docErr.code || docErr.message}`);
+            }
+
+            if (debugErrors.length > 0) {
+                console.error("Errores Firestore:", debugErrors);
+                showToast('Aviso nube: ' + debugErrors[0], 'error');
+            }
+
+            loadedClasses.sort((a, b) => `${a.grade} ${a.section}`.localeCompare(`${b.grade} ${b.section}`));
+            catalogClasses = loadedClasses;
+            renderClassSelector();
+        }
+
+        function serializeStudentDoc(s, orderIndex = 0) {
+            return {
+                id: s.id,
+                name: s.name,
+                guardianName: s.guardianName || '',
+                guardianPhone: s.guardianPhone || '',
+                guardian2Name: s.guardian2Name || '',
+                guardian2Phone: s.guardian2Phone || '',
+                healthCondition: s.healthCondition || '',
+                healthMedication: s.healthMedication || '',
+                emergencyPhone: s.emergencyPhone || '',
+                active: s.active !== false,
+                photo: s.photo,
+                descriptor: Array.from(s.descriptor || []),
+                _order: orderIndex
+            };
+        }
+
+        async function saveClassMetaToCloud(cls) {
+            if (!currentUser || !cls) return false;
+            try {
+                await setDoc(doc(db, "aulas_catalogo", cls.id), {
+                    id: cls.id,
+                    grade: cls.grade,
+                    section: cls.section,
+                    guideUid: cls.guideUid,
+                    guideName: cls.guideName
+                }, { merge: true });
+                return true;
+            } catch (err) { showToast('Error al guardar aula en Firestore: ' + (err.code || err.message), 'error'); return false; }
+        }
+
+        async function saveSingleStudentToCloud(cls, student, orderIndex = 0) {
+            if (!currentUser || !cls || !student) return false;
+            const targetClassDocId = cls._docId || cls.id;
+            const safeStudentDocId = sanitizeFirestoreDocId(student.id);
+            if (!safeStudentDocId) return false;
+            try {
+                await setDoc(doc(db, "aulas_catalogo", targetClassDocId, "alumnos", safeStudentDocId), serializeStudentDoc(student, orderIndex));
+                return true;
+            } catch (err) { showToast('Error al guardar alumno en Firestore: ' + (err.code || err.message), 'error'); return false; }
+        }
+
+        async function deleteSingleStudentFromCloud(classId, studentId) {
+            if (!currentUser || !classId || !studentId) return false;
+            const clsObj = catalogClasses.find(c => c.id === classId || c._docId === classId);
+            const targetClassDocId = (clsObj && (clsObj._docId || clsObj.id)) || classId;
+            const safeStudentDocId = sanitizeFirestoreDocId(studentId);
+            if (!safeStudentDocId) return false;
+            try {
+                await deleteDoc(doc(db, "aulas_catalogo", targetClassDocId, "alumnos", safeStudentDocId));
+                if (safeStudentDocId !== studentId) {
+                    await deleteDoc(doc(db, "aulas_catalogo", targetClassDocId, "alumnos", studentId)).catch(() => {});
+                }
+                return true;
+            } catch (err) { showToast('Error al eliminar alumno en Firestore: ' + (err.code || err.message), 'error'); return false; }
+        }
+
+        async function saveStudentsOrderToCloud(cls) {
+            if (!currentUser || !cls) return false;
+            const targetClassDocId = cls._docId || cls.id;
+            try {
+                const batch = writeBatch(db);
+                (cls.students || []).forEach((s, idx) => {
+                    const safeStudentDocId = sanitizeFirestoreDocId(s.id);
+                    if (safeStudentDocId) {
+                        batch.set(doc(db, "aulas_catalogo", targetClassDocId, "alumnos", safeStudentDocId), { _order: idx }, { merge: true });
+                    }
+                });
+                await batch.commit();
+                return true;
+            } catch (err) { showToast('Error al guardar orden en Firestore: ' + (err.code || err.message), 'error'); return false; }
+        }
+
+        async function saveClassCatalogToCloud(cls) {
+            if (!currentUser || !cls) return false;
+            try {
+                const metaOk = await saveClassMetaToCloud(cls);
+                if (!metaOk) return false;
+                const targetClassDocId = cls._docId || cls.id;
+                const batch = writeBatch(db);
+                (cls.students || []).forEach((s, idx) => {
+                    const safeStudentDocId = sanitizeFirestoreDocId(s.id);
+                    if (safeStudentDocId) {
+                        batch.set(doc(db, "aulas_catalogo", targetClassDocId, "alumnos", safeStudentDocId), serializeStudentDoc(s, idx));
+                    }
+                });
+                await batch.commit();
+                return true;
+            } catch (err) { showToast('Error al guardar en Firestore: ' + (err.code || err.message), 'error'); return false; }
+        }
+
+        async function saveMyPrivateAttendanceToCloud() {
+            if (!currentUser) return false;
+            try {
+                const shownName = document.getElementById('currentTeacherName')?.textContent?.trim() || currentUser.displayName || '';
+                await setDoc(doc(db, "docentes", currentUser.uid), { name: shownName, email: currentUser.email || '', attendanceByClass: myAttendanceByClass }, { merge: true });
+                return true;
+            } catch (err) { showToast('Error al guardar asistencia: ' + (err.code || err.message), 'error'); return false; }
+        }
+
+        window.openNewClassModal = () => document.getElementById('newClassModal').classList.remove('hidden');
+        window.closeNewClassModal = () => { document.getElementById('newClassModal').classList.add('hidden'); document.getElementById('newClassGrade').value = ''; document.getElementById('newClassSection').value = ''; };
+
+        window.createNewClass = async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+            const grade = document.getElementById('newClassGrade').value.trim();
+            const section = document.getElementById('newClassSection').value.trim();
+            const guideName = document.getElementById('currentTeacherName')?.textContent?.trim() || currentUser.displayName || currentUser.email || 'Docente Guía';
+            const newClass = { id: 'class_' + Date.now(), grade, section, guideUid: currentUser.uid, guideName, students: [] };
+            catalogClasses.push(newClass);
+            activeClassId = newClass.id;
+            closeNewClassModal();
+            renderClassSelector();
+            if (await saveClassMetaToCloud(newClass)) showToast(`Grado guía "${grade} - ${section}" creado.`, 'success');
+        };
+
+        function renderClassSelector() {
+            const selector = document.getElementById('activeClassSelector');
+            const noClassesAlert = document.getElementById('noClassesAlert');
+            const workspace = document.getElementById('workspaceViews');
+            if (catalogClasses.length === 0) {
+                selector.innerHTML = '<option value="">Sin aulas creadas</option>';
+                noClassesAlert.classList.remove('hidden'); workspace.classList.add('hidden'); return;
+            }
+            noClassesAlert.classList.add('hidden'); workspace.classList.remove('hidden');
+            selector.innerHTML = catalogClasses.map(c => `<option value="${c.id}">${c.grade} - ${c.section} (${c.students.length})</option>`).join('');
+            if (!activeClassId || !catalogClasses.some(c => c.id === activeClassId)) activeClassId = catalogClasses[0].id;
+            selector.value = activeClassId;
+            window.handleClassChange();
+        }
+
+        function getActiveClass() { return catalogClasses.find(c => c.id === activeClassId); }
+
+        function updateGuidePermissionsUI(cls) {
+            if (!cls) return;
+            const canEditRoster = isCurrentUserGuide(cls);
+            const editBtn = document.getElementById('btnEditGuideName');
+            if (editBtn) editBtn.classList.toggle('hidden', !canEditRoster);
+            document.getElementById('classGuideInfo').textContent = canEditRoster ? `${cls.guideName} (Tú eres el guía)` : cls.guideName;
+            if (canEditRoster) {
+                document.getElementById('guideEditorCard').classList.remove('hidden');
+                document.getElementById('readOnlyGuideNotice').classList.add('hidden');
+                document.getElementById('btnDeleteClass').classList.remove('hidden');
+            } else {
+                closeRegisterStudentModal();
+                document.getElementById('regMediaContainer').classList.add('hidden');
+                document.getElementById('guideEditorCard').classList.add('hidden');
+                document.getElementById('readOnlyGuideNotice').classList.remove('hidden');
+                document.getElementById('otherGuideName').textContent = cls.guideName;
+                document.getElementById('btnDeleteClass').classList.add('hidden');
+            }
+        }
+
+        window.handleClassChange = () => {
+            stopAttendanceCamera(); window.stopVoiceAttendance();
+            activeClassId = document.getElementById('activeClassSelector').value;
+            const cls = getActiveClass();
+            if (!cls) return;
+            const title = `${cls.grade} (${cls.section})`;
+            document.getElementById('scannerClassTitle').textContent = title;
+            document.getElementById('regClassLabel').textContent = title;
+            document.getElementById('reportClassTitle').textContent = title;
+            const shownTeacher = document.getElementById('currentTeacherName')?.textContent?.trim() || currentUser?.displayName || currentUser?.email || 'Docente';
+            document.getElementById('reportDateBadge').textContent = `${getTodayStr()} • ${shownTeacher}`;
+            updateGuidePermissionsUI(cls);
+            rebuildFaceMatcher();
+            renderAllUI();
+        };
+
+        window.deleteCurrentClass = async () => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede eliminar este grado.', 'error'); return; }
+            if (!confirm(`¿Seguro que deseas eliminar el aula ${cls.grade} - ${cls.section}?`)) return;
+            const deletedId = cls.id;
+            const docId = cls._docId || cls.id;
+            try {
+                const alumnosSnap = await getDocs(collection(db, "aulas_catalogo", docId, "alumnos"));
+                if (!alumnosSnap.empty) {
+                    const batch = writeBatch(db);
+                    alumnosSnap.forEach((aDoc) => batch.delete(aDoc.ref));
+                    await batch.commit();
+                }
+                await deleteDoc(doc(db, "aulas_catalogo", docId));
+                if (docId !== deletedId) {
+                    await deleteDoc(doc(db, "aulas_catalogo", deletedId));
+                }
+                if (myAttendanceByClass[deletedId]) {
+                    delete myAttendanceByClass[deletedId];
+                }
+                if (currentUser) {
+                    const teacherRef = doc(db, "docentes", currentUser.uid);
+                    const teacherSnap = await getDoc(teacherRef);
+                    if (teacherSnap.exists()) {
+                        const tData = teacherSnap.data();
+                        const cleanedLegacy = Array.isArray(tData.classes)
+                            ? tData.classes.filter(c => c.id !== deletedId && !(c.grade === cls.grade && c.section === cls.section))
+                            : [];
+                        await setDoc(teacherRef, {
+                            classes: cleanedLegacy,
+                            attendanceByClass: myAttendanceByClass,
+                            classesMigrated: true
+                        }, { merge: true });
+                    }
+                }
+                catalogClasses = catalogClasses.filter(c => c.id !== deletedId);
+                activeClassId = null;
+                renderClassSelector();
+                showToast('Aula eliminada permanentemente de la nube.', 'success');
+            } catch (err) {
+                console.error('Error al eliminar aula:', err);
+                showToast('No se pudo eliminar el aula: ' + (err.code || err.message), 'error');
+            }
+        };
+
+        async function loadFaceApiModels() {
+            const dot = document.getElementById('aiStatusDot');
+            const text = document.getElementById('aiStatusText');
+            try {
+                await faceapi.tf.setBackend('webgl'); await faceapi.tf.ready();
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                ]);
+                modelsLoaded = true; rebuildFaceMatcher();
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-400'; text.textContent = 'IA Lista';
+                document.getElementById('btnToggleCamera').disabled = false;
+            } catch (_) { text.textContent = 'Error IA'; }
+        }
+
+        function rebuildFaceMatcher() {
+            const cls = getActiveClass();
+            const activeStudents = cls
+                ? cls.students.filter(s => s.active !== false && s.descriptor && s.descriptor.length === 128)
+                : [];
+            if (!cls || activeStudents.length === 0 || !modelsLoaded) { faceMatcher = null; return; }
+            faceMatcher = new faceapi.FaceMatcher(activeStudents.map(s => new faceapi.LabeledFaceDescriptors(s.id, [s.descriptor])), 0.58);
+        }
+
+        function compressImageToDataUrl(imgElement, maxSize = 220) {
+            const canvas = document.createElement('canvas');
+            let width = imgElement.naturalWidth || imgElement.videoWidth || imgElement.width || maxSize;
+            let height = imgElement.naturalHeight || imgElement.videoHeight || imgElement.height || maxSize;
+            if (width > height && width > maxSize) { height = Math.round((height * maxSize) / width); width = maxSize; }
+            else if (height > maxSize) { width = Math.round((width * maxSize) / height); height = maxSize; }
+            canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(imgElement, 0, 0, width, height);
+            return canvas.toDataURL('image/jpeg', 0.7);
+        }
+
+        window.handlePhotoUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('regPreviewImg');
+                img.onload = async () => { currentRegPhotoDataUrl = compressImageToDataUrl(img); await processAndExtractFace(img); };
+                img.src = e.target.result; img.classList.remove('hidden');
+                document.getElementById('regVideo').classList.add('hidden');
+                document.getElementById('regMediaContainer').classList.remove('hidden');
+                document.getElementById('regCameraControls').classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.startRegCamera = async () => {
+            stopRegCamera();
+            document.getElementById('regMediaContainer').classList.remove('hidden');
+            const video = document.getElementById('regVideo');
+            video.classList.remove('hidden');
+            document.getElementById('regPreviewImg').classList.add('hidden');
+            document.getElementById('regCameraControls').classList.remove('hidden');
+            try {
+                regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: regFacingMode } });
+                video.srcObject = regStream;
+                lucide.createIcons();
+            }
+            catch (_) { showToast('No se pudo abrir la cámara.', 'error'); }
+        };
+
+        window.switchRegCameraFacing = async () => {
+            regFacingMode = regFacingMode === 'environment' ? 'user' : 'environment';
+            await window.startRegCamera();
+        };
+
+        function stopRegCamera() { if (regStream) { regStream.getTracks().forEach(t => t.stop()); regStream = null; } }
+
+        window.captureRegSnapshot = async () => {
+            const video = document.getElementById('regVideo');
+            currentRegPhotoDataUrl = compressImageToDataUrl(video);
+            const img = document.getElementById('regPreviewImg');
+            img.onload = async () => await processAndExtractFace(img);
+            img.src = currentRegPhotoDataUrl; img.classList.remove('hidden');
+            video.classList.add('hidden'); document.getElementById('regCameraControls').classList.add('hidden');
+            stopRegCamera();
+        };
+
+        async function processAndExtractFace(mediaElement) {
+            const fb = document.getElementById('regFaceFeedback');
+            fb.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'bg-red-50', 'text-crimson-700');
+            fb.textContent = 'Analizando rostro con IA...';
+            const detection = await faceapi.detectSingleFace(mediaElement, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })).withFaceLandmarks(true).withFaceDescriptor();
+            if (detection) {
+                currentRegDescriptor = detection.descriptor;
+                fb.classList.add('bg-emerald-50', 'text-emerald-700'); fb.textContent = '¡Rostro detectado y listo para guardar!';
+                document.getElementById('btnSaveStudent').disabled = false;
+            } else {
+                currentRegDescriptor = null;
+                fb.classList.add('bg-red-50', 'text-crimson-700'); fb.textContent = 'No se detectó un rostro claro.';
+                document.getElementById('btnSaveStudent').disabled = true;
+            }
+        }
+
+        window.saveNewStudent = async () => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede registrar alumnos.', 'error'); return; }
+            const id = document.getElementById('regStudentId').value.trim();
+            const name = document.getElementById('regStudentName').value.trim();
+            const guardianName = document.getElementById('regGuardianName').value.trim();
+            const guardianPhone = document.getElementById('regGuardianPhone').value.trim();
+            const guardian2Name = document.getElementById('regGuardian2Name').value.trim();
+            const guardian2Phone = document.getElementById('regGuardian2Phone').value.trim();
+            const healthCondition = document.getElementById('regHealthCondition').value.trim();
+            const healthMedication = document.getElementById('regHealthMedication').value.trim();
+            const emergencyPhone = '46113714';
+            const btn = document.getElementById('btnSaveStudent');
+
+            if (!id || !name || !currentRegDescriptor) { showToast('Completa clave, nombre y foto.', 'error'); return; }
+            if (cls.students.some(s => s.id === id)) { showToast('Ya existe un alumno con esa clave.', 'error'); return; }
+
+            btn.disabled = true; btn.textContent = 'Subiendo a la nube...';
+            const newStudent = { id, name, guardianName, guardianPhone, guardian2Name, guardian2Phone, healthCondition, healthMedication, emergencyPhone, active: true, photo: currentRegPhotoDataUrl, descriptor: currentRegDescriptor };
+            const newIndex = cls.students.length;
+            cls.students.push(newStudent);
+            try {
+                if (!(await saveSingleStudentToCloud(cls, newStudent, newIndex))) { cls.students.pop(); return; }
+                rebuildFaceMatcher(); renderClassSelector();
+                document.getElementById('regStudentId').value = '';
+                document.getElementById('regStudentName').value = '';
+                document.getElementById('regGuardianName').value = '';
+                document.getElementById('regGuardianPhone').value = '';
+                document.getElementById('regGuardian2Name').value = '';
+                document.getElementById('regGuardian2Phone').value = '';
+                document.getElementById('regHealthCondition').value = '';
+                document.getElementById('regHealthMedication').value = '';
+                document.getElementById('regPhotoInput').value = '';
+                document.getElementById('regMediaContainer').classList.add('hidden');
+                document.getElementById('regFaceFeedback').classList.add('hidden');
+                currentRegDescriptor = null; currentRegPhotoDataUrl = null;
+                closeRegisterStudentModal();
+                showToast(`${name} guardado.`, 'success');
+            } finally { btn.disabled = false; btn.textContent = 'Guardar Alumno'; }
+        };
+
+        window.closeAllStudentMenus = () => {
+            document.querySelectorAll('.student-action-menu').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.report-call-group').forEach(el => el.classList.add('hidden'));
+        };
+
+        window.toggleReportStudentDetails = (studentId) => {
+            const row = document.getElementById(`reportDetailsRow_${studentId}`);
+            if (!row) return;
+            const willShow = row.classList.contains('hidden');
+            document.querySelectorAll('[id^="reportDetailsRow_"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.report-call-group').forEach(el => el.classList.add('hidden'));
+            if (willShow) {
+                row.classList.remove('hidden');
+                lucide.createIcons();
+            }
+        };
+
+        window.toggleReportCallGroup = (studentId, event) => {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById(`reportCallGroup_${studentId}`);
+            if (!menu) return;
+            const isHidden = menu.classList.contains('hidden');
+            document.querySelectorAll('.report-call-group').forEach(el => el.classList.add('hidden'));
+            if (isHidden) menu.classList.remove('hidden');
+        };
+
+        window.toggleStudentMenu = (studentId, event) => {
+            if (event) event.stopPropagation();
+            const target = document.getElementById(`studentMenu_${studentId}`);
+            if (!target) return;
+            const isHidden = target.classList.contains('hidden');
+            window.closeAllStudentMenus();
+            if (isHidden) target.classList.remove('hidden');
+        };
+
+        document.addEventListener('click', () => window.closeAllStudentMenus());
+
+        window.toggleStudentActive = async (studentId) => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) {
+                showToast('Solo el maestro guía puede activar o desactivar alumnos.', 'error');
+                return;
+            }
+            const s = cls.students.find(st => st.id === studentId);
+            if (!s) return;
+            const prevActive = s.active !== false;
+            s.active = !prevActive;
+            rebuildFaceMatcher();
+            renderAllUI();
+            const idx = cls.students.findIndex(st => st.id === studentId);
+            if (!(await saveSingleStudentToCloud(cls, s, idx >= 0 ? idx : 0))) {
+                s.active = prevActive;
+                rebuildFaceMatcher();
+                renderAllUI();
+                return;
+            }
+            showToast(s.active ? `${s.name} reactivado.` : `${s.name} desactivado (retirado).`, 'success');
+        };
+
+        window.moveStudentOrder = async (index, direction) => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) return;
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= cls.students.length) return;
+            const prev = [...cls.students];
+            [cls.students[index], cls.students[targetIndex]] = [cls.students[targetIndex], cls.students[index]];
+            renderAllUI();
+            if (!(await saveStudentsOrderToCloud(cls))) { cls.students = prev; renderAllUI(); }
+        };
+
+        window.openEditStudentModal = (studentId) => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede editar los datos del alumno.', 'error'); return; }
+            const s = cls.students.find(st => st.id === studentId);
+            if (!s) return;
+            document.getElementById('editStudentOriginalId').value = s.id;
+            document.getElementById('editStudentId').value = s.id;
+            document.getElementById('editStudentName').value = s.name;
+            document.getElementById('editGuardianName').value = s.guardianName || '';
+            document.getElementById('editGuardianPhone').value = s.guardianPhone || '';
+            document.getElementById('editGuardian2Name').value = s.guardian2Name || '';
+            document.getElementById('editGuardian2Phone').value = s.guardian2Phone || '';
+            document.getElementById('editHealthCondition').value = s.healthCondition || '';
+            document.getElementById('editHealthMedication').value = s.healthMedication || '';
+            document.getElementById('editStudentModal').classList.remove('hidden');
+        };
+
+        window.closeEditStudentModal = () => document.getElementById('editStudentModal').classList.add('hidden');
+
+        window.saveEditedStudent = async (e) => {
+            e.preventDefault();
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede guardar cambios en este grado.', 'error'); return; }
+            const originalId = document.getElementById('editStudentOriginalId').value;
+            const newId = document.getElementById('editStudentId').value.trim();
+            const newName = document.getElementById('editStudentName').value.trim();
+            const newGuardianName = document.getElementById('editGuardianName').value.trim();
+            const newGuardianPhone = document.getElementById('editGuardianPhone').value.trim();
+            const newGuardian2Name = document.getElementById('editGuardian2Name').value.trim();
+            const newGuardian2Phone = document.getElementById('editGuardian2Phone').value.trim();
+            const newHealthCondition = document.getElementById('editHealthCondition').value.trim();
+            const newHealthMedication = document.getElementById('editHealthMedication').value.trim();
+            const newEmergencyPhone = '46113714';
+
+            const student = cls.students.find(s => s.id === originalId);
+            if (!student) return;
+            const prev = {
+                id: student.id,
+                name: student.name,
+                guardianName: student.guardianName || '',
+                guardianPhone: student.guardianPhone || '',
+                guardian2Name: student.guardian2Name || '',
+                guardian2Phone: student.guardian2Phone || '',
+                healthCondition: student.healthCondition || '',
+                healthMedication: student.healthMedication || '',
+                emergencyPhone: student.emergencyPhone || ''
+            };
+
+            student.id = newId;
+            student.name = newName;
+            student.guardianName = newGuardianName;
+            student.guardianPhone = newGuardianPhone;
+            student.guardian2Name = newGuardian2Name;
+            student.guardian2Phone = newGuardian2Phone;
+            student.healthCondition = newHealthCondition;
+            student.healthMedication = newHealthMedication;
+            student.emergencyPhone = newEmergencyPhone;
+
+            if (newId !== prev.id) {
+                const classAtt = getClassAttendance(cls.id);
+                Object.keys(classAtt).forEach((dKey) => {
+                    if (classAtt[dKey]?.[prev.id]) { classAtt[dKey][newId] = classAtt[dKey][prev.id]; delete classAtt[dKey][prev.id]; }
+                });
+                await saveMyPrivateAttendanceToCloud();
+            }
+            const studentIdx = cls.students.findIndex(st => st.id === newId);
+            if (!(await saveSingleStudentToCloud(cls, student, studentIdx >= 0 ? studentIdx : 0))) {
+                Object.assign(student, prev);
+                return;
+            }
+            if (newId !== prev.id) {
+                await deleteSingleStudentFromCloud(cls.id, prev.id);
+            }
+            rebuildFaceMatcher(); renderAllUI(); closeEditStudentModal(); showToast('Datos actualizados.', 'success');
+        };
+
+        function getTodayStr() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        }
+
+        window.toggleAttendanceCamera = async () => { if (isScanning) stopAttendanceCamera(); else await startAttendanceCamera(); };
+
+        async function startAttendanceCamera() {
+            window.stopVoiceAttendance();
+            const cls = getActiveClass();
+            if (!cls || cls.students.filter(s => s.active !== false).length === 0) { showToast('Este grado no tiene alumnos activos registrados.', 'error'); return; }
+            try {
+                attendanceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: attendanceFacingMode } });
+                document.getElementById('attendanceVideo').srcObject = attendanceStream;
+                document.getElementById('videoPlaceholder').classList.add('hidden');
+                document.getElementById('btnToggleCameraText').textContent = 'Detener Cámara';
+                isScanning = true; runScannerLoop();
+            } catch (_) { showToast('Error al acceder a la cámara.', 'error'); }
+        }
+
+        function stopAttendanceCamera() {
+            if (scanAnimationFrame) cancelAnimationFrame(scanAnimationFrame);
+            if (attendanceStream) attendanceStream.getTracks().forEach(t => t.stop());
+            isScanning = false;
+            document.getElementById('videoPlaceholder').classList.remove('hidden');
+            document.getElementById('btnToggleCameraText').textContent = 'Iniciar Cámara';
+        }
+
+        window.switchCameraFacing = () => {
+            attendanceFacingMode = attendanceFacingMode === 'environment' ? 'user' : 'environment';
+            document.getElementById('facingLabel').textContent = attendanceFacingMode === 'environment' ? 'Trasera' : 'Frontal';
+            if (isScanning) { stopAttendanceCamera(); startAttendanceCamera(); }
+        };
+
+        async function runScannerLoop() {
+            const video = document.getElementById('attendanceVideo');
+            const canvas = document.getElementById('attendanceCanvas');
+            const cls = getActiveClass();
+            if (!isScanning || !cls) return;
+            if (!video.paused && !video.ended && video.readyState >= 2) {
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })).withFaceLandmarks(true).withFaceDescriptors();
+                canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (detections.length > 0 && faceMatcher) {
+                    faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height }).forEach(det => {
+                        const match = faceMatcher.findBestMatch(det.descriptor);
+                        let color = '#C8102E'; let label = 'Desconocido';
+                        if (match.label !== 'unknown') {
+                            const student = cls.students.find(s => s.id === match.label && s.active !== false);
+                            if (student) { label = student.name; color = '#10B981'; markPresent(student.id, student.name); }
+                        }
+                        new faceapi.draw.DrawBox(det.detection.box, { label, boxColor: color }).draw(canvas);
+                    });
+                }
+            }
+            if (isScanning) scanAnimationFrame = requestAnimationFrame(runScannerLoop);
+        }
+
+        async function markPresent(studentId, studentName) {
+            const now = Date.now();
+            if (lastDetectedCooldown[studentId] && now - lastDetectedCooldown[studentId] < 10000) return;
+            lastDetectedCooldown[studentId] = now;
+            const cls = getActiveClass();
+            if (!cls) return;
+            const classAttendance = getClassAttendance(cls.id);
+            const today = getTodayStr();
+            if (!classAttendance[today]) classAttendance[today] = {};
+            const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+            classAttendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
+            renderAllUI(); await saveMyPrivateAttendanceToCloud();
+            const banner = document.getElementById('lastDetectedBanner');
+            document.getElementById('lastDetectedName').textContent = studentName;
+            document.getElementById('lastDetectedTime').textContent = timeStr;
+            banner.classList.remove('hidden');
+            setTimeout(() => banner.classList.add('hidden'), 3500);
+        }
+
+        window.switchTab = (tabId) => {
+            ['scanner', 'register', 'report'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-semibold border-b-4 border-transparent text-slate-500 min-w-0';
+            });
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80 min-w-0';
+            if (tabId !== 'scanner') { stopAttendanceCamera(); window.stopVoiceAttendance(); }
+        };
+
+        function updateExportMonthSelector() {
+            const selector = document.getElementById('exportMonthSelector');
+            const cls = getActiveClass();
+            if (!selector || !cls) return;
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const now = new Date();
+            const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const classAttendance = getClassAttendance(cls.id);
+            const monthsSet = new Set([currentMonthKey]);
+            Object.keys(classAttendance).forEach((dateKey) => {
+                if (/^\d{4}-\d{2}-\d{2}$/.test(dateKey) && Object.keys(classAttendance[dateKey] || {}).length > 0) monthsSet.add(dateKey.slice(0, 7));
+            });
+            const sortedMonths = Array.from(monthsSet).sort().reverse();
+            const prevValue = selector.value;
+            selector.innerHTML = sortedMonths.map((ym) => {
+                const [y, m] = ym.split('-');
+                return `<option value="${ym}">${monthNames[parseInt(m, 10) - 1]} ${y}</option>`;
+            }).join('');
+            selector.value = sortedMonths.includes(prevValue) ? prevValue : currentMonthKey;
+        }
+
+        function renderAllUI() {
+            const cls = getActiveClass();
+            if (!cls) return;
+            const canEditRoster = isCurrentUserGuide(cls);
+            const today = getTodayStr();
+            const todayRecords = getClassAttendance(cls.id)[today] || {};
+            const activeStudents = cls.students.filter(s => s.active !== false);
+            document.getElementById('badgeStudentCount').textContent = `${activeStudents.length}/${cls.students.length}`;
+            let present = 0;
+            activeStudents.forEach(s => { if (todayRecords[s.id]?.status === 'ASISTENTE') present++; });
+            document.getElementById('statTotal').textContent = activeStudents.length;
+            document.getElementById('statPresent').textContent = present;
+            document.getElementById('statAbsent').textContent = activeStudents.length - present;
+
+            document.getElementById('registeredStudentsList').innerHTML = cls.students.length === 0
+                ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos registrados en este grado.</p>'
+                : cls.students.map((s, idx) => {
+                    const isActive = s.active !== false;
+                    return `
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border ${isActive ? 'border-slate-200 bg-slate-50' : 'border-amber-200 bg-amber-50/50 opacity-75'} min-w-0">
+                        <button type="button" onclick="openGuardianInfoModal('${s.id}')" class="flex items-center gap-2 min-w-0 flex-1 text-left rounded-lg hover:bg-slate-100/90 p-1 -m-1 transition-colors cursor-pointer">
+                            <img src="${s.photo}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border shrink-0 ${isActive ? '' : 'grayscale'}">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <p class="font-bold text-navy-900 text-xs sm:text-sm truncate underline decoration-slate-300 underline-offset-2 ${isActive ? '' : 'line-through text-slate-500'}">${s.name}</p>
+                                    ${isActive ? '' : '<span class="px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 text-[9px] font-extrabold uppercase shrink-0">Desactivado</span>'}
+                                </div>
+                                <p class="text-[11px] text-slate-500">Clave: ${s.id}</p>
+                            </div>
+                        </button>
+                        ${canEditRoster ? `<div class="relative shrink-0">
+                            <button type="button" onclick="toggleStudentMenu('${s.id}', event)" class="p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-navy-900 flex items-center gap-1 text-xs font-bold" title="Opciones del alumno">
+                                <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                            </button>
+                            <div id="studentMenu_${s.id}" class="student-action-menu hidden absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-30 text-xs font-semibold">
+                                <button type="button" onclick="closeAllStudentMenus(); openEditStudentModal('${s.id}')" class="w-full px-3 py-2 text-left hover:bg-slate-50 text-navy-900 flex items-center gap-2">
+                                    <i data-lucide="pencil" class="w-3.5 h-3.5 text-navy-800"></i> Editar datos
+                                </button>
+                                <button type="button" onclick="closeAllStudentMenus(); moveStudentOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="w-full px-3 py-2 text-left hover:bg-slate-50 text-navy-900 disabled:opacity-35 flex items-center gap-2">
+                                    <i data-lucide="arrow-up" class="w-3.5 h-3.5 text-slate-600"></i> Subir de lugar
+                                </button>
+                                <button type="button" onclick="closeAllStudentMenus(); moveStudentOrder(${idx}, 1)" ${idx === cls.students.length - 1 ? 'disabled' : ''} class="w-full px-3 py-2 text-left hover:bg-slate-50 text-navy-900 disabled:opacity-35 flex items-center gap-2">
+                                    <i data-lucide="arrow-down" class="w-3.5 h-3.5 text-slate-600"></i> Bajar de lugar
+                                </button>
+                                <button type="button" onclick="closeAllStudentMenus(); toggleStudentActive('${s.id}')" class="w-full px-3 py-2 text-left hover:bg-slate-50 ${isActive ? 'text-amber-700' : 'text-emerald-700'} flex items-center gap-2">
+                                    <i data-lucide="${isActive ? 'user-x' : 'user-check'}" class="w-3.5 h-3.5"></i> ${isActive ? 'Desactivar alumno' : 'Reactivar alumno'}
+                                </button>
+                                <div class="my-1 border-t border-slate-100"></div>
+                                <button type="button" onclick="closeAllStudentMenus(); deleteStudent('${s.id}')" class="w-full px-3 py-2 text-left hover:bg-red-50 text-crimson-600 flex items-center gap-2">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar alumno
+                                </button>
+                            </div>
+                        </div>` : `<span class="text-[10px] font-semibold text-slate-400 px-2 shrink-0">${isActive ? 'Solo lectura' : 'Desactivado'}</span>`}
+                    </div>
+                `;
+                }).join('');
+
+            document.getElementById('attendanceTableBody').innerHTML = cls.students.map(s => {
+                const isActive = s.active !== false;
+                const g1Links = formatPhoneForLinks(s.guardianPhone);
+                const g2Links = formatPhoneForLinks(s.guardian2Phone);
+                const msgText = encodeURIComponent(`Buen día, le saludamos de INEB Centro Cajolá respecto al estudiante ${s.name} (Clave ${s.id}).`);
+
+                if (!isActive) {
+                    return `<tr class="bg-slate-50/80 text-slate-400">
+                        <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap align-top">${s.id}</td>
+                        <td class="py-2.5 px-2 sm:px-4 align-top"><button type="button" onclick="toggleReportStudentDetails('${s.id}')" class="flex items-center gap-2 min-w-[100px] text-left hover:underline cursor-pointer"><img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0 grayscale"><span class="leading-tight line-through">${s.name}</span></button></td>
+                        <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap align-top">--:--</td>
+                        <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap align-top"><span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-amber-100 text-amber-800">DESACTIVADO</span></td>
+                        <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap align-top"><span class="text-[10px] font-semibold text-slate-400">Retirado</span></td>
+                    </tr>
+                    <tr id="reportDetailsRow_${s.id}" class="hidden bg-slate-50/95">
+                        <td colspan="5" class="px-3 py-2.5 border-t border-slate-200">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+                                <div class="space-y-1 min-w-0">
+                                    <p class="text-slate-700"><strong class="text-navy-900">Encargado 1:</strong> ${(s.guardianName || '').trim() || 'No registrado'} ${s.guardianPhone ? `(<span class="font-mono">${s.guardianPhone}</span>)` : ''}</p>
+                                    <p class="text-slate-700"><strong class="text-navy-900">Encargado 2:</strong> ${(s.guardian2Name || '').trim() || 'No registrado'} ${s.guardian2Phone ? `(<span class="font-mono">${s.guardian2Phone}</span>)` : ''}</p>
+                                    <p class="text-slate-600"><strong class="text-crimson-600">Salud:</strong> ${(s.healthCondition || '').trim() || 'Ninguna'} • <strong class="text-navy-900">Med.:</strong> ${(s.healthMedication || '').trim() || 'Ninguno'}</p>
+                                </div>
+                                <div class="relative shrink-0 self-start sm:self-center">
+                                    <button type="button" onclick="toggleReportCallGroup('${s.id}', event)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-white font-bold text-[11px] shadow-xs">
+                                        <i data-lucide="phone" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                        <span>Contactar</span>
+                                        <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                    <div id="reportCallGroup_${s.id}" class="report-call-group hidden absolute right-0 sm:right-0 left-0 sm:left-auto mt-1 w-56 bg-white rounded-xl shadow-xl border border-slate-200 p-1.5 z-30 space-y-1 text-[11px]">
+                                        ${g1Links.telHref ? `
+                                        <div class="px-2 py-1 rounded-lg bg-slate-50 flex items-center justify-between gap-1">
+                                            <span class="font-bold text-navy-900 truncate">Encargado 1</span>
+                                            <div class="flex items-center gap-1 shrink-0">
+                                                <a href="${g1Links.telHref}" class="px-2 py-1 rounded bg-navy-900 text-white font-bold">Llamar</a>
+                                                <a href="${g1Links.waHref}?text=${msgText}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">WA</a>
+                                            </div>
+                                        </div>` : '<p class="px-2 py-1 text-slate-400">Encargado 1 sin teléfono</p>'}
+                                        ${g2Links.telHref ? `
+                                        <div class="px-2 py-1 rounded-lg bg-slate-50 flex items-center justify-between gap-1">
+                                            <span class="font-bold text-navy-900 truncate">Encargado 2</span>
+                                            <div class="flex items-center gap-1 shrink-0">
+                                                <a href="${g2Links.telHref}" class="px-2 py-1 rounded bg-navy-900 text-white font-bold">Llamar</a>
+                                                <a href="${g2Links.waHref}?text=${msgText}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">WA</a>
+                                            </div>
+                                        </div>` : '<p class="px-2 py-1 text-slate-400">Encargado 2 sin teléfono</p>'}
+                                        <a href="tel:46113714" class="w-full px-2 py-1.5 rounded-lg bg-crimson-600 hover:bg-crimson-700 text-white font-bold flex items-center justify-center gap-1">
+                                            <i data-lucide="siren" class="w-3.5 h-3.5"></i> Emergencia (46113714)
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`;
+                }
+                const rec = todayRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
+                const isPresent = rec.status === 'ASISTENTE';
+                return `<tr>
+                    <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap align-top">${s.id}</td>
+                    <td class="py-2.5 px-2 sm:px-4 align-top">
+                        <button type="button" onclick="toggleReportStudentDetails('${s.id}')" class="flex items-center gap-2 min-w-[100px] text-left hover:underline cursor-pointer group">
+                            <img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0">
+                            <span class="leading-tight font-semibold text-navy-900 group-hover:text-crimson-600">${s.name}</span>
+                        </button>
+                    </td>
+                    <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap align-top">${rec.time}</td>
+                    <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap align-top"><span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">${rec.status}</span></td>
+                    <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap align-top"><button type="button" onclick="toggleManualStatus('${s.id}')" class="px-2 py-1 rounded-lg bg-navy-900 text-white text-[11px] sm:text-xs font-bold">Cambiar</button></td>
+                </tr>
+                <tr id="reportDetailsRow_${s.id}" class="hidden bg-slate-50/95">
+                    <td colspan="5" class="px-3 py-2.5 border-t border-slate-200">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+                            <div class="space-y-1 min-w-0">
+                                <p class="text-slate-700"><strong class="text-navy-900">Encargado 1:</strong> ${(s.guardianName || '').trim() || 'No registrado'} ${s.guardianPhone ? `(<span class="font-mono">${s.guardianPhone}</span>)` : ''}</p>
+                                <p class="text-slate-700"><strong class="text-navy-900">Encargado 2:</strong> ${(s.guardian2Name || '').trim() || 'No registrado'} ${s.guardian2Phone ? `(<span class="font-mono">${s.guardian2Phone}</span>)` : ''}</p>
+                                <p class="text-slate-600"><strong class="text-crimson-600">Salud:</strong> ${(s.healthCondition || '').trim() || 'Ninguna'} • <strong class="text-navy-900">Med.:</strong> ${(s.healthMedication || '').trim() || 'Ninguno'}</p>
+                            </div>
+                            <div class="relative shrink-0 self-start sm:self-center">
+                                <button type="button" onclick="toggleReportCallGroup('${s.id}', event)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-white font-bold text-[11px] shadow-xs">
+                                    <i data-lucide="phone" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                    <span>Contactar</span>
+                                    <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <div id="reportCallGroup_${s.id}" class="report-call-group hidden absolute right-0 sm:right-0 left-0 sm:left-auto mt-1 w-56 bg-white rounded-xl shadow-xl border border-slate-200 p-1.5 z-30 space-y-1 text-[11px]">
+                                    ${g1Links.telHref ? `
+                                    <div class="px-2 py-1 rounded-lg bg-slate-50 flex items-center justify-between gap-1">
+                                        <span class="font-bold text-navy-900 truncate">Encargado 1</span>
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <a href="${g1Links.telHref}" class="px-2 py-1 rounded bg-navy-900 text-white font-bold">Llamar</a>
+                                            <a href="${g1Links.waHref}?text=${msgText}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">WA</a>
+                                        </div>
+                                    </div>` : '<p class="px-2 py-1 text-slate-400">Encargado 1 sin teléfono</p>'}
+                                    ${g2Links.telHref ? `
+                                    <div class="px-2 py-1 rounded-lg bg-slate-50 flex items-center justify-between gap-1">
+                                        <span class="font-bold text-navy-900 truncate">Encargado 2</span>
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <a href="${g2Links.telHref}" class="px-2 py-1 rounded bg-navy-900 text-white font-bold">Llamar</a>
+                                            <a href="${g2Links.waHref}?text=${msgText}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">WA</a>
+                                        </div>
+                                    </div>` : '<p class="px-2 py-1 text-slate-400">Encargado 2 sin teléfono</p>'}
+                                    <a href="tel:46113714" class="w-full px-2 py-1.5 rounded-lg bg-crimson-600 hover:bg-crimson-700 text-white font-bold flex items-center justify-center gap-1">
+                                        <i data-lucide="siren" class="w-3.5 h-3.5"></i> Emergencia (46113714)
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+            updateExportMonthSelector();
+            lucide.createIcons();
+        }
+
+        window.deleteStudent = async (studentId) => {
+            const cls = getActiveClass();
+            if (!cls || !isCurrentUserGuide(cls)) return;
+            const prev = [...cls.students];
+            cls.students = cls.students.filter(s => s.id !== studentId);
+            rebuildFaceMatcher(); renderClassSelector();
+            if (!(await deleteSingleStudentFromCloud(cls.id, studentId))) { cls.students = prev; rebuildFaceMatcher(); renderClassSelector(); }
+        };
+
+        window.toggleManualStatus = async (studentId) => {
+            const cls = getActiveClass();
+            if (!cls) return;
+            const classAttendance = getClassAttendance(cls.id);
+            const today = getTodayStr();
+            if (!classAttendance[today]) classAttendance[today] = {};
+            if (classAttendance[today][studentId]?.status === 'ASISTENTE') classAttendance[today][studentId] = { status: 'INASISTENTE', time: '--:--' };
+            else classAttendance[today][studentId] = { status: 'ASISTENTE', time: new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }) };
+            renderAllUI(); await saveMyPrivateAttendanceToCloud();
+        };
+
+        window.resetTodayAttendance = async () => {
+            const cls = getActiveClass();
+            if (!cls) return;
+            getClassAttendance(cls.id)[getTodayStr()] = {};
+            renderAllUI(); await saveMyPrivateAttendanceToCloud(); showToast('Asistencia del día reiniciada.', 'success');
+        };
+
+        function getDayAttendanceTime(dayRecords) {
+            if (!dayRecords || typeof dayRecords !== 'object') return '';
+            for (const studentId of Object.keys(dayRecords)) {
+                if (dayRecords[studentId]?.time && dayRecords[studentId].time !== '--:--') return dayRecords[studentId].time;
+            }
+            return '';
+        }
+
+        window.exportToExcel = async () => {
+            const cls = getActiveClass();
+            if (!cls) return;
+            const now = new Date();
+            const selectedMonthVal = document.getElementById('exportMonthSelector')?.value || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const [yearStr, monthStr] = selectedMonthVal.split('-');
+            const year = parseInt(yearStr, 10);
+            const monthIndex = parseInt(monthStr, 10) - 1;
+            const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+            const monthName = monthNames[monthIndex];
+            const monthPrefix = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+            const currentTimeStr = now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+            const teacherName = document.getElementById('currentTeacherName')?.textContent?.trim() || (currentUser && (currentUser.displayName || currentUser.email)) || 'Docente';
+
+            const workbook = new ExcelJS.Workbook();
+            const sheet = workbook.addWorksheet(`Asistencia_${monthName}`);
+            sheet.pageSetup = { orientation: 'landscape', paperSize: 1, fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+
+            const columns = [{ width: 10 }, { width: 32 }];
+            for (let d = 1; d <= daysInMonth; d++) columns.push({ width: 6.2 });
+            sheet.columns = columns;
+
+            const totalCols = 2 + daysInMonth;
+            const lastColLetter = sheet.getColumn(totalCols).letter;
+
+            for (const fileName of ['encabezado1.png']) {
+                try {
+                    const response = await fetch(fileName);
+                    if (response.ok) {
+                        const buffer = await response.arrayBuffer();
+                        const ext = fileName.endsWith('.jpg') ? 'jpeg' : 'png';
+                        const imageId = workbook.addImage({ buffer, extension: ext });
+                        const blob = new Blob([buffer], { type: `image/${ext}` });
+                        const imgUrl = URL.createObjectURL(blob);
+                        const dims = await new Promise((resolve) => {
+                            const img = new Image();
+                            img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+                            img.onerror = () => resolve({ width: 900, height: 110 });
+                            img.src = imgUrl;
+                        });
+                        URL.revokeObjectURL(imgUrl);
+                        const totalSheetWidthPx = sheet.columns.reduce((sum, col) => sum + ((col.width || 10) * 7.2), 0);
+                        const targetWidth = Math.round(totalSheetWidthPx);
+                        const targetHeight = Math.round((dims.height / dims.width) * targetWidth);
+                        sheet.addImage(imageId, { tl: { col: 0, row: 0 }, ext: { width: targetWidth, height: targetHeight } });
+                        const perRowHeight = Math.max(16, Math.round((targetHeight / 4) * 0.75));
+                        for (let r = 1; r <= 4; r++) sheet.getRow(r).height = perRowHeight;
+                        break;
+                    }
+                } catch (_) {}
+            }
+
+            sheet.mergeCells(`A5:${lastColLetter}5`);
+            const titleCell = sheet.getCell('A5');
+            titleCell.value = 'ASISTENCIA';
+            titleCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+            titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A1E40' } };
+            sheet.getRow(5).height = 26;
+
+            const c1End = Math.max(2, Math.floor(totalCols * 0.28));
+            const c2Start = c1End + 1; const c2End = Math.max(c2Start, Math.floor(totalCols * 0.50));
+            const c3Start = c2End + 1; const c3End = Math.max(c3Start, Math.floor(totalCols * 0.68));
+            const c4Start = c3End + 1; const c4End = Math.max(c4Start, Math.floor(totalCols * 0.85));
+            const c5Start = Math.min(totalCols, c4End + 1);
+            const colLetter = (idx) => sheet.getColumn(idx).letter;
+
+            if (c1End > 1) sheet.mergeCells(`A6:${colLetter(c1End)}6`);
+            sheet.getCell('A6').value = `DOCENTE: ${teacherName}`;
+            if (c2End > c2Start) sheet.mergeCells(`${colLetter(c2Start)}6:${colLetter(c2End)}6`);
+            sheet.getCell(6, c2Start).value = `GRADO: ${cls.grade}`;
+            if (c3End > c3Start) sheet.mergeCells(`${colLetter(c3Start)}6:${colLetter(c3End)}6`);
+            sheet.getCell(6, c3Start).value = `SECCIÓN: ${cls.section}`;
+            if (c4End > c4Start) sheet.mergeCells(`${colLetter(c4Start)}6:${colLetter(c4End)}6`);
+            sheet.getCell(6, c4Start).value = `MES: ${monthName} ${year}`;
+            if (totalCols > c5Start) sheet.mergeCells(`${colLetter(c5Start)}6:${lastColLetter}6`);
+            sheet.getCell(6, c5Start).value = `HORA: ${currentTimeStr}`;
+
+            sheet.getRow(6).height = 22;
+            for (let c = 1; c <= totalCols; c++) {
+                const cell = sheet.getCell(6, c);
+                cell.font = { bold: true, size: 9 }; cell.alignment = { vertical: 'middle' };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+            }
+
+            const attendanceByDate = getClassAttendance(cls.id);
+            const todayStr = getTodayStr();
+            const dayTimes = [];
+            for (let d = 1; d <= daysInMonth; d++) dayTimes.push(getDayAttendanceTime(attendanceByDate[`${monthPrefix}-${String(d).padStart(2, '0')}`]));
+
+            const timeRow = sheet.getRow(7);
+            timeRow.values = ['', 'Hora', ...dayTimes];
+            timeRow.height = 16;
+            timeRow.eachCell((cell, colNumber) => {
+                cell.font = { bold: true, size: colNumber <= 2 ? 8 : 6.5, color: { argb: 'FF0A1E40' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+                cell.alignment = { horizontal: colNumber === 2 ? 'left' : 'center', vertical: 'middle' };
+                cell.border = { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } };
+            });
+
+            const dayLabels = [];
+            for (let d = 1; d <= daysInMonth; d++) dayLabels.push(String(d).padStart(2, '0'));
+            const headerRow = sheet.getRow(8);
+            headerRow.values = ['Clave', 'Estudiante', ...dayLabels];
+            headerRow.font = { bold: true, size: 9, color: { argb: 'FFFFFFFF' } };
+            headerRow.height = 22;
+            headerRow.eachCell((cell, colNumber) => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC8102E' } };
+                cell.alignment = { horizontal: colNumber === 2 ? 'left' : 'center', vertical: 'middle' };
+                cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+            });
+
+            cls.students.forEach((s) => {
+                const isActive = s.active !== false;
+                const rowValues = [s.id, isActive ? s.name : `${s.name} (Retirado)`];
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const fullDate = `${monthPrefix}-${String(d).padStart(2, '0')}`;
+                    const dayRecord = attendanceByDate[fullDate]?.[s.id];
+                    if (dayRecord?.status === 'ASISTENTE') rowValues.push('A');
+                    else if (!isActive) rowValues.push('-');
+                    else if (fullDate <= todayStr && attendanceByDate[fullDate]) rowValues.push('I');
+                    else rowValues.push('');
+                }
+                const row = sheet.addRow(rowValues);
+                row.height = 20;
+                row.eachCell((cell, colNumber) => {
+                    cell.font = { size: 9 };
+                    cell.alignment = { horizontal: colNumber === 2 ? 'left' : 'center', vertical: 'middle' };
+                    if (cell.value === 'A') cell.font = { size: 9, bold: true, color: { argb: 'FF065F46' } };
+                    else if (cell.value === 'I') cell.font = { size: 9, bold: true, color: { argb: 'FF991B1B' } };
+                    cell.border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+                });
+            });
+
+            const outBuffer = await workbook.xlsx.writeBuffer();
+            const url = URL.createObjectURL(new Blob([outBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+            const a = document.createElement('a');
+            a.href = url; a.download = `Asistencia_${cls.grade}_${cls.section}_${monthName}_${year}.xlsx`;
+            document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        };
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast-enter px-4 py-3 rounded-xl shadow-lg text-white text-xs font-bold ${type === 'success' ? 'bg-navy-900 border-l-4 border-emerald-400' : 'bg-red-900 border-l-4 border-crimson-600'}`;
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+
+        // Instalación PWA desde Chrome y actualización automática sin intervención del usuario
+        let deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            const btnInstall = document.getElementById('btnInstallApp');
+            if (btnInstall) {
+                btnInstall.classList.remove('hidden');
+                btnInstall.classList.add('inline-flex');
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            deferredInstallPrompt = null;
+            const btnInstall = document.getElementById('btnInstallApp');
+            if (btnInstall) {
+                btnInstall.classList.add('hidden');
+                btnInstall.classList.remove('inline-flex');
+            }
+            showToast('¡Aplicación instalada en tu dispositivo!', 'success');
+        });
+
+        window.triggerPwaInstall = async () => {
+            if (!deferredInstallPrompt) {
+                showToast('Abre el menú de Chrome (⋮) y selecciona "Instalar aplicación".', 'success');
+                return;
+            }
+            deferredInstallPrompt.prompt();
+            await deferredInstallPrompt.userChoice;
+            deferredInstallPrompt = null;
+        };
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const reg = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+                    reg.update().catch(() => {});
+                    setInterval(() => reg.update().catch(() => {}), 60000);
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+                    });
+
+                    let refreshing = false;
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        if (!refreshing) {
+                            refreshing = true;
+                            window.location.reload();
+                        }
+                    });
+                } catch (err) {
+                    console.warn('SW registro omitido:', err);
+                }
+            });
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
