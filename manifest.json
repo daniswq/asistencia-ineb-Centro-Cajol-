@@ -1,6 +1,6 @@
 {
   "name": "INEB Centro Cajolá - Aula Virtual",
-  "short_name": "INEB Asistencia",
+  "short_name": "Aula Virtual",
   "description": "Control de Asistencia Facial y Voz - INEB Centro Cajolá",
   "start_url": "./index.html",
   "scope": "./",
@@ -11,13 +11,13 @@
   "icons": [
     {
       "src": "logoineb.png",
-      "sizes": "192x192",
+      "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "logoineb.png",
-      "sizes": "512x512",
+      "sizes": "450x450",
       "type": "image/png",
       "purpose": "any maskable"
     }
