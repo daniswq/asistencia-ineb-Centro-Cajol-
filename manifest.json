@@ -11,13 +11,13 @@
   "icons": [
     {
       "src": "logoineb.png",
-      "sizes": "100x100",
+      "sizes": "80x80",
       "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "logoineb.png",
-      "sizes": "300x300",
+      "sizes": "150x150",
       "type": "image/png",
       "purpose": "any maskable"
     }
