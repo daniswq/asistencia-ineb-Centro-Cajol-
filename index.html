@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aula Virtual</title>
-    <meta name="theme-color" content="#0A1E40">
+    <meta name="theme-color" content="#0B1F3F">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,30 +18,149 @@
             theme: {
                 extend: {
                     colors: {
-                        navy: { 800: '#112A56', 900: '#0A1E40', 950: '#061329' },
-                        crimson: { 600: '#C8102E', 700: '#A50D26' }
+                        navy:    { 700: '#1B3361', 800: '#14284F', 900: '#0B1F3F', 950: '#071429' },
+                        crimson: { 600: '#8C1D2F', 700: '#6F1625' },
+                        brass:   { 400: '#C9A86A', 500: '#B08D4C' }
                     }
                 }
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
     <style>
-        html, body {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            overflow-x: clip;
-            max-width: 100%;
+        :root {
+            --navy: #0B1F3F; --navy-deep: #071429; --burgundy: #8C1D2F; --brass: #B08D4C;
+            --paper: #F3F5F9; --line: #DDE2EC; --soft: #EEF1F6;
+            --shadow: 0 1px 2px rgba(11,31,63,.06), 0 10px 26px -14px rgba(11,31,63,.22);
         }
-        .video-wrapper { position: relative; width: 100%; overflow: hidden; border-radius: 1rem; background-color: #061329; }
+        html, body {
+            font-family: 'Inter', system-ui, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: clip; max-width: 100%;
+            -webkit-font-smoothing: antialiased;
+        }
+        body.bg-slate-50 { background: var(--paper); }
+
+        /* Tipografía: serif en títulos y cifras, sans en la interfaz */
+        body h1, body h2, body h3 { font-family: 'Source Serif 4', Georgia, serif; }
+        body h1.font-extrabold, body h2.font-bold, body h3.font-bold { font-weight: 600; letter-spacing: .005em; }
+
+        /* Radios más sobrios */
+        body .rounded-3xl { border-radius: 18px; }
+        body .rounded-2xl { border-radius: 12px; }
+        body .rounded-xl  { border-radius: 9px; }
+        body .rounded-lg  { border-radius: 7px; }
+
+        /* Encabezado institucional */
+        body header.sticky {
+            background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+            border-bottom: 3px solid var(--brass);
+            box-shadow: 0 8px 22px -12px rgba(7,20,41,.65);
+        }
+        body header .bg-navy-950 { background: rgba(7,20,41,.55); border-color: rgba(255,255,255,.08); }
+        body header .border-crimson-600 { border-color: var(--brass); }
+        body header select { border-color: rgba(255,255,255,.18); }
+
+        /* Pestañas */
+        body nav.bg-white { border-bottom: 1px solid var(--line); }
+        body .tab-btn { transition: color .15s, background-color .15s; letter-spacing: .01em; }
+        body .tab-btn.border-crimson-600 { border-bottom-color: var(--brass); background: #FAFBFD; }
+        body .tab-btn i { color: var(--burgundy); }
+
+        /* Tarjetas */
+        body .bg-white.rounded-2xl { border: 1px solid var(--line); box-shadow: var(--shadow); }
+        body #view-scanner .grid > div, body #view-scanner .grid > div p { text-transform: none; letter-spacing: .01em; }
+        body #view-scanner .grid > div > p:first-child { font-size: 12px; font-weight: 600; }
+
+        /* Indicadores */
+        body #statTotal, body #statPresent, body #statAbsent {
+            font-family: 'Source Serif 4', Georgia, serif; font-weight: 600;
+            font-variant-numeric: tabular-nums; font-size: 1.6rem; line-height: 1.2;
+        }
+        body #view-scanner .grid > .bg-navy-900 {
+            background: linear-gradient(160deg, var(--navy) 0%, #14284F 100%);
+            border-bottom: 3px solid var(--brass);
+        }
+        body #view-scanner .grid > .bg-white { border: 1px solid var(--line); box-shadow: var(--shadow); }
+        body #view-scanner .grid > .border-navy-800\/20 { border-bottom: 3px solid #2F7D5B; }
+        body #view-scanner .grid > .border-crimson-600\/25 { border-bottom: 3px solid var(--burgundy); }
+
+        /* Botones */
+        body button { font-weight: 600; letter-spacing: .01em; transition: background-color .15s, box-shadow .15s, transform .1s; }
+        body button:active:not(:disabled) { transform: translateY(1px); }
+        body button.bg-crimson-600 { box-shadow: 0 1px 0 rgba(255,255,255,.14) inset, 0 6px 12px -6px rgba(140,29,47,.6); }
+        body .border-slate-300:is(button) { background: #fff; }
+        body .border-slate-300:is(button):hover { background: var(--soft); }
+
+        /* Formularios */
+        body input, body select, body textarea { border-color: #CBD2DF; transition: border-color .15s, box-shadow .15s; }
+        body input:focus, body select:focus, body textarea:focus {
+            outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(176,141,76,.3);
+        }
+        body label.block { color: var(--navy); font-weight: 600; letter-spacing: .01em; }
+
+        /* Acceso */
+        body #authScreen {
+            background:
+                radial-gradient(900px 500px at 12% -10%, rgba(176,141,76,.18), transparent 60%),
+                linear-gradient(160deg, var(--navy-deep) 0%, var(--navy) 55%, #14284F 100%);
+        }
+        body #authScreen > div { border-top: 0; box-shadow: 0 30px 60px -20px rgba(0,0,0,.6); position: relative; overflow: hidden; }
+        body #authScreen > div::before {
+            content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px;
+            background: linear-gradient(90deg, var(--burgundy), var(--brass));
+        }
+        body #authScreen .bg-slate-100 { background: var(--soft); }
+        body #authScreen button.bg-white { box-shadow: 0 1px 3px rgba(11,31,63,.14); }
+
+        /* Video */
+        .video-wrapper { position: relative; width: 100%; overflow: hidden; border-radius: 12px; background-color: var(--navy-deep); }
         .video-wrapper video { width: 100%; height: auto; display: block; object-fit: cover; }
         .video-wrapper canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .toast-enter { animation: slideInUp 0.25s ease-out forwards; }
+        body .video-wrapper.border-navy-900 { border: 1px solid var(--navy); box-shadow: var(--shadow); }
+        body #lastDetectedBanner { border-left-color: var(--brass); backdrop-filter: blur(6px); }
+
+        /* Lista de alumnos */
+        body #registeredStudentsList > div { transition: border-color .15s, box-shadow .15s; }
+        body #registeredStudentsList > div:hover { border-color: #C3CBDA; box-shadow: 0 2px 10px -6px rgba(11,31,63,.3); }
+        body #registeredStudentsList img { border: 2px solid #fff; box-shadow: 0 0 0 1px var(--line); }
+        body .student-action-menu, body .report-call-group { box-shadow: 0 18px 36px -12px rgba(11,31,63,.35); }
+
+        /* Tabla de reporte */
+        body #view-report table { border-collapse: separate; border-spacing: 0; }
+        body #view-report thead { background: var(--navy); }
+        body #view-report thead th {
+            text-transform: none; font-size: 12px; font-weight: 600; letter-spacing: .03em;
+            border-bottom: 3px solid var(--brass); padding-top: 12px; padding-bottom: 12px;
+        }
+        body #view-report tbody tr:not([id]):hover { background: #F7F9FC; }
+        body #view-report tbody td { border-bottom: 1px solid #EDF0F5; }
+        body #view-report tbody td .rounded-full { letter-spacing: .04em; font-weight: 700; }
+
+        /* Modales */
+        body .fixed.inset-0.z-50:not(#loadingOverlay) { backdrop-filter: blur(3px); }
+        body .fixed.inset-0.z-50 .border-crimson-600.border-t-4,
+        body .fixed.inset-0.z-50 .border-t-8.border-crimson-600 { border-top-color: var(--brass); }
+        body .fixed.inset-0.z-50 > .bg-white, body .fixed.inset-0.z-50 > form.bg-white {
+            box-shadow: 0 30px 60px -20px rgba(7,20,41,.55);
+        }
+
+        /* Pie de página */
+        body footer { background: var(--navy-deep); border-top: 3px solid var(--brass); color: #AEB8CC; }
+
+        /* Avisos */
+        @keyframes slideInUp { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .toast-enter { animation: slideInUp .25s ease-out forwards; }
+
+        /* Accesibilidad */
+        body :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-navy-900 min-h-screen flex flex-col">
@@ -619,9 +738,9 @@
     <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyArBHe7SW2j45TOF2D1716Nw1FW-PaX20g",
@@ -2346,6 +2465,17 @@
         }
 
         lucide.createIcons();
+    </script>
+    <script>
+        /* Aviso si la conexión con la nube tarda demasiado */
+        setTimeout(function () {
+            var ov = document.getElementById('loadingOverlay');
+            if (ov && !ov.classList.contains('hidden')) {
+                var p = ov.querySelector('p');
+                if (p) p.innerHTML = 'No se pudo conectar con la nube.<br><span class="font-normal text-slate-300">Revisa tu internet y recarga la página.</span>';
+                ov.querySelector('div').classList.remove('animate-spin');
+            }
+        }, 15000);
     </script>
 </body>
 </html>
