@@ -30,7 +30,6 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-
     <style>
         :root {
             --navy: #0B1F3F; --navy-deep: #071429; --burgundy: #8C1D2F; --brass: #B08D4C;
@@ -44,17 +43,14 @@
             -webkit-font-smoothing: antialiased;
         }
         body.bg-slate-50 { background: var(--paper); }
-
         /* Tipografía: serif en títulos y cifras, sans en la interfaz */
         body h1, body h2, body h3 { font-family: 'Source Serif 4', Georgia, serif; }
         body h1.font-extrabold, body h2.font-bold, body h3.font-bold { font-weight: 600; letter-spacing: .005em; }
-
         /* Radios más sobrios */
         body .rounded-3xl { border-radius: 18px; }
         body .rounded-2xl { border-radius: 12px; }
         body .rounded-xl  { border-radius: 9px; }
         body .rounded-lg  { border-radius: 7px; }
-
         /* Encabezado institucional */
         body header.sticky {
             background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
@@ -64,18 +60,15 @@
         body header .bg-navy-950 { background: rgba(7,20,41,.55); border-color: rgba(255,255,255,.08); }
         body header .border-crimson-600 { border-color: var(--brass); }
         body header select { border-color: rgba(255,255,255,.18); }
-
         /* Pestañas */
         body nav.bg-white { border-bottom: 1px solid var(--line); }
         body .tab-btn { transition: color .15s, background-color .15s; letter-spacing: .01em; }
         body .tab-btn.border-crimson-600 { border-bottom-color: var(--brass); background: #FAFBFD; }
         body .tab-btn i { color: var(--burgundy); }
-
         /* Tarjetas */
         body .bg-white.rounded-2xl { border: 1px solid var(--line); box-shadow: var(--shadow); }
         body #view-scanner .grid > div, body #view-scanner .grid > div p { text-transform: none; letter-spacing: .01em; }
         body #view-scanner .grid > div > p:first-child { font-size: 12px; font-weight: 600; }
-
         /* Indicadores */
         body #statTotal, body #statPresent, body #statAbsent {
             font-family: 'Source Serif 4', Georgia, serif; font-weight: 600;
@@ -88,21 +81,18 @@
         body #view-scanner .grid > .bg-white { border: 1px solid var(--line); box-shadow: var(--shadow); }
         body #view-scanner .grid > .border-navy-800\/20 { border-bottom: 3px solid #2F7D5B; }
         body #view-scanner .grid > .border-crimson-600\/25 { border-bottom: 3px solid var(--burgundy); }
-
         /* Botones */
         body button { font-weight: 600; letter-spacing: .01em; transition: background-color .15s, box-shadow .15s, transform .1s; }
         body button:active:not(:disabled) { transform: translateY(1px); }
         body button.bg-crimson-600 { box-shadow: 0 1px 0 rgba(255,255,255,.14) inset, 0 6px 12px -6px rgba(140,29,47,.6); }
         body .border-slate-300:is(button) { background: #fff; }
         body .border-slate-300:is(button):hover { background: var(--soft); }
-
         /* Formularios */
         body input, body select, body textarea { border-color: #CBD2DF; transition: border-color .15s, box-shadow .15s; }
         body input:focus, body select:focus, body textarea:focus {
             outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(176,141,76,.3);
         }
         body label.block { color: var(--navy); font-weight: 600; letter-spacing: .01em; }
-
         /* Acceso */
         body #authScreen {
             background:
@@ -116,20 +106,17 @@
         }
         body #authScreen .bg-slate-100 { background: var(--soft); }
         body #authScreen button.bg-white { box-shadow: 0 1px 3px rgba(11,31,63,.14); }
-
         /* Video */
         .video-wrapper { position: relative; width: 100%; overflow: hidden; border-radius: 12px; background-color: var(--navy-deep); }
         .video-wrapper video { width: 100%; height: auto; display: block; object-fit: cover; }
         .video-wrapper canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         body .video-wrapper.border-navy-900 { border: 1px solid var(--navy); box-shadow: var(--shadow); }
         body #lastDetectedBanner { border-left-color: var(--brass); backdrop-filter: blur(6px); }
-
         /* Lista de alumnos */
         body #registeredStudentsList > div { transition: border-color .15s, box-shadow .15s; }
         body #registeredStudentsList > div:hover { border-color: #C3CBDA; box-shadow: 0 2px 10px -6px rgba(11,31,63,.3); }
         body #registeredStudentsList img { border: 2px solid #fff; box-shadow: 0 0 0 1px var(--line); }
-        body .student-action-menu, body .report-call-group { box-shadow: 0 18px 36px -12px rgba(11,31,63,.35); }
-
+        body .student-action-menu { box-shadow: 0 18px 36px -12px rgba(11,31,63,.35); }
         /* Tabla de reporte */
         body #view-report table { border-collapse: separate; border-spacing: 0; }
         body #view-report thead { background: var(--navy); }
@@ -137,10 +124,11 @@
             text-transform: none; font-size: 12px; font-weight: 600; letter-spacing: .03em;
             border-bottom: 3px solid var(--brass); padding-top: 12px; padding-bottom: 12px;
         }
-        body #view-report tbody tr:not([id]):hover { background: #F7F9FC; }
+        body #view-report tbody tr:not(.row-selected-sky):hover { background: #F7F9FC; }
+        body #view-report tbody tr.row-selected-sky { background-color: #E0F2FE !important; }
+        body #view-report tbody tr.row-selected-sky td { border-bottom-color: #7DD3FC; }
         body #view-report tbody td { border-bottom: 1px solid #EDF0F5; }
         body #view-report tbody td .rounded-full { letter-spacing: .04em; font-weight: 700; }
-
         /* Modales */
         body .fixed.inset-0.z-50:not(#loadingOverlay) { backdrop-filter: blur(3px); }
         body .fixed.inset-0.z-50 .border-crimson-600.border-t-4,
@@ -148,14 +136,11 @@
         body .fixed.inset-0.z-50 > .bg-white, body .fixed.inset-0.z-50 > form.bg-white {
             box-shadow: 0 30px 60px -20px rgba(7,20,41,.55);
         }
-
         /* Pie de página */
         body footer { background: var(--navy-deep); border-top: 3px solid var(--brass); color: #AEB8CC; }
-
         /* Avisos */
         @keyframes slideInUp { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .toast-enter { animation: slideInUp .25s ease-out forwards; }
-
         /* Accesibilidad */
         body :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
         @media (prefers-reduced-motion: reduce) {
@@ -164,12 +149,10 @@
     </style>
 </head>
 <body class="bg-slate-50 text-navy-900 min-h-screen flex flex-col">
-
     <div id="loadingOverlay" class="fixed inset-0 z-50 bg-navy-950 flex flex-col items-center justify-center text-white gap-3">
         <div class="w-12 h-12 border-4 border-crimson-600 border-t-transparent rounded-full animate-spin"></div>
         <p class="text-sm font-bold tracking-wide">Conectando con la Nube INEB...</p>
     </div>
-
     <div id="authScreen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-t-8 border-crimson-600 space-y-6">
             <div class="text-center space-y-2">
@@ -179,12 +162,10 @@
                 <h1 class="font-extrabold text-navy-900 text-xl tracking-wide">INEB CENTRO CAJOLÁ</h1>
                 <p class="text-xs text-slate-500 font-medium">Aula Virtual • Control de Asistencia Facial</p>
             </div>
-
             <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-bold">
                 <button type="button" id="btnShowLogin" onclick="toggleAuthMode('login')" class="py-2 rounded-lg bg-white text-navy-900 shadow-xs transition-all">Iniciar Sesión</button>
                 <button type="button" id="btnShowRegister" onclick="toggleAuthMode('register')" class="py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all">Crear Cuenta</button>
             </div>
-
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-navy-900 mb-1">Correo Electrónico</label>
@@ -198,7 +179,6 @@
                     Ingresar a mis Aulas
                 </button>
             </form>
-
             <form id="registerForm" onsubmit="handleRegisterTeacher(event)" class="hidden space-y-3.5">
                 <div>
                     <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Docente</label>
@@ -218,7 +198,6 @@
             </form>
         </div>
     </div>
-
     <div id="appContainer" class="hidden flex-1 flex flex-col w-full max-w-full overflow-x-clip">
         <header class="bg-navy-900 text-white sticky top-0 z-30 shadow-md border-b-4 border-crimson-600 w-full">
             <div class="max-w-5xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 min-w-0">
@@ -234,7 +213,6 @@
                         </p>
                     </div>
                 </div>
-
                 <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <button id="btnInstallApp" type="button" onclick="triggerPwaInstall()" class="hidden items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-xs font-bold px-2.5 py-1.5 rounded-xl shadow transition-all" title="Instalar aplicación en el dispositivo">
                         <i data-lucide="download" class="w-3.5 h-3.5"></i>
@@ -249,7 +227,6 @@
                     </button>
                 </div>
             </div>
-
             <div class="bg-navy-950 border-t border-navy-800 px-3 sm:px-4 py-2 w-full">
                 <div class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
                     <div class="flex items-center gap-1.5 min-w-0 flex-1">
@@ -265,7 +242,6 @@
                         <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Nuevo Grado / Sección (Guía)
                     </button>
                 </div>
-
                 <div id="guideInfoBox" class="hidden max-w-5xl mx-auto mt-2 bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-xs text-slate-200 flex items-center justify-between gap-2">
                     <span class="truncate">Maestro Guía: <strong id="classGuideInfo" class="text-white"></strong></span>
                     <div class="flex items-center gap-2 shrink-0">
@@ -277,7 +253,6 @@
                     </div>
                 </div>
             </div>
-
             <nav class="bg-white border-b border-slate-200 w-full">
                 <div class="max-w-5xl mx-auto px-1.5 sm:px-4 grid grid-cols-3 gap-1">
                     <button onclick="switchTab('scanner')" id="tab-scanner" class="tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80 min-w-0">
@@ -295,7 +270,6 @@
                 </div>
             </nav>
         </header>
-
         <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 pb-10 min-w-0">
             <div id="noClassesAlert" class="hidden bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-2xl text-navy-900 shadow-sm text-center space-y-3">
                 <i data-lucide="folder-plus" class="w-10 h-10 text-amber-600 mx-auto"></i>
@@ -305,7 +279,6 @@
                     + Crear Mi Grado Guía
                 </button>
             </div>
-
             <div id="workspaceViews" class="space-y-4 min-w-0">
                 <section id="view-scanner" class="space-y-4 min-w-0">
                     <div class="grid grid-cols-3 gap-2 sm:gap-4">
@@ -322,7 +295,6 @@
                             <p id="statAbsent" class="text-lg sm:text-xl font-extrabold text-crimson-600 mt-0.5">0</p>
                         </div>
                     </div>
-
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sm:p-4 space-y-4 min-w-0">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <div class="min-w-0">
@@ -344,7 +316,6 @@
                                 </button>
                             </div>
                         </div>
-
                         <div id="voicePanel" class="hidden rounded-xl border border-navy-800/20 bg-slate-50 p-3 space-y-2">
                             <div class="flex items-center justify-between text-xs gap-2">
                                 <span id="voiceStatusLabel" class="font-bold text-navy-900 flex items-center gap-1.5">
@@ -359,17 +330,14 @@
                             <p id="voiceTranscriptText" class="text-xs italic text-slate-600">Esperando tu voz...</p>
                             <p id="voiceResultSummary" class="text-xs font-semibold text-emerald-700"></p>
                         </div>
-
                         <div class="video-wrapper aspect-[4/3] sm:aspect-video max-h-[58vh] flex items-center justify-center border-2 border-navy-900">
                             <video id="attendanceVideo" autoplay muted playsinline></video>
                             <canvas id="attendanceCanvas"></canvas>
-
                             <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-navy-950/95 text-slate-200">
                                 <i data-lucide="scan-face" class="w-12 h-12 text-crimson-600 mb-2"></i>
                                 <p class="font-bold text-white text-sm">Cámara o Micrófono Listos</p>
                                 <p class="text-xs text-slate-400 mt-1">Usa "Iniciar Cámara" para escanear rostros o "Voz" para dictar tu lista.</p>
                             </div>
-
                             <div id="lastDetectedBanner" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-navy-900/95 border-l-4 border-emerald-400 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
                                 <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0"></i>
                                 <div class="min-w-0 flex-1">
@@ -381,7 +349,6 @@
                         </div>
                     </div>
                 </section>
-
                 <section id="view-register" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4 min-w-0">
                     <div id="guideEditorCard" class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3 h-fit min-w-0">
                         <p class="text-xs text-slate-500 truncate">Aula: <strong id="regClassLabel" class="text-navy-900"></strong></p>
@@ -390,7 +357,6 @@
                             <span>Registrar Alumno</span>
                         </button>
                     </div>
-
                     <div id="readOnlyGuideNotice" class="hidden lg:col-span-4 bg-slate-100 rounded-2xl border border-slate-200 p-5 space-y-2 h-fit min-w-0">
                         <div class="flex items-center gap-2 text-navy-900 font-bold text-sm">
                             <i data-lucide="shield-check" class="w-5 h-5 text-navy-800 shrink-0"></i>
@@ -400,7 +366,6 @@
                             Este grado pertenece a <strong id="otherGuideName" class="text-navy-900"></strong>. Puedes ver la lista de alumnos y pasar tu propia asistencia privada, pero solo el maestro guía puede agregar, editar o eliminar alumnos de este grado.
                         </p>
                     </div>
-
                     <div id="studentsListColumn" class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col min-w-0">
                         <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
                             <div class="min-w-0">
@@ -412,12 +377,12 @@
                         <div id="registeredStudentsList" class="mt-3 space-y-2 max-h-[480px] overflow-y-auto pb-24"></div>
                     </div>
                 </section>
-
                 <section id="view-report" class="hidden space-y-4 min-w-0">
                     <div class="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
                         <div class="min-w-0">
                             <h2 class="font-bold text-navy-900 text-sm sm:text-base truncate">Reporte • <span id="reportClassTitle" class="text-crimson-600"></span></h2>
                             <p id="reportDateBadge" class="text-[11px] sm:text-xs text-slate-500 truncate"></p>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Toca un estudiante para resaltarlo en celeste • <strong class="text-emerald-700">A</strong> Asistente, <strong class="text-sky-700">P</strong> Permiso, <strong class="text-crimson-600">I</strong> Inasistente</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2 shrink-0">
                             <button onclick="resetTodayAttendance()" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold">Reiniciar Día</button>
@@ -427,7 +392,6 @@
                             </button>
                         </div>
                     </div>
-
                     <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto max-w-full">
                         <table class="w-full text-left border-collapse text-xs sm:text-sm">
                             <thead class="bg-navy-900 text-white text-[10px] sm:text-[11px] uppercase">
@@ -445,7 +409,6 @@
                 </section>
             </div>
         </main>
-
         <footer class="bg-navy-950 text-slate-300 border-t-2 border-navy-800 py-3 px-4 text-center text-xs mt-auto">
             <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
                 <span>INEB Centro Cajolá • Aula Virtual</span>
@@ -453,7 +416,6 @@
             </div>
         </footer>
     </div>
-
     <!-- Recuadro emergente para registrar un nuevo alumno -->
     <div id="registerStudentModal" onclick="if(event.target === this) closeRegisterStudentModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-3.5 my-auto max-h-[90vh] overflow-y-auto">
@@ -466,7 +428,6 @@
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-
             <div class="space-y-2.5">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <div>
@@ -478,7 +439,6 @@
                         <input type="text" id="regStudentName" placeholder="Ej. María Fernanda Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
                     </div>
                 </div>
-
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-xs font-bold text-navy-900 mb-1">Nombre del Encargado Principal</label>
@@ -489,7 +449,6 @@
                         <input type="tel" id="regGuardianPhone" placeholder="Ej. 5555-1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
                     </div>
                 </div>
-
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-xs font-bold text-navy-900 mb-1">Nombre Encargado Secundario</label>
@@ -500,7 +459,6 @@
                         <input type="tel" id="regGuardian2Phone" placeholder="Ej. 4444-5678" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
                     </div>
                 </div>
-
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
                     <p class="text-[11px] font-extrabold uppercase tracking-wider text-crimson-600">Registro de Salud y Emergencias</p>
                     <div>
@@ -511,10 +469,8 @@
                         <label class="block text-xs font-bold text-navy-900 mb-1">Medicamentos que usa para tratarla</label>
                         <input type="text" id="regHealthMedication" placeholder="Ej. Ninguno / Inhalador de salbutamol" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
                     </div>
-
                 </div>
             </div>
-
             <div class="space-y-2">
                 <label class="block text-xs font-bold text-navy-900">Fotografía Facial *</label>
                 <div class="grid grid-cols-2 gap-2">
@@ -527,7 +483,6 @@
                     <input type="file" id="regPhotoInput" accept="image/*" onchange="handlePhotoUpload(event)" class="hidden">
                 </div>
             </div>
-
             <div id="regMediaContainer" class="hidden relative rounded-xl overflow-hidden bg-navy-950 aspect-[4/3] flex items-center justify-center">
                 <video id="regVideo" autoplay muted playsinline class="hidden w-full h-full object-cover"></video>
                 <img id="regPreviewImg" alt="Vista previa" class="hidden w-full h-full object-cover">
@@ -538,9 +493,7 @@
                     <button type="button" onclick="captureRegSnapshot()" class="bg-crimson-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow">Capturar Rostro</button>
                 </div>
             </div>
-
             <div id="regFaceFeedback" class="hidden text-xs px-3 py-2 rounded-xl font-semibold"></div>
-
             <div class="flex justify-end gap-2 pt-1">
                 <button type="button" onclick="closeRegisterStudentModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
                 <button type="button" id="btnSaveStudent" onclick="saveNewStudent()" disabled class="flex-1 py-2.5 rounded-xl bg-crimson-600 hover:bg-crimson-700 disabled:bg-slate-300 text-white font-bold text-sm">
@@ -549,7 +502,6 @@
             </div>
         </div>
     </div>
-
     <!-- Recuadro de información del alumno, encargados, salud y contacto -->
     <div id="guardianInfoModal" onclick="if(event.target === this) closeGuardianInfoModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-3.5 my-auto max-h-[90vh] overflow-y-auto">
@@ -565,7 +517,6 @@
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-
             <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs">
                 <div class="flex items-center justify-between gap-2">
                     <div class="min-w-0">
@@ -587,7 +538,6 @@
                 <p id="guardianNoPhoneHint" class="hidden text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg py-1.5 px-2.5 font-medium">
                     Sin teléfono de encargado principal registrado.
                 </p>
-
                 <div class="border-t border-slate-200 pt-2 flex items-center justify-between gap-2">
                     <div class="min-w-0">
                         <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Encargado Secundario</p>
@@ -609,7 +559,6 @@
                     Sin teléfono de encargado secundario registrado.
                 </p>
             </div>
-
             <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 space-y-2 text-xs">
                 <p class="text-[10px] font-extrabold uppercase tracking-wider text-crimson-600">Ficha de Salud y Emergencia</p>
                 <div>
@@ -633,7 +582,6 @@
             </div>
         </div>
     </div>
-
     <div id="newClassModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4">
         <form onsubmit="createNewClass(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border-t-4 border-crimson-600 space-y-4">
             <h3 class="font-bold text-navy-900 text-base">Crear Grado Guía</h3>
@@ -652,7 +600,6 @@
             </div>
         </form>
     </div>
-
     <div id="editGuideModal" onclick="if(event.target === this) closeEditGuideModal()" class="hidden fixed inset-0 z-50 bg-navy-950/75 flex items-center justify-center p-4">
         <form onsubmit="saveEditedGuide(event)" class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border-t-4 border-crimson-600 space-y-3.5">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -681,7 +628,6 @@
             </div>
         </form>
     </div>
-
     <div id="editStudentModal" class="hidden fixed inset-0 z-50 bg-navy-950/70 flex items-center justify-center p-4 overflow-y-auto">
         <form onsubmit="saveEditedStudent(event)" class="bg-white rounded-2xl max-w-md w-full p-5 shadow-xl border-t-4 border-navy-900 space-y-3 my-auto max-h-[90vh] overflow-y-auto">
             <h3 class="font-bold text-navy-900 text-base">Editar Datos del Alumno</h3>
@@ -726,7 +672,6 @@
                     <label class="block text-xs font-bold text-navy-900 mb-1">Medicamentos para tratarla</label>
                     <input type="text" id="editHealthMedication" placeholder="Ej. Ninguno / Inhalador" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm">
                 </div>
-
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="closeEditStudentModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold">Cancelar</button>
@@ -734,14 +679,11 @@
             </div>
         </form>
     </div>
-
     <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-
         const firebaseConfig = {
             apiKey: "AIzaSyArBHe7SW2j45TOF2D1716Nw1FW-PaX20g",
             authDomain: "ineb-cajola-asistencia.firebaseapp.com",
@@ -751,17 +693,15 @@
             appId: "1:325897112815:web:986e224de175b230b85f1a",
             measurementId: "G-0PWY2RY9EP"
         };
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const MODEL_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model/';
-
         let currentUser = null;
         let catalogClasses = [];
         let myAttendanceByClass = {};
         let activeClassId = null;
-
+        let selectedReportStudentId = null;
         let modelsLoaded = false;
         let faceMatcher = null;
         let isScanning = false;
@@ -769,17 +709,14 @@
         let scanAnimationFrame = null;
         let attendanceFacingMode = 'environment';
         let lastDetectedCooldown = {};
-
         let regStream = null;
         let regFacingMode = 'environment';
         let currentRegDescriptor = null;
         let currentRegPhotoDataUrl = null;
-
         let speechRecognition = null;
         let isListeningVoice = false;
         let voiceFinalBuffer = '';
         let voiceLatestHeard = '';
-
         window.openEditGuideModal = () => {
             const cls = getActiveClass();
             if (!cls || !isCurrentUserGuide(cls)) {
@@ -792,11 +729,9 @@
             document.getElementById('editGuideModal').classList.remove('hidden');
             lucide.createIcons();
         };
-
         window.closeEditGuideModal = () => {
             document.getElementById('editGuideModal').classList.add('hidden');
         };
-
         window.saveEditedGuide = async (e) => {
             e.preventDefault();
             const cls = getActiveClass();
@@ -808,7 +743,6 @@
             const nextGrade = document.getElementById('editGuideGradeInput').value.trim();
             const nextSection = document.getElementById('editGuideSectionInput').value.trim();
             if (!nextGuideName || !nextGrade || !nextSection) return;
-
             const btn = document.getElementById('btnSaveEditedGuide');
             btn.disabled = true;
             btn.textContent = 'Guardando...';
@@ -823,7 +757,6 @@
                     guideUid: cls.guideUid,
                     guideName: cls.guideName
                 }, { merge: true });
-
                 // Actualizar también el nombre registrado del docente en Firebase y debajo de INEB CENTRO CAJOLÁ
                 if (currentUser && cls.guideUid === currentUser.uid) {
                     const headerTeacherEl = document.getElementById('currentTeacherName');
@@ -834,7 +767,6 @@
                         email: currentUser.email || ''
                     }, { merge: true }).catch(() => {});
                 }
-
                 renderClassSelector();
                 window.closeEditGuideModal();
                 showToast('Nombre del maestro guía y docente actualizado.', 'success');
@@ -845,11 +777,9 @@
                 btn.textContent = 'Guardar';
             }
         };
-
         window.toggleGuideInfoPopover = () => {
             document.getElementById('guideInfoBox').classList.toggle('hidden');
         };
-
         window.openRegisterStudentModal = () => {
             const cls = getActiveClass();
             if (!cls || !isCurrentUserGuide(cls)) {
@@ -859,13 +789,11 @@
             document.getElementById('registerStudentModal').classList.remove('hidden');
             lucide.createIcons();
         };
-
         window.closeRegisterStudentModal = () => {
             stopRegCamera();
             document.getElementById('regCameraControls').classList.add('hidden');
             document.getElementById('registerStudentModal').classList.add('hidden');
         };
-
         function formatPhoneForLinks(rawPhone) {
             const digits = (rawPhone || '').replace(/\D+/g, '');
             if (!digits) return { telHref: '', waHref: '' };
@@ -875,13 +803,11 @@
                 waHref: `https://wa.me/${waNumber}`
             };
         }
-
         window.openGuardianInfoModal = (studentId) => {
             const cls = getActiveClass();
             if (!cls) return;
             const s = cls.students.find(st => st.id === studentId);
             if (!s) return;
-
             document.getElementById('guardianModalPhoto').src = s.photo || 'logoineb.png';
             document.getElementById('guardianModalCode').textContent = `Clave: ${s.id}`;
             document.getElementById('guardianModalStudentName').textContent = s.name;
@@ -893,15 +819,12 @@
             document.getElementById('guardianModalHealthMedication').textContent = (s.healthMedication || '').trim() || 'No registrado';
             const fixedEmergencyPhone = '46113714';
             document.getElementById('guardianModalEmergencyPhone').textContent = fixedEmergencyPhone;
-
             const defaultMsg = encodeURIComponent(`Buen día, le saludamos de INEB Centro Cajolá respecto al estudiante ${s.name} (Clave ${s.id}).`);
-
             const { telHref, waHref } = formatPhoneForLinks(s.guardianPhone);
             const buttonsWrap = document.getElementById('guardianContactButtons');
             const noPhoneHint = document.getElementById('guardianNoPhoneHint');
             const btnCall = document.getElementById('btnDirectCall');
             const btnWa = document.getElementById('btnWhatsAppContact');
-
             if (telHref && waHref) {
                 btnCall.href = telHref;
                 btnWa.href = `${waHref}?text=${defaultMsg}`;
@@ -913,13 +836,11 @@
                 buttonsWrap.classList.add('hidden');
                 noPhoneHint.classList.remove('hidden');
             }
-
             const { telHref: telHref2, waHref: waHref2 } = formatPhoneForLinks(s.guardian2Phone);
             const buttonsWrap2 = document.getElementById('guardian2ContactButtons');
             const noPhoneHint2 = document.getElementById('guardian2NoPhoneHint');
             const btnCall2 = document.getElementById('btnDirectCall2');
             const btnWa2 = document.getElementById('btnWhatsAppContact2');
-
             if (telHref2 && waHref2) {
                 btnCall2.href = telHref2;
                 btnWa2.href = `${waHref2}?text=${defaultMsg}`;
@@ -931,30 +852,24 @@
                 buttonsWrap2.classList.add('hidden');
                 noPhoneHint2.classList.remove('hidden');
             }
-
             const btnEmerg = document.getElementById('btnEmergencyCall');
             const emergLabel = document.getElementById('btnEmergencyCallLabel');
             btnEmerg.href = `tel:${fixedEmergencyPhone}`;
             emergLabel.textContent = `Emergencia (${fixedEmergencyPhone})`;
             btnEmerg.classList.remove('hidden');
-
             document.getElementById('guardianInfoModal').classList.remove('hidden');
             lucide.createIcons();
         };
-
         window.closeGuardianInfoModal = () => {
             document.getElementById('guardianInfoModal').classList.add('hidden');
         };
-
         function isCurrentUserGuide(cls) {
             return Boolean(cls && currentUser && cls.guideUid === currentUser.uid);
         }
-
         function getClassAttendance(classId) {
             if (!myAttendanceByClass[classId]) myAttendanceByClass[classId] = {};
             return myAttendanceByClass[classId];
         }
-
         function normalizeText(str) {
             return (str || '')
                 .toLowerCase()
@@ -964,20 +879,17 @@
                 .replace(/\s+/g, ' ')
                 .trim();
         }
-
         function matchStudentsFromPhrase(phrase, students) {
             const normPhrase = normalizeText(phrase);
             if (!normPhrase) return [];
             const tokens = normPhrase.split(' ');
             const normalizedTokens = tokens.map(t => (/^\d+$/.test(t) ? String(parseInt(t, 10)) : t));
             const matchedIds = new Set();
-
             students.forEach((student) => {
                 const normName = normalizeText(student.name);
                 const normId = normalizeText(student.id);
                 const normIdNum = /^\d+$/.test(normId) ? String(parseInt(normId, 10)) : normId;
                 const nameParts = normName.split(' ').filter(p => p.length >= 2);
-
                 if (normId && (tokens.includes(normId) || (normIdNum && normalizedTokens.includes(normIdNum)))) {
                     matchedIds.add(student.id);
                     return;
@@ -995,7 +907,6 @@
             });
             return Array.from(matchedIds);
         }
-
         async function applyVoiceAttendanceCommand(transcript) {
             const cls = getActiveClass();
             const activeStudents = cls ? cls.students.filter(s => s.active !== false) : [];
@@ -1008,27 +919,22 @@
                 showToast('No se detectó ninguna frase para aplicar.', 'error');
                 return;
             }
-
             const norm = normalizeText(rawClean);
             const classAttendance = getClassAttendance(cls.id);
             const today = getTodayStr();
             if (!classAttendance[today]) classAttendance[today] = {};
             const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
-
             cls.students.filter(s => s.active === false).forEach((s) => {
                 delete classAttendance[today][s.id];
             });
-
             const hasNoneKeyword = /\b(nadie|ninguno|ninguna|ningun|cero|nadie asistio|ninguno asistio|nadie bino|nadie vino|no asistio nadie|no vino nadie)\b/.test(norm);
             const hasAllKeyword = !hasNoneKeyword && /\b(todos|todas|todo el mundo|la clase completa|presentes todos|todos vinieron|todos binieron|todos asistieron|todos estan aqui|todos estan presentes)\b/.test(norm);
             const splitExceptMatch = norm.match(/\b(excepto|menos|salvo|fuera de|sin)\b([\s\S]*)/);
             const splitAbsentOnlyMatch = !hasAllKeyword && !hasNoneKeyword && /\b(falta|faltan|falto|faltaron|ausente|ausentes|no vino|no vinieron|no bino|no binieron|no asistio|no asistieron)\b([\s\S]*)/.test(norm)
                 ? norm.match(/\b(falta|faltan|falto|faltaron|ausente|ausentes|no vino|no vinieron|no bino|no binieron|no asistio|no asistieron)\b([\s\S]*)/)
                 : null;
-
             let absentIds = [];
             let presentIds = [];
-
             if (hasNoneKeyword) {
                 activeStudents.forEach((s) => {
                     classAttendance[today][s.id] = { status: 'INASISTENTE', time: '--:--' };
@@ -1060,14 +966,11 @@
                     classAttendance[today][id] = { status: 'ASISTENTE', time: timeStr };
                 });
             }
-
             renderAllUI();
             await saveMyPrivateAttendanceToCloud();
-
             const absentNames = activeStudents.filter(s => absentIds.includes(s.id)).map(s => s.name);
             const presentNames = activeStudents.filter(s => presentIds.includes(s.id)).map(s => s.name);
             const summaryEl = document.getElementById('voiceResultSummary');
-
             if (hasNoneKeyword) {
                 summaryEl.textContent = `Guardado: nadie asistió (${absentIds.length} activos marcados como inasistentes).`;
             } else if (hasAllKeyword && splitExceptMatch) {
@@ -1087,18 +990,15 @@
             }
             showToast('Asistencia por voz actualizada.', 'success');
         }
-
         window.applyVoiceNow = async () => {
             const spoken = (voiceFinalBuffer || voiceLatestHeard || '').trim();
             window.stopVoiceAttendance();
             await applyVoiceAttendanceCommand(spoken);
         };
-
         window.toggleVoiceAttendance = () => {
             if (isListeningVoice) window.stopVoiceAttendance();
             else startVoiceAttendance();
         };
-
         function startVoiceAttendance() {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRec) {
@@ -1111,28 +1011,23 @@
                 return;
             }
             stopAttendanceCamera();
-
             const panel = document.getElementById('voicePanel');
             const transcriptEl = document.getElementById('voiceTranscriptText');
             const summaryEl = document.getElementById('voiceResultSummary');
             const statusLabel = document.getElementById('voiceStatusLabel');
             const btnText = document.getElementById('btnVoiceText');
-
             panel.classList.remove('hidden');
             transcriptEl.textContent = 'Escuchando...';
             summaryEl.textContent = '';
             statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-crimson-600 animate-ping shrink-0"></span> Escuchando... di por ejemplo: "Todos están aquí menos clave 03" o "Nadie asistió hoy"';
             btnText.textContent = 'Detener';
-
             voiceFinalBuffer = '';
             voiceLatestHeard = '';
             isListeningVoice = true;
-
             speechRecognition = new SpeechRec();
             speechRecognition.lang = 'es-GT';
             speechRecognition.interimResults = true;
             speechRecognition.maxAlternatives = 1;
-
             speechRecognition.onresult = (event) => {
                 let interim = '';
                 let builtFinal = '';
@@ -1148,12 +1043,10 @@
                 voiceLatestHeard = (voiceFinalBuffer + ' ' + interim).trim();
                 transcriptEl.textContent = `"${voiceLatestHeard || 'Escuchando...'}"`;
             };
-
             speechRecognition.onerror = (event) => {
                 showToast('Error de micrófono: ' + event.error, 'error');
                 window.stopVoiceAttendance();
             };
-
             speechRecognition.onend = async () => {
                 const hadSession = isListeningVoice;
                 isListeningVoice = false;
@@ -1168,7 +1061,6 @@
                     statusLabel.textContent = 'No se detectó voz. Intenta de nuevo.';
                 }
             };
-
             try {
                 speechRecognition.start();
             } catch (_) {
@@ -1177,7 +1069,6 @@
                 showToast('No se pudo iniciar el micrófono.', 'error');
             }
         }
-
         window.stopVoiceAttendance = () => {
             const wasListening = isListeningVoice;
             isListeningVoice = false;
@@ -1189,7 +1080,6 @@
                 speechRecognition = null;
             }
         };
-
         window.toggleAuthMode = (mode) => {
             const loginForm = document.getElementById('loginForm');
             const regForm = document.getElementById('registerForm');
@@ -1205,7 +1095,6 @@
                 btnLogin.className = 'py-2 rounded-lg text-slate-500 hover:text-navy-900 transition-all';
             }
         };
-
         window.handleRegisterTeacher = async (e) => {
             e.preventDefault();
             const name = document.getElementById('regTeacherName').value.trim();
@@ -1221,7 +1110,6 @@
             } catch (error) { showToast('Error al registrar: ' + error.message, 'error'); }
             finally { btn.disabled = false; btn.textContent = 'Crear Cuenta en la Nube'; }
         };
-
         window.handleLogin = async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value.trim();
@@ -1232,9 +1120,7 @@
             catch (_) { showToast('Correo o contraseña incorrectos.', 'error'); }
             finally { btn.disabled = false; btn.textContent = 'Ingresar a mis Aulas'; }
         };
-
         window.logoutTeacher = async () => { stopAttendanceCamera(); stopRegCamera(); window.stopVoiceAttendance(); await signOut(auth); };
-
         onAuthStateChanged(auth, async (user) => {
             document.getElementById('loadingOverlay').classList.add('hidden');
             if (user) {
@@ -1245,16 +1131,14 @@
                 await loadSharedCatalogAndPrivateAttendance();
                 await loadFaceApiModels();
             } else {
-                currentUser = null; catalogClasses = []; myAttendanceByClass = {}; activeClassId = null;
+                currentUser = null; catalogClasses = []; myAttendanceByClass = {}; activeClassId = null; selectedReportStudentId = null;
                 document.getElementById('appContainer').classList.add('hidden');
                 document.getElementById('authScreen').classList.remove('hidden');
             }
         });
-
         function sanitizeFirestoreDocId(rawId) {
             return String(rawId || '').trim().replace(/[\/\\]+/g, '_');
         }
-
         function parseDescriptorArray(rawDesc) {
             if (!rawDesc) return [];
             if (Array.isArray(rawDesc)) return rawDesc.map(n => Number(n) || 0);
@@ -1265,14 +1149,12 @@
             }
             return [];
         }
-
         function extractStudentName(s) {
             if (!s) return '';
             const raw = s.name || s.nombre || s.fullName || s.studentName || s.estudiante || '';
             const clean = String(raw).trim();
             return clean.toLowerCase() === 'sin nombre' ? '' : clean;
         }
-
         function mergeStudentSources(baseStudent, incomingStudent, fallbackOrder = 0) {
             const base = baseStudent || {};
             const inc = incomingStudent || {};
@@ -1287,7 +1169,6 @@
             const resolvedOrder = typeof inc._order === 'number'
                 ? inc._order
                 : (typeof base._order === 'number' ? base._order : fallbackOrder);
-
             return {
                 ...base,
                 ...inc,
@@ -1306,29 +1187,24 @@
                 descriptor: new Float32Array(resolvedDesc)
             };
         }
-
         function mapStudentRecord(s, fallbackOrder = 0) {
             return mergeStudentSources(null, s, fallbackOrder);
         }
-
         async function loadSharedCatalogAndPrivateAttendance() {
             const loadedClasses = [];
             let debugErrors = [];
-
             try {
                 const catalogSnap = await getDocs(collection(db, "aulas_catalogo"));
                 for (const docSnap of catalogSnap.docs) {
                     const data = docSnap.data();
                     const classId = data.id || docSnap.id;
                     const studentsMap = new Map();
-
                     (data.students || []).forEach((s, idx) => {
                         if (s && s.id) {
                             const sid = String(s.id).trim();
                             studentsMap.set(sid, mergeStudentSources(studentsMap.get(sid), { ...s, id: sid }, idx));
                         }
                     });
-
                     try {
                         const alunosSnap = await getDocs(collection(db, "aulas_catalogo", docSnap.id, "alumnos"));
                         alunosSnap.forEach((aDoc) => {
@@ -1347,11 +1223,9 @@
                     } catch (subErr) {
                         debugErrors.push(`Subcolección alumnos (${docSnap.id}): ${subErr.code || subErr.message}`);
                     }
-
                     const orderedStudents = Array.from(studentsMap.values())
                         .sort((a, b) => (a._order ?? 0) - (b._order ?? 0))
                         .map(({ _order, ...rest }) => rest);
-
                     loadedClasses.push({
                         id: classId,
                         _docId: docSnap.id,
@@ -1365,7 +1239,6 @@
             } catch (catErr) {
                 debugErrors.push(`aulas_catalogo: ${catErr.code || catErr.message}`);
             }
-
             try {
                 const teacherRef = doc(db, "docentes", currentUser.uid);
                 const teacherSnap = await getDoc(teacherRef);
@@ -1375,13 +1248,11 @@
                         document.getElementById('currentTeacherName').textContent = tData.name;
                     }
                     myAttendanceByClass = tData.attendanceByClass || {};
-
                     if (Array.isArray(tData.classes) && tData.classes.length > 0) {
                         let recoveredAny = false;
                         for (const legacyCls of tData.classes) {
                             const existing = loadedClasses.find(c => c.id === legacyCls.id || (c.grade === legacyCls.grade && c.section === legacyCls.section));
                             const legacyStudents = (legacyCls.students || []).map((s, idx) => mapStudentRecord(s, idx));
-
                             if (!existing) {
                                 const migratedClass = {
                                     id: legacyCls.id,
@@ -1433,17 +1304,14 @@
             } catch (docErr) {
                 debugErrors.push(`docentes: ${docErr.code || docErr.message}`);
             }
-
             if (debugErrors.length > 0) {
                 console.error("Errores Firestore:", debugErrors);
                 showToast('Aviso nube: ' + debugErrors[0], 'error');
             }
-
             loadedClasses.sort((a, b) => `${a.grade} ${a.section}`.localeCompare(`${b.grade} ${b.section}`));
             catalogClasses = loadedClasses;
             renderClassSelector();
         }
-
         function serializeStudentDoc(s, orderIndex = 0) {
             return {
                 id: s.id,
@@ -1461,7 +1329,6 @@
                 _order: orderIndex
             };
         }
-
         async function saveClassMetaToCloud(cls) {
             if (!currentUser || !cls) return false;
             try {
@@ -1475,7 +1342,6 @@
                 return true;
             } catch (err) { showToast('Error al guardar aula en Firestore: ' + (err.code || err.message), 'error'); return false; }
         }
-
         async function saveSingleStudentToCloud(cls, student, orderIndex = 0) {
             if (!currentUser || !cls || !student) return false;
             const targetClassDocId = cls._docId || cls.id;
@@ -1486,7 +1352,6 @@
                 return true;
             } catch (err) { showToast('Error al guardar alumno en Firestore: ' + (err.code || err.message), 'error'); return false; }
         }
-
         async function deleteSingleStudentFromCloud(classId, studentId) {
             if (!currentUser || !classId || !studentId) return false;
             const clsObj = catalogClasses.find(c => c.id === classId || c._docId === classId);
@@ -1501,7 +1366,6 @@
                 return true;
             } catch (err) { showToast('Error al eliminar alumno en Firestore: ' + (err.code || err.message), 'error'); return false; }
         }
-
         async function saveStudentsOrderToCloud(cls) {
             if (!currentUser || !cls) return false;
             const targetClassDocId = cls._docId || cls.id;
@@ -1517,7 +1381,6 @@
                 return true;
             } catch (err) { showToast('Error al guardar orden en Firestore: ' + (err.code || err.message), 'error'); return false; }
         }
-
         async function saveClassCatalogToCloud(cls) {
             if (!currentUser || !cls) return false;
             try {
@@ -1535,7 +1398,6 @@
                 return true;
             } catch (err) { showToast('Error al guardar en Firestore: ' + (err.code || err.message), 'error'); return false; }
         }
-
         async function saveMyPrivateAttendanceToCloud() {
             if (!currentUser) return false;
             try {
@@ -1544,10 +1406,8 @@
                 return true;
             } catch (err) { showToast('Error al guardar asistencia: ' + (err.code || err.message), 'error'); return false; }
         }
-
         window.openNewClassModal = () => document.getElementById('newClassModal').classList.remove('hidden');
         window.closeNewClassModal = () => { document.getElementById('newClassModal').classList.add('hidden'); document.getElementById('newClassGrade').value = ''; document.getElementById('newClassSection').value = ''; };
-
         window.createNewClass = async (e) => {
             e.preventDefault();
             if (!currentUser) return;
@@ -1561,7 +1421,6 @@
             renderClassSelector();
             if (await saveClassMetaToCloud(newClass)) showToast(`Grado guía "${grade} - ${section}" creado.`, 'success');
         };
-
         function renderClassSelector() {
             const selector = document.getElementById('activeClassSelector');
             const noClassesAlert = document.getElementById('noClassesAlert');
@@ -1576,9 +1435,7 @@
             selector.value = activeClassId;
             window.handleClassChange();
         }
-
         function getActiveClass() { return catalogClasses.find(c => c.id === activeClassId); }
-
         function updateGuidePermissionsUI(cls) {
             if (!cls) return;
             const canEditRoster = isCurrentUserGuide(cls);
@@ -1598,10 +1455,10 @@
                 document.getElementById('btnDeleteClass').classList.add('hidden');
             }
         }
-
         window.handleClassChange = () => {
             stopAttendanceCamera(); window.stopVoiceAttendance();
             activeClassId = document.getElementById('activeClassSelector').value;
+            selectedReportStudentId = null;
             const cls = getActiveClass();
             if (!cls) return;
             const title = `${cls.grade} (${cls.section})`;
@@ -1614,7 +1471,6 @@
             rebuildFaceMatcher();
             renderAllUI();
         };
-
         window.deleteCurrentClass = async () => {
             const cls = getActiveClass();
             if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede eliminar este grado.', 'error'); return; }
@@ -1659,7 +1515,6 @@
                 showToast('No se pudo eliminar el aula: ' + (err.code || err.message), 'error');
             }
         };
-
         async function loadFaceApiModels() {
             const dot = document.getElementById('aiStatusDot');
             const text = document.getElementById('aiStatusText');
@@ -1675,7 +1530,6 @@
                 document.getElementById('btnToggleCamera').disabled = false;
             } catch (_) { text.textContent = 'Error IA'; }
         }
-
         function rebuildFaceMatcher() {
             const cls = getActiveClass();
             const activeStudents = cls
@@ -1684,7 +1538,6 @@
             if (!cls || activeStudents.length === 0 || !modelsLoaded) { faceMatcher = null; return; }
             faceMatcher = new faceapi.FaceMatcher(activeStudents.map(s => new faceapi.LabeledFaceDescriptors(s.id, [s.descriptor])), 0.58);
         }
-
         function compressImageToDataUrl(imgElement, maxSize = 220) {
             const canvas = document.createElement('canvas');
             let width = imgElement.naturalWidth || imgElement.videoWidth || imgElement.width || maxSize;
@@ -1695,7 +1548,6 @@
             canvas.getContext('2d').drawImage(imgElement, 0, 0, width, height);
             return canvas.toDataURL('image/jpeg', 0.7);
         }
-
         window.handlePhotoUpload = (event) => {
             const file = event.target.files[0];
             if (!file) return;
@@ -1710,7 +1562,6 @@
             };
             reader.readAsDataURL(file);
         };
-
         window.startRegCamera = async () => {
             stopRegCamera();
             document.getElementById('regMediaContainer').classList.remove('hidden');
@@ -1725,14 +1576,11 @@
             }
             catch (_) { showToast('No se pudo abrir la cámara.', 'error'); }
         };
-
         window.switchRegCameraFacing = async () => {
             regFacingMode = regFacingMode === 'environment' ? 'user' : 'environment';
             await window.startRegCamera();
         };
-
         function stopRegCamera() { if (regStream) { regStream.getTracks().forEach(t => t.stop()); regStream = null; } }
-
         window.captureRegSnapshot = async () => {
             const video = document.getElementById('regVideo');
             currentRegPhotoDataUrl = compressImageToDataUrl(video);
@@ -1742,7 +1590,6 @@
             video.classList.add('hidden'); document.getElementById('regCameraControls').classList.add('hidden');
             stopRegCamera();
         };
-
         async function processAndExtractFace(mediaElement) {
             const fb = document.getElementById('regFaceFeedback');
             fb.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'bg-red-50', 'text-crimson-700');
@@ -1758,7 +1605,6 @@
                 document.getElementById('btnSaveStudent').disabled = true;
             }
         }
-
         window.saveNewStudent = async () => {
             const cls = getActiveClass();
             if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede registrar alumnos.', 'error'); return; }
@@ -1772,10 +1618,8 @@
             const healthMedication = document.getElementById('regHealthMedication').value.trim();
             const emergencyPhone = '46113714';
             const btn = document.getElementById('btnSaveStudent');
-
             if (!id || !name || !currentRegDescriptor) { showToast('Completa clave, nombre y foto.', 'error'); return; }
             if (cls.students.some(s => s.id === id)) { showToast('Ya existe un alumno con esa clave.', 'error'); return; }
-
             btn.disabled = true; btn.textContent = 'Subiendo a la nube...';
             const newStudent = { id, name, guardianName, guardianPhone, guardian2Name, guardian2Phone, healthCondition, healthMedication, emergencyPhone, active: true, photo: currentRegPhotoDataUrl, descriptor: currentRegDescriptor };
             const newIndex = cls.students.length;
@@ -1799,33 +1643,13 @@
                 showToast(`${name} guardado.`, 'success');
             } finally { btn.disabled = false; btn.textContent = 'Guardar Alumno'; }
         };
-
         window.closeAllStudentMenus = () => {
             document.querySelectorAll('.student-action-menu').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.report-call-group').forEach(el => el.classList.add('hidden'));
         };
-
-        window.toggleReportStudentDetails = (studentId) => {
-            const row = document.getElementById(`reportDetailsRow_${studentId}`);
-            if (!row) return;
-            const willShow = row.classList.contains('hidden');
-            document.querySelectorAll('[id^="reportDetailsRow_"]').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.report-call-group').forEach(el => el.classList.add('hidden'));
-            if (willShow) {
-                row.classList.remove('hidden');
-                lucide.createIcons();
-            }
+        window.selectReportStudentRow = (studentId) => {
+            selectedReportStudentId = selectedReportStudentId === studentId ? null : studentId;
+            renderAllUI();
         };
-
-        window.toggleReportCallGroup = (studentId, event) => {
-            if (event) event.stopPropagation();
-            const menu = document.getElementById(`reportCallGroup_${studentId}`);
-            if (!menu) return;
-            const isHidden = menu.classList.contains('hidden');
-            document.querySelectorAll('.report-call-group').forEach(el => el.classList.add('hidden'));
-            if (isHidden) menu.classList.remove('hidden');
-        };
-
         window.toggleStudentMenu = (studentId, event) => {
             if (event) event.stopPropagation();
             const target = document.getElementById(`studentMenu_${studentId}`);
@@ -1834,9 +1658,7 @@
             window.closeAllStudentMenus();
             if (isHidden) target.classList.remove('hidden');
         };
-
         document.addEventListener('click', () => window.closeAllStudentMenus());
-
         window.toggleStudentActive = async (studentId) => {
             const cls = getActiveClass();
             if (!cls || !isCurrentUserGuide(cls)) {
@@ -1858,7 +1680,6 @@
             }
             showToast(s.active ? `${s.name} reactivado.` : `${s.name} desactivado (retirado).`, 'success');
         };
-
         window.moveStudentOrder = async (index, direction) => {
             const cls = getActiveClass();
             if (!cls || !isCurrentUserGuide(cls)) return;
@@ -1869,7 +1690,6 @@
             renderAllUI();
             if (!(await saveStudentsOrderToCloud(cls))) { cls.students = prev; renderAllUI(); }
         };
-
         window.openEditStudentModal = (studentId) => {
             const cls = getActiveClass();
             if (!cls || !isCurrentUserGuide(cls)) { showToast('Solo el maestro guía puede editar los datos del alumno.', 'error'); return; }
@@ -1886,9 +1706,7 @@
             document.getElementById('editHealthMedication').value = s.healthMedication || '';
             document.getElementById('editStudentModal').classList.remove('hidden');
         };
-
         window.closeEditStudentModal = () => document.getElementById('editStudentModal').classList.add('hidden');
-
         window.saveEditedStudent = async (e) => {
             e.preventDefault();
             const cls = getActiveClass();
@@ -1903,7 +1721,6 @@
             const newHealthCondition = document.getElementById('editHealthCondition').value.trim();
             const newHealthMedication = document.getElementById('editHealthMedication').value.trim();
             const newEmergencyPhone = '46113714';
-
             const student = cls.students.find(s => s.id === originalId);
             if (!student) return;
             const prev = {
@@ -1917,7 +1734,6 @@
                 healthMedication: student.healthMedication || '',
                 emergencyPhone: student.emergencyPhone || ''
             };
-
             student.id = newId;
             student.name = newName;
             student.guardianName = newGuardianName;
@@ -1927,7 +1743,6 @@
             student.healthCondition = newHealthCondition;
             student.healthMedication = newHealthMedication;
             student.emergencyPhone = newEmergencyPhone;
-
             if (newId !== prev.id) {
                 const classAtt = getClassAttendance(cls.id);
                 Object.keys(classAtt).forEach((dKey) => {
@@ -1945,14 +1760,11 @@
             }
             rebuildFaceMatcher(); renderAllUI(); closeEditStudentModal(); showToast('Datos actualizados.', 'success');
         };
-
         function getTodayStr() {
             const now = new Date();
             return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         }
-
         window.toggleAttendanceCamera = async () => { if (isScanning) stopAttendanceCamera(); else await startAttendanceCamera(); };
-
         async function startAttendanceCamera() {
             window.stopVoiceAttendance();
             const cls = getActiveClass();
@@ -1965,7 +1777,6 @@
                 isScanning = true; runScannerLoop();
             } catch (_) { showToast('Error al acceder a la cámara.', 'error'); }
         }
-
         function stopAttendanceCamera() {
             if (scanAnimationFrame) cancelAnimationFrame(scanAnimationFrame);
             if (attendanceStream) attendanceStream.getTracks().forEach(t => t.stop());
@@ -1973,13 +1784,11 @@
             document.getElementById('videoPlaceholder').classList.remove('hidden');
             document.getElementById('btnToggleCameraText').textContent = 'Iniciar Cámara';
         }
-
         window.switchCameraFacing = () => {
             attendanceFacingMode = attendanceFacingMode === 'environment' ? 'user' : 'environment';
             document.getElementById('facingLabel').textContent = attendanceFacingMode === 'environment' ? 'Trasera' : 'Frontal';
             if (isScanning) { stopAttendanceCamera(); startAttendanceCamera(); }
         };
-
         async function runScannerLoop() {
             const video = document.getElementById('attendanceVideo');
             const canvas = document.getElementById('attendanceCanvas');
@@ -2003,7 +1812,6 @@
             }
             if (isScanning) scanAnimationFrame = requestAnimationFrame(runScannerLoop);
         }
-
         async function markPresent(studentId, studentName) {
             const now = Date.now();
             if (lastDetectedCooldown[studentId] && now - lastDetectedCooldown[studentId] < 10000) return;
@@ -2022,7 +1830,6 @@
             banner.classList.remove('hidden');
             setTimeout(() => banner.classList.add('hidden'), 3500);
         }
-
         window.switchTab = (tabId) => {
             ['scanner', 'register', 'report'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
@@ -2032,7 +1839,6 @@
             document.getElementById(`tab-${tabId}`).className = 'tab-btn flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 text-[11px] sm:text-sm font-bold border-b-4 border-crimson-600 text-navy-900 bg-slate-50/80 min-w-0';
             if (tabId !== 'scanner') { stopAttendanceCamera(); window.stopVoiceAttendance(); }
         };
-
         function updateExportMonthSelector() {
             const selector = document.getElementById('exportMonthSelector');
             const cls = getActiveClass();
@@ -2053,7 +1859,6 @@
             }).join('');
             selector.value = sortedMonths.includes(prevValue) ? prevValue : currentMonthKey;
         }
-
         function renderAllUI() {
             const cls = getActiveClass();
             if (!cls) return;
@@ -2067,7 +1872,6 @@
             document.getElementById('statTotal').textContent = activeStudents.length;
             document.getElementById('statPresent').textContent = present;
             document.getElementById('statAbsent').textContent = activeStudents.length - present;
-
             document.getElementById('registeredStudentsList').innerHTML = cls.students.length === 0
                 ? '<p class="text-xs text-slate-400 text-center py-6">No hay alumnos registrados en este grado.</p>'
                 : cls.students.map((s, idx) => {
@@ -2110,119 +1914,40 @@
                     </div>
                 `;
                 }).join('');
-
             document.getElementById('attendanceTableBody').innerHTML = cls.students.map(s => {
                 const isActive = s.active !== false;
-                const g1Links = formatPhoneForLinks(s.guardianPhone);
-                const g2Links = formatPhoneForLinks(s.guardian2Phone);
-                const msgText = encodeURIComponent(`Buen día, le saludamos de INEB Centro Cajolá respecto al estudiante ${s.name} (Clave ${s.id}).`);
-
+                const isRowSelected = selectedReportStudentId === s.id;
+                const rowHighlightClass = isRowSelected ? 'row-selected-sky bg-sky-100' : '';
                 if (!isActive) {
-                    return `<tr class="bg-slate-50/80 text-slate-400">
-                        <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap align-top">${s.id}</td>
-                        <td class="py-2.5 px-2 sm:px-4 align-top"><button type="button" onclick="toggleReportStudentDetails('${s.id}')" class="flex items-center gap-2 min-w-[100px] text-left hover:underline cursor-pointer"><img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0 grayscale"><span class="leading-tight line-through">${s.name}</span></button></td>
-                        <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap align-top">--:--</td>
-                        <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap align-top"><span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-amber-100 text-amber-800">DESACTIVADO</span></td>
-                        <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap align-top"><span class="text-[10px] font-semibold text-slate-400">Retirado</span></td>
-                    </tr>
-                    <tr id="reportDetailsRow_${s.id}" class="hidden bg-slate-50/95">
-                        <td colspan="5" class="px-3 py-2.5 border-t border-slate-200">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-                                <div class="space-y-1 min-w-0">
-                                    <p class="text-slate-700"><strong class="text-navy-900">Encargado 1:</strong> ${(s.guardianName || '').trim() || 'No registrado'} ${s.guardianPhone ? `(<span class="font-mono">${s.guardianPhone}</span>)` : ''}</p>
-                                    <p class="text-slate-700"><strong class="text-navy-900">Encargado 2:</strong> ${(s.guardian2Name || '').trim() || 'No registrado'} ${s.guardian2Phone ? `(<span class="font-mono">${s.guardian2Phone}</span>)` : ''}</p>
-                                    <p class="text-slate-600"><strong class="text-crimson-600">Salud:</strong> ${(s.healthCondition || '').trim() || 'Ninguna'} • <strong class="text-navy-900">Med.:</strong> ${(s.healthMedication || '').trim() || 'Ninguno'}</p>
-                                </div>
-                                <div class="relative shrink-0 self-start sm:self-center">
-                                    <button type="button" onclick="toggleReportCallGroup('${s.id}', event)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-white font-bold text-[11px] shadow-xs">
-                                        <i data-lucide="phone" class="w-3.5 h-3.5 text-emerald-400"></i>
-                                        <span>Contactar</span>
-                                        <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-                                    </button>
-                                    <div id="reportCallGroup_${s.id}" class="report-call-group hidden absolute right-0 sm:right-0 left-0 sm:left-auto mt-1 w-56 bg-white rounded-xl shadow-xl border border-slate-200 p-1.5 z-30 space-y-1 text-[11px]">
-                                        ${g1Links.telHref ? `
-                                        <div class="px-2 py-1 rounded-lg bg-slate-50 flex items-center justify-between gap-1">
-                                            <span class="font-bold text-navy-900 truncate">Encargado 1</span>
-                                            <div class="flex items-center gap-1 shrink-0">
-                                                <a href="${g1Links.telHref}" class="px-2 py-1 rounded bg-navy-900 text-white font-bold">Llamar</a>
-                                                <a href="${g1Links.waHref}?text=${msgText}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">WA</a>
-                                            </div>
-                                        </div>` : '<p class="px-2 py-1 text-slate-400">Encargado 1 sin teléfono</p>'}
-                                        ${g2Links.telHref ? `
-                                        <div class="px-2 py-1 rounded-lg bg-slate-50 flex items-center justify-between gap-1">
-                                            <span class="font-bold text-navy-900 truncate">Encargado 2</span>
-                                            <div class="flex items-center gap-1 shrink-0">
-                                                <a href="${g2Links.telHref}" class="px-2 py-1 rounded bg-navy-900 text-white font-bold">Llamar</a>
-                                                <a href="${g2Links.waHref}?text=${msgText}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">WA</a>
-                                            </div>
-                                        </div>` : '<p class="px-2 py-1 text-slate-400">Encargado 2 sin teléfono</p>'}
-                                        <a href="tel:46113714" class="w-full px-2 py-1.5 rounded-lg bg-crimson-600 hover:bg-crimson-700 text-white font-bold flex items-center justify-center gap-1">
-                                            <i data-lucide="siren" class="w-3.5 h-3.5"></i> Emergencia (46113714)
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
+                    return `<tr onclick="selectReportStudentRow('${s.id}')" class="cursor-pointer transition-colors ${isRowSelected ? rowHighlightClass : 'bg-slate-50/80'} text-slate-400">
+                        <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap align-middle">${s.id}</td>
+                        <td class="py-2.5 px-2 sm:px-4 align-middle"><div class="flex items-center gap-2 min-w-[100px]"><img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0 grayscale"><span class="leading-tight line-through">${s.name}</span></div></td>
+                        <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap align-middle">--:--</td>
+                        <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap align-middle"><span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-amber-100 text-amber-800">DESACTIVADO</span></td>
+                        <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap align-middle"><span class="text-[10px] font-semibold text-slate-400">Retirado</span></td>
                     </tr>`;
                 }
                 const rec = todayRecords[s.id] || { status: 'INASISTENTE', time: '--:--' };
-                const isPresent = rec.status === 'ASISTENTE';
-                return `<tr>
-                    <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap align-top">${s.id}</td>
-                    <td class="py-2.5 px-2 sm:px-4 align-top">
-                        <button type="button" onclick="toggleReportStudentDetails('${s.id}')" class="flex items-center gap-2 min-w-[100px] text-left hover:underline cursor-pointer group">
+                const statusBadgeClass = rec.status === 'ASISTENTE'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : (rec.status === 'PERMISO' ? 'bg-sky-200 text-sky-900' : 'bg-red-100 text-crimson-700');
+                const statusLabel = rec.status === 'PERMISO' ? 'PERMISO (P)' : rec.status;
+                return `<tr onclick="selectReportStudentRow('${s.id}')" class="cursor-pointer transition-colors ${rowHighlightClass}">
+                    <td class="py-2.5 px-2 sm:px-4 font-bold whitespace-nowrap align-middle">${s.id}</td>
+                    <td class="py-2.5 px-2 sm:px-4 align-middle">
+                        <div class="flex items-center gap-2 min-w-[100px]">
                             <img src="${s.photo}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shrink-0">
-                            <span class="leading-tight font-semibold text-navy-900 group-hover:text-crimson-600">${s.name}</span>
-                        </button>
-                    </td>
-                    <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap align-top">${rec.time}</td>
-                    <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap align-top"><span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold ${isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-crimson-700'}">${rec.status}</span></td>
-                    <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap align-top"><button type="button" onclick="toggleManualStatus('${s.id}')" class="px-2 py-1 rounded-lg bg-navy-900 text-white text-[11px] sm:text-xs font-bold">Cambiar</button></td>
-                </tr>
-                <tr id="reportDetailsRow_${s.id}" class="hidden bg-slate-50/95">
-                    <td colspan="5" class="px-3 py-2.5 border-t border-slate-200">
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-                            <div class="space-y-1 min-w-0">
-                                <p class="text-slate-700"><strong class="text-navy-900">Encargado 1:</strong> ${(s.guardianName || '').trim() || 'No registrado'} ${s.guardianPhone ? `(<span class="font-mono">${s.guardianPhone}</span>)` : ''}</p>
-                                <p class="text-slate-700"><strong class="text-navy-900">Encargado 2:</strong> ${(s.guardian2Name || '').trim() || 'No registrado'} ${s.guardian2Phone ? `(<span class="font-mono">${s.guardian2Phone}</span>)` : ''}</p>
-                                <p class="text-slate-600"><strong class="text-crimson-600">Salud:</strong> ${(s.healthCondition || '').trim() || 'Ninguna'} • <strong class="text-navy-900">Med.:</strong> ${(s.healthMedication || '').trim() || 'Ninguno'}</p>
-                            </div>
-                            <div class="relative shrink-0 self-start sm:self-center">
-                                <button type="button" onclick="toggleReportCallGroup('${s.id}', event)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-white font-bold text-[11px] shadow-xs">
-                                    <i data-lucide="phone" class="w-3.5 h-3.5 text-emerald-400"></i>
-                                    <span>Contactar</span>
-                                    <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-                                </button>
-                                <div id="reportCallGroup_${s.id}" class="report-call-group hidden absolute right-0 sm:right-0 left-0 sm:left-auto mt-1 w-56 bg-white rounded-xl shadow-xl border border-slate-200 p-1.5 z-30 space-y-1 text-[11px]">
-                                    ${g1Links.telHref ? `
-                                    <div class="px-2 py-1 rounded-lg bg-slate-50 flex items-center justify-between gap-1">
-                                        <span class="font-bold text-navy-900 truncate">Encargado 1</span>
-                                        <div class="flex items-center gap-1 shrink-0">
-                                            <a href="${g1Links.telHref}" class="px-2 py-1 rounded bg-navy-900 text-white font-bold">Llamar</a>
-                                            <a href="${g1Links.waHref}?text=${msgText}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">WA</a>
-                                        </div>
-                                    </div>` : '<p class="px-2 py-1 text-slate-400">Encargado 1 sin teléfono</p>'}
-                                    ${g2Links.telHref ? `
-                                    <div class="px-2 py-1 rounded-lg bg-slate-50 flex items-center justify-between gap-1">
-                                        <span class="font-bold text-navy-900 truncate">Encargado 2</span>
-                                        <div class="flex items-center gap-1 shrink-0">
-                                            <a href="${g2Links.telHref}" class="px-2 py-1 rounded bg-navy-900 text-white font-bold">Llamar</a>
-                                            <a href="${g2Links.waHref}?text=${msgText}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">WA</a>
-                                        </div>
-                                    </div>` : '<p class="px-2 py-1 text-slate-400">Encargado 2 sin teléfono</p>'}
-                                    <a href="tel:46113714" class="w-full px-2 py-1.5 rounded-lg bg-crimson-600 hover:bg-crimson-700 text-white font-bold flex items-center justify-center gap-1">
-                                        <i data-lucide="siren" class="w-3.5 h-3.5"></i> Emergencia (46113714)
-                                    </a>
-                                </div>
-                            </div>
+                            <span class="leading-tight font-semibold text-navy-900">${s.name}</span>
                         </div>
                     </td>
+                    <td class="py-2.5 px-2 sm:px-4 font-mono text-[11px] sm:text-xs whitespace-nowrap align-middle">${rec.time}</td>
+                    <td class="py-2.5 px-2 sm:px-4 whitespace-nowrap align-middle"><span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold ${statusBadgeClass}">${statusLabel}</span></td>
+                    <td class="py-2.5 px-2 sm:px-4 text-right whitespace-nowrap align-middle"><button type="button" onclick="event.stopPropagation(); toggleManualStatus('${s.id}')" class="px-2 py-1 rounded-lg bg-navy-900 text-white text-[11px] sm:text-xs font-bold">Cambiar</button></td>
                 </tr>`;
             }).join('');
             updateExportMonthSelector();
             lucide.createIcons();
         }
-
         window.deleteStudent = async (studentId) => {
             const cls = getActiveClass();
             if (!cls || !isCurrentUserGuide(cls)) return;
@@ -2231,25 +1956,30 @@
             rebuildFaceMatcher(); renderClassSelector();
             if (!(await deleteSingleStudentFromCloud(cls.id, studentId))) { cls.students = prev; rebuildFaceMatcher(); renderClassSelector(); }
         };
-
         window.toggleManualStatus = async (studentId) => {
             const cls = getActiveClass();
             if (!cls) return;
+            selectedReportStudentId = studentId;
             const classAttendance = getClassAttendance(cls.id);
             const today = getTodayStr();
             if (!classAttendance[today]) classAttendance[today] = {};
-            if (classAttendance[today][studentId]?.status === 'ASISTENTE') classAttendance[today][studentId] = { status: 'INASISTENTE', time: '--:--' };
-            else classAttendance[today][studentId] = { status: 'ASISTENTE', time: new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }) };
+            const currentStatus = classAttendance[today][studentId]?.status || 'INASISTENTE';
+            const timeStr = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+            if (currentStatus === 'INASISTENTE') {
+                classAttendance[today][studentId] = { status: 'ASISTENTE', time: timeStr };
+            } else if (currentStatus === 'ASISTENTE') {
+                classAttendance[today][studentId] = { status: 'PERMISO', time: timeStr };
+            } else {
+                classAttendance[today][studentId] = { status: 'INASISTENTE', time: '--:--' };
+            }
             renderAllUI(); await saveMyPrivateAttendanceToCloud();
         };
-
         window.resetTodayAttendance = async () => {
             const cls = getActiveClass();
             if (!cls) return;
             getClassAttendance(cls.id)[getTodayStr()] = {};
             renderAllUI(); await saveMyPrivateAttendanceToCloud(); showToast('Asistencia del día reiniciada.', 'success');
         };
-
         function getDayAttendanceTime(dayRecords) {
             if (!dayRecords || typeof dayRecords !== 'object') return '';
             for (const studentId of Object.keys(dayRecords)) {
@@ -2257,7 +1987,6 @@
             }
             return '';
         }
-
         window.exportToExcel = async () => {
             const cls = getActiveClass();
             if (!cls) return;
@@ -2272,18 +2001,14 @@
             const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
             const currentTimeStr = now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
             const teacherName = document.getElementById('currentTeacherName')?.textContent?.trim() || (currentUser && (currentUser.displayName || currentUser.email)) || 'Docente';
-
             const workbook = new ExcelJS.Workbook();
             const sheet = workbook.addWorksheet(`Asistencia_${monthName}`);
             sheet.pageSetup = { orientation: 'landscape', paperSize: 1, fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
-
             const columns = [{ width: 10 }, { width: 32 }];
             for (let d = 1; d <= daysInMonth; d++) columns.push({ width: 6.2 });
             sheet.columns = columns;
-
             const totalCols = 2 + daysInMonth;
             const lastColLetter = sheet.getColumn(totalCols).letter;
-
             for (const fileName of ['encabezado1.png']) {
                 try {
                     const response = await fetch(fileName);
@@ -2310,7 +2035,6 @@
                     }
                 } catch (_) {}
             }
-
             sheet.mergeCells(`A5:${lastColLetter}5`);
             const titleCell = sheet.getCell('A5');
             titleCell.value = 'ASISTENCIA';
@@ -2318,14 +2042,12 @@
             titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
             titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A1E40' } };
             sheet.getRow(5).height = 26;
-
             const c1End = Math.max(2, Math.floor(totalCols * 0.28));
             const c2Start = c1End + 1; const c2End = Math.max(c2Start, Math.floor(totalCols * 0.50));
             const c3Start = c2End + 1; const c3End = Math.max(c3Start, Math.floor(totalCols * 0.68));
             const c4Start = c3End + 1; const c4End = Math.max(c4Start, Math.floor(totalCols * 0.85));
             const c5Start = Math.min(totalCols, c4End + 1);
             const colLetter = (idx) => sheet.getColumn(idx).letter;
-
             if (c1End > 1) sheet.mergeCells(`A6:${colLetter(c1End)}6`);
             sheet.getCell('A6').value = `DOCENTE: ${teacherName}`;
             if (c2End > c2Start) sheet.mergeCells(`${colLetter(c2Start)}6:${colLetter(c2End)}6`);
@@ -2336,19 +2058,16 @@
             sheet.getCell(6, c4Start).value = `MES: ${monthName} ${year}`;
             if (totalCols > c5Start) sheet.mergeCells(`${colLetter(c5Start)}6:${lastColLetter}6`);
             sheet.getCell(6, c5Start).value = `HORA: ${currentTimeStr}`;
-
             sheet.getRow(6).height = 22;
             for (let c = 1; c <= totalCols; c++) {
                 const cell = sheet.getCell(6, c);
                 cell.font = { bold: true, size: 9 }; cell.alignment = { vertical: 'middle' };
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
             }
-
             const attendanceByDate = getClassAttendance(cls.id);
             const todayStr = getTodayStr();
             const dayTimes = [];
             for (let d = 1; d <= daysInMonth; d++) dayTimes.push(getDayAttendanceTime(attendanceByDate[`${monthPrefix}-${String(d).padStart(2, '0')}`]));
-
             const timeRow = sheet.getRow(7);
             timeRow.values = ['', 'Hora', ...dayTimes];
             timeRow.height = 16;
@@ -2358,7 +2077,6 @@
                 cell.alignment = { horizontal: colNumber === 2 ? 'left' : 'center', vertical: 'middle' };
                 cell.border = { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } };
             });
-
             const dayLabels = [];
             for (let d = 1; d <= daysInMonth; d++) dayLabels.push(String(d).padStart(2, '0'));
             const headerRow = sheet.getRow(8);
@@ -2370,7 +2088,6 @@
                 cell.alignment = { horizontal: colNumber === 2 ? 'left' : 'center', vertical: 'middle' };
                 cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
             });
-
             cls.students.forEach((s) => {
                 const isActive = s.active !== false;
                 const rowValues = [s.id, isActive ? s.name : `${s.name} (Retirado)`];
@@ -2378,6 +2095,7 @@
                     const fullDate = `${monthPrefix}-${String(d).padStart(2, '0')}`;
                     const dayRecord = attendanceByDate[fullDate]?.[s.id];
                     if (dayRecord?.status === 'ASISTENTE') rowValues.push('A');
+                    else if (dayRecord?.status === 'PERMISO') rowValues.push('P');
                     else if (!isActive) rowValues.push('-');
                     else if (fullDate <= todayStr && attendanceByDate[fullDate]) rowValues.push('I');
                     else rowValues.push('');
@@ -2388,18 +2106,17 @@
                     cell.font = { size: 9 };
                     cell.alignment = { horizontal: colNumber === 2 ? 'left' : 'center', vertical: 'middle' };
                     if (cell.value === 'A') cell.font = { size: 9, bold: true, color: { argb: 'FF065F46' } };
+                    else if (cell.value === 'P') cell.font = { size: 9, bold: true, color: { argb: 'FF0369A1' } };
                     else if (cell.value === 'I') cell.font = { size: 9, bold: true, color: { argb: 'FF991B1B' } };
                     cell.border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
                 });
             });
-
             const outBuffer = await workbook.xlsx.writeBuffer();
             const url = URL.createObjectURL(new Blob([outBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
             const a = document.createElement('a');
             a.href = url; a.download = `Asistencia_${cls.grade}_${cls.section}_${monthName}_${year}.xlsx`;
             document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
         };
-
         function showToast(msg, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -2408,7 +2125,6 @@
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 3500);
         }
-
         // Instalación PWA desde Chrome y actualización automática sin intervención del usuario
         let deferredInstallPrompt = null;
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -2420,7 +2136,6 @@
                 btnInstall.classList.add('inline-flex');
             }
         });
-
         window.addEventListener('appinstalled', () => {
             deferredInstallPrompt = null;
             const btnInstall = document.getElementById('btnInstallApp');
@@ -2430,7 +2145,6 @@
             }
             showToast('¡Aplicación instalada en tu dispositivo!', 'success');
         });
-
         window.triggerPwaInstall = async () => {
             if (!deferredInstallPrompt) {
                 showToast('Abre el menú de Chrome (⋮) y selecciona "Instalar aplicación".', 'success');
@@ -2440,7 +2154,6 @@
             await deferredInstallPrompt.userChoice;
             deferredInstallPrompt = null;
         };
-
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 try {
@@ -2450,7 +2163,6 @@
                     document.addEventListener('visibilitychange', () => {
                         if (document.visibilityState === 'visible') reg.update().catch(() => {});
                     });
-
                     let refreshing = false;
                     navigator.serviceWorker.addEventListener('controllerchange', () => {
                         if (!refreshing) {
@@ -2463,7 +2175,6 @@
                 }
             });
         }
-
         lucide.createIcons();
     </script>
     <script>
